@@ -16,7 +16,7 @@ valid_charcode = re.compile(r"[AB][A-L][A-Z]{6}(?:[01ABCDEU][0-9A-Z])*")
 
 
 def handle_exit():
-    logging.error("Attempting to shutdown gracefully...")
+    logging.info("Attempting to shutdown gracefully...")
     client.loop.run_until_complete(client.logout())
     for t in asyncio.Task.all_tasks(loop=client.loop):
         if t.done():
@@ -71,6 +71,7 @@ while True:
         break
     except Exception as e:
         logging.exception("Caught unexpected error, will try to restart in 60 seconds.", exc_info=True)
+        handle_exit()
         time.sleep(60)
     logging.info("Restarting...")
     client = discord.Client(loop=client.loop)
