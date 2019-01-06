@@ -4,8 +4,6 @@ import logging
 
 logging.basicConfig(filename='bot.log', level=logging.INFO)
 
-stat_names = ('Strength', 'Agility', 'Toughness', 'Intelligence', 'Willpower', 'Ego')
-
 
 def read_gamedata() -> dict:
     """
@@ -24,19 +22,18 @@ def read_gamedata() -> dict:
     for genotype in genotypes:
         genotype_codes[genotype.attrib['Code'].upper()] = genotype.attrib['Name']
 
-
     skills = et.parse(xmlskills).getroot()
     skill_names = {}  # read these before subtypes because subtypes reference skills
     for skill in skills:
-        skill_names[skill.attrib['Class']] = skill.attrib['Name']
+        skill_names[skill.attrib['Class']] = '(' + skill.attrib['Name'] + ")"
         for power in skill:
             skill_names[power.attrib['Class']] = power.attrib['Name']
 
+    stat_names = ('Strength', 'Agility', 'Toughness', 'Intelligence', 'Willpower', 'Ego')
     class_bonuses = {}
     class_skills = {}
-
-    subtypes = et.parse(xmlsubtypes).getroot()
     caste_codes = {}
+    subtypes = et.parse(xmlsubtypes).getroot()
     categories = subtypes[0]
     for category in categories:
         for caste in category:
@@ -108,66 +105,83 @@ def read_gamedata() -> dict:
 def decode(charcode: str, gamecodes: dict) -> str:
     """
     Take a Qud character build code of at least 8 characters and return a text description.
-
-    1st character is A for true kin, B for mutated human
-    2nd character is subtype selection from list (A-L)
-    3rd-8th characters are STR, AGI, TOU, INT, WIL, EGO; E=10, G=12, V=27
-    9th-10th characters are AA for first mutation, AB for second, and so on; last mutation (Socially Repugnant) is EF - first character is category, second is mutation in category
-        - these are chained together, e.g. BJQMMOEIBNBOBPBRDPED is mutations BN, BO, BP, BR, DP, ED
-    9th-10th characters are 00 for no implants
-    9th-10th characters can be U2 or U3 for multiple levels of UU!
     """
 
     assert(len(charcode) >= 8)  # in Discord bot, this is caught by the regex
     try:
+        # 1st character: A for true kin, B for mutated human
         genotype = gamecodes['genotype_codes'][charcode[0]]
+
+        # 2nd character is class selection from list (A-L)
         subtypecode = charcode[1]
         if genotype == "True Kin":
-            subtype = gamecodes['caste_codes'][subtypecode]
+            class_ = gamecodes['caste_codes'][subtypecode]
+            class_called = "Caste:"
         if genotype == "Mutated Human":
-            subtype = gamecodes['calling_codes'][subtypecode]
+            class_ = gamecodes['calling_codes'][subtypecode]
+            class_called = "Calling:"
+
+        # 3rd-8th characters are STR AGI TOU INT WIL EGO
+        # such that A=6, ..., Z=31
         attrs = []
-        for _ in charcode[2:8]:  # 3rd through 8th place characters are attributes
-            attrs.append(ord(_) - 59)  # A=6, ..., Z=31
-        class_attrs = gamecodes['class_bonuses'][subtype]
+        for _ in charcode[2:8]:
+            attrs.append(ord(_) - 59)
+        class_attrs = gamecodes['class_bonuses'][class_]
         charcode = charcode[8:]  # anything after this is mutations/implants, two chars each
-        extensions = []  # list of implants or mutations
+
+        # after 8th character, characters come in pairs to give mutations or implants
+        # for mutations, first character is category (A-E), second character is mutation from that category (A-?)
+        # AA for first mutation, AB for second; last mutation (Socially Repugnant) is EF
+        # Exception: UU: unstable genotype - character can be U2 or U3 for multiple levels of UU!
+        # these are chained together, e.g. BJQMMOEIBNBOBPBRDPED is mutations BN, BO, BP, BR, DP, ED
+        # if the build is implant-capable instead of mutated, the character pairs are 00 for no implants
+        # or 01-16 otherwise; implant 16 is determined by caste (true kin class).
+
+        extensions = []  # implants or mutations
         if genotype == "True Kin":
-            extname = "Implants:  "
+            extname = "Implants:  "  # what we will call them
         if genotype == "Mutated Human":
             extname = "Mutations: "
         while len(charcode) > 0:
             if genotype == "True Kin":
                 if charcode[:2] == '16':  # the 16th implant changes depending on arcology of origin
                     if subtypecode in 'ABCD':
-                        extensions.append('nocturnal apex')
+                        extensions.append(gamecodes['implant_codes']['16'][0])
                     if subtypecode in 'EFGH':
-                        extensions.append('cherubic visage')
+                        extensions.append(gamecodes['implant_codes']['16'][1])
                     if subtypecode in 'IJKL':
-                        extensions.append('air current microsensor')
+                        extensions.append(gamecodes['implant_codes']['16'][2])
+                elif charcode[:2] == '00':  # player chose no implant
+                    extensions.append('none')
                 else:
                     extensions.append(gamecodes['implant_codes'][charcode[:2]])
             if genotype == "Mutated Human":
                 extensions.append(gamecodes['mutation_codes'][charcode[:2]])
             charcode = charcode[2:]
+
+        # skills are not in the build code, they're determined solely by class
+        skills = [skill for skill in gamecodes['class_skills'][class_]]
+
+        # now we build the printable character sheet
         charsheet = f"""Genotype:  {genotype}
-Subtype:   {subtype}"""
+{class_called:11}{class_}"""
         attributes = ['Strength:', 'Agility:', 'Toughness:', 'Intelligence:', 'Willpower:', 'Ego:']
         attr_strings = []
         for attr_text, attr, bonus in zip(attributes, attrs, class_attrs):
             if bonus == 0:
                 attr_strings.append(f'{attr_text:14}{attr:2}')
             elif bonus > 0:
-                attr_strings.append(f'{attr_text:14}{attr - bonus:2} (+{bonus})')
+                attr_strings.append(f'{attr_text:14}{attr - bonus:2}+{bonus}')
             elif bonus < 0:
-                attr_strings.append(f'{attr_text:14}{attr - bonus:2} ({bonus})')
+                attr_strings.append(f'{attr_text:14}{attr - bonus:2}{bonus}')
         charsheet += f"""
 {attr_strings[0]:21}    {attr_strings[3]}
 {attr_strings[1]:21}    {attr_strings[4]}
 {attr_strings[2]:21}    {attr_strings[5]}"""
         charsheet += f"\n{extname}{', '.join(extensions)}"
+        charsheet += f"\nSkills:    {', '.join(skills)}"
         return charsheet
-    except:
+    except:  # something went wrong, most likely an invalid character code
         logging.exception(f"Exception while decoding character code {charcode}")
         return False
 
