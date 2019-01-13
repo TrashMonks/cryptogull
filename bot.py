@@ -4,9 +4,13 @@ import re
 import qud_decode
 import asyncio
 import time
+import yaml
 
 
 logging.basicConfig(filename='bot.log', level=logging.INFO)
+
+with open("config.yml") as f:
+    config = yaml.load(f)
 
 gamecodes = qud_decode.read_gamedata()
 with open('discordtoken.sec') as f:
@@ -41,8 +45,8 @@ while True:
 
 
     @client.event
-    async def on_message(message):
-        if message.channel.name not in ('character-builds', 'testing'):
+    async def on_message(message: discord.message.Message):
+        if message.channel.id not in config['channels']:
             return
 
         if message.author == client.user:
@@ -56,7 +60,7 @@ while True:
             decode = qud_decode.decode(code, gamecodes)
             if decode:
                 response = "```\n" + decode + "\n```"
-                await client.send_message(message.channel, response)
+                await message.channel.send(response)
                 logging.info(f'Replied with {response}')
             else:
                 logging.error(f"Character code {code} did not decode successfully.")
