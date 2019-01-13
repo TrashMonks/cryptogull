@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as et
 import pprint
 import logging
+from typing import Union
 
 logging.basicConfig(filename='bot.log', level=logging.INFO)
 
@@ -102,7 +103,7 @@ def read_gamedata() -> dict:
             'class_skills': class_skills}
 
 
-def decode(charcode: str, gamecodes: dict) -> str:
+def decode(charcode: str, gamecodes: dict) -> Union[str, None]:
     """
     Take a Qud character build code of at least 8 characters and return a text description.
     """
@@ -117,9 +118,11 @@ def decode(charcode: str, gamecodes: dict) -> str:
         if genotype == "True Kin":
             class_ = gamecodes['caste_codes'][subtypecode]
             class_called = "Caste:"
-        if genotype == "Mutated Human":
+        elif genotype == "Mutated Human":
             class_ = gamecodes['calling_codes'][subtypecode]
             class_called = "Calling:"
+        else:
+            raise ValueError("Unexpected genotype code")
 
         # 3rd-8th characters are STR AGI TOU INT WIL EGO
         # such that A=6, ..., Z=31
@@ -140,7 +143,7 @@ def decode(charcode: str, gamecodes: dict) -> str:
         extensions = []  # implants or mutations
         if genotype == "True Kin":
             extname = "Implants:  "  # what we will call them
-        if genotype == "Mutated Human":
+        else:
             extname = "Mutations: "
         while len(charcode) > 0:
             if genotype == "True Kin":
@@ -183,12 +186,12 @@ def decode(charcode: str, gamecodes: dict) -> str:
         return charsheet
     except:  # something went wrong, most likely an invalid character code
         logging.exception(f"Exception while decoding character code {charcode}")
-        return False
+        return None
 
 
 if __name__ == '__main__':
-    gamecodes = read_gamedata()
-    pprint.pprint(gamecodes)
+    gamedata = read_gamedata()
+    pprint.pprint(gamedata)
     while True:
         code = input("Enter code: ")
-        print(decode(code, gamecodes))
+        print(decode(code, gamedata))

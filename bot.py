@@ -42,7 +42,7 @@ while True:
 
     @client.event
     async def on_message(message):
-        if message.channel.name not in ('character-builds', 'huff'):  # huff is my testing channel
+        if message.channel.name not in ('character-builds', 'testing'):
             return
 
         if message.author == client.user:
