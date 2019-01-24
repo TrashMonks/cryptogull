@@ -11,3 +11,6 @@ pyyaml = "*"
 
 [requires]
 python_version = "3.7"
+
+[scripts]
+start = "python3 ./bot.py"
