@@ -59,7 +59,7 @@ while True:
             logging.info(f'<{message.author}> {message.content}')
             decode = qud_decode.decode(code, gamecodes)
             if decode:
-                response = "```\n" + decode + "\n```"
+                response = "```less\n" + decode + "\n```"
                 await message.channel.send(response)
                 logging.info(f'Replied with {response}')
             else:
