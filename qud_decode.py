@@ -2,6 +2,7 @@ import xml.etree.ElementTree as et
 import pprint
 import logging
 from typing import Union
+from operator import add as operator_add
 
 logging.basicConfig(filename='bot.log', level=logging.INFO)
 
@@ -80,27 +81,38 @@ def read_gamedata() -> dict:
         mutation_codes[f'U{i}'] = f'Unstable Genome ({i})'
 
     # these are not available from XML
-    implantcodes = {'01': 'dermal insulation',
-                    '04': 'optical bioscanner',
-                    '05': 'optical technoscanner',
-                    '06': 'night vision',
-                    '07': 'hyper-elastic ankle tendons',
-                    '08': 'parabolic muscular subroutine',
-                    '09': 'translucent skin',
-                    '11': 'stabilizer arm locks',
-                    '12': 'rapid release finger flexors',
-                    '13': 'carbide hand bones',
-                    '14': 'pentaceps',
-                    '15': 'inflatable axons',
-                    '16': ('nocturnal apex', 'cherubic visage', 'air current microsensor')}  # subtypes A-D, E-H, I-L
+    implant_codes = {'01': 'dermal insulation',
+                     '04': 'optical bioscanner',
+                     '05': 'optical technoscanner',
+                     '06': 'night vision',
+                     '07': 'hyper-elastic ankle tendons',
+                     '08': 'parabolic muscular subroutine',
+                     '09': 'translucent skin',
+                     '11': 'stabilizer arm locks',
+                     '12': 'rapid release finger flexors',
+                     '13': 'carbide hand bones',
+                     '14': 'pentaceps',
+                     '15': 'inflatable axons',
+                     '16': ('nocturnal apex', 'cherubic visage', 'air current microsensor'),
+                     }  # subtypes A-D, E-H, I-L
+
+    # these are not available from XML
+    mutation_bonuses = {'BE': [2, 0, 0, 0, 0, 0],   # Double-muscled
+                        'BK': [0, 0, -1, 0, 0, 0],  # Heightened Quickness
+                        'B2': [-1, 2, 0, 0, 0, 0],  # Triple-jointed
+                        'B4': [0, 0, 2, 0, 0, 0],   # Two-hearted
+                        'CD': [0, 0, 0, 0, 0, -1],  # Beak (D)
+                        }
 
     return {'genotype_codes': genotype_codes,
             'caste_codes': caste_codes,
             'calling_codes': calling_codes,
             'mutation_codes': mutation_codes,
-            'implant_codes': implantcodes,
             'class_bonuses': class_bonuses,
-            'class_skills': class_skills}
+            'class_skills': class_skills,
+            'implant_codes': implant_codes,
+            'mutation_bonuses': mutation_bonuses,
+            }
 
 
 def decode(charcode: str, gamecodes: dict) -> Union[str, None]:
@@ -123,13 +135,13 @@ def decode(charcode: str, gamecodes: dict) -> Union[str, None]:
             class_called = "Calling:"
         else:
             raise ValueError("Unexpected genotype code")
+        bonuses = gamecodes['class_bonuses'][class_]
 
         # 3rd-8th characters are STR AGI TOU INT WIL EGO
         # such that A=6, ..., Z=31
         attrs = []
         for _ in charcode[2:8]:
             attrs.append(ord(_) - 59)
-        class_attrs = gamecodes['class_bonuses'][class_]
         charcode = charcode[8:]  # anything after this is mutations/implants, two chars each
 
         # after 8th character, characters come in pairs to give mutations or implants
@@ -160,6 +172,8 @@ def decode(charcode: str, gamecodes: dict) -> Union[str, None]:
                     extensions.append(gamecodes['implant_codes'][charcode[:2]])
             if genotype == "Mutated Human":
                 extensions.append(gamecodes['mutation_codes'][charcode[:2]])
+                if charcode[:2] in gamecodes['mutation_bonuses']:
+                    bonuses = list(map(operator_add, bonuses, gamecodes['mutation_bonuses'][charcode[:2]]))
             charcode = charcode[2:]
 
         # skills are not in the build code, they're determined solely by class
@@ -170,7 +184,7 @@ def decode(charcode: str, gamecodes: dict) -> Union[str, None]:
 {class_called:11}{class_}"""
         attributes = ['Strength:', 'Agility:', 'Toughness:', 'Intelligence:', 'Willpower:', 'Ego:']
         attr_strings = []
-        for attr_text, attr, bonus in zip(attributes, attrs, class_attrs):
+        for attr_text, attr, bonus in zip(attributes, attrs, bonuses):
             if bonus == 0:
                 attr_strings.append(f'{attr_text:14}{attr:2}')
             elif bonus > 0:
