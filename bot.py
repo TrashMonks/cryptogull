@@ -1,26 +1,51 @@
-import discord
+import asyncio
+import datetime
 import logging
 import re
-import qud_decode
-import asyncio
 import time
 import yaml
+from pathlib import Path
 
+import discord
 
-logging.basicConfig(filename='bot.log', level=logging.INFO)
+import qud_decode
+
+LOGDIR = Path('logs')
 
 with open("config.yml") as f:
     config = yaml.load(f)
 
-gamecodes = qud_decode.read_gamedata()
 with open('discordtoken.sec') as f:
     token = f.read()
 client = discord.Client()
+gamecodes = qud_decode.read_gamedata()
 valid_charcode = re.compile(r"[AB][A-L][A-Z]{6}(?:[01ABCDEU][0-9A-Z])*")
 
 
+def setup_logger() -> logging.Logger:
+    """Create and return the master Logger object."""
+    LOGDIR.mkdir(exist_ok=True)
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
+    logfile = LOGDIR / f'{timestamp}.log'
+    logger = logging.getLogger(__name__)  # the actual logger instance
+    logger.setLevel(logging.DEBUG)  # capture all log levels
+    console_log = logging.StreamHandler()
+    console_log.setLevel(logging.DEBUG)  # log levels to be shown at the console
+    file_log = logging.FileHandler(logfile)
+    file_log.setLevel(logging.DEBUG)  # log levels to be written to file
+    formatter = logging.Formatter('{asctime} - {name} - {levelname} - {message}', style='{')
+    console_log.setFormatter(formatter)
+    file_log.setFormatter(formatter)
+    logger.addHandler(console_log)
+    logger.addHandler(file_log)
+    return logger
+
+
+log = setup_logger()
+
+
 def handle_exit():
-    logging.info("Attempting to shutdown gracefully...")
+    log.info("Attempting to shutdown gracefully...")
     client.loop.run_until_complete(client.logout())
     for t in asyncio.Task.all_tasks(loop=client.loop):
         if t.done():
@@ -41,8 +66,7 @@ def handle_exit():
 while True:
     @client.event
     async def on_ready():
-        logging.info(f'Logged in as {client.user}.')
-
+        log.info(f'Logged in as {client.user}.')
 
     @client.event
     async def on_message(message: discord.message.Message):
@@ -55,27 +79,27 @@ while True:
         match = valid_charcode.search(message.content)
         if match:
             code = match[0]
-            logging.info(f'Received a message with matching character build code:')
-            logging.info(f'<{message.author}> {message.content}')
+            log.info(f'Received a message with matching character build code:')
+            log.info(f'<{message.author}> {message.content}')
             decode = qud_decode.decode(code, gamecodes)
             if decode:
                 response = "```less\n" + decode + "\n```"
                 await message.channel.send(response)
-                logging.info(f'Replied with {response}')
+                log.info(f'Replied with {response}')
             else:
-                logging.error(f"Character code {code} did not decode successfully.")
+                log.error(f"Character code {code} did not decode successfully.")
 
     try:
         client.loop.run_until_complete(client.start(token))
     except KeyboardInterrupt:
-        logging.info("Shutting down...")
+        log.info("Shutting down...")
         handle_exit()
         client.loop.close()
-        logging.info("Shut down.")
+        log.info("Shut down.")
         break
-    except Exception as e:
-        logging.exception("Caught unexpected error, will try to restart in 60 seconds.", exc_info=True)
+    except Exception:  # noqa: E722
+        log.exception("Caught unexpected error, trying restart in 60 seconds.", exc_info=True)
         handle_exit()
         time.sleep(60)
-    logging.info("Restarting...")
+    log.info("Restarting...")
     client = discord.Client(loop=client.loop)

@@ -2,14 +2,14 @@ import xml.etree.ElementTree as et
 import pprint
 import logging
 from typing import Union
-from operator import add as operator_add
+from operator import add as add
 
 logging.basicConfig(filename='bot.log', level=logging.INFO)
 
 
 def read_gamedata() -> dict:
     """
-    Read valid character code snippets and assorted data from Qud XML files. Implant codes not available from XML.
+    Read character code snippets and assorted data from Qud XML files. Implant codes not in XML.
     """
 
     # These files need to be copied in from, e.g.,
@@ -43,7 +43,8 @@ def read_gamedata() -> dict:
             stat_bonuses = [0, 0, 0, 0, 0, 0]
             for element in caste:
                 if element.tag == 'stat' and (element.attrib['Name'] in stat_names):
-                    stat_bonuses[stat_names.index(element.attrib['Name'])] = int(element.attrib['Bonus'])
+                    bonus = int(element.attrib['Bonus'])
+                    stat_bonuses[stat_names.index(element.attrib['Name'])] = bonus
             class_bonuses[caste.attrib['Name']] = stat_bonuses
             if 'Skills' in caste.attrib:
                 skills = []
@@ -58,7 +59,8 @@ def read_gamedata() -> dict:
         stat_bonuses = [0, 0, 0, 0, 0, 0]
         for element in calling:
             if element.tag == 'stat' and (element.attrib['Name'] in stat_names):
-                stat_bonuses[stat_names.index(element.attrib['Name'])] = int(element.attrib['Bonus'])
+                bonus = int(element.attrib['Bonus'])
+                stat_bonuses[stat_names.index(element.attrib['Name'])] = bonus
         class_bonuses[calling.attrib['Name']] = stat_bonuses
         if 'Skills' in calling.attrib:
             skills = []
@@ -70,11 +72,11 @@ def read_gamedata() -> dict:
     mutations = et.parse(xmlmutations).getroot()
     mutation_codes = {}
     for category in mutations:
-            for mutation in category:
-                mutation_codes[mutation.attrib['Code'].upper()] = mutation.attrib['Name']
-                # mark defects with '(D)' as in game
-                if category.attrib['Name'] in ('PhysicalDefects', 'MentalDefects'):
-                    mutation_codes[mutation.attrib['Code'].upper()] += ' (D)'
+        for mutation in category:
+            mutation_codes[mutation.attrib['Code'].upper()] = mutation.attrib['Name']
+            # mark defects with '(D)' as in game
+            if category.attrib['Name'] in ('PhysicalDefects', 'MentalDefects'):
+                mutation_codes[mutation.attrib['Code'].upper()] += ' (D)'
     # some manual fixups
     mutation_codes.pop('UU')
     for i in range(1, 5):
@@ -145,12 +147,13 @@ def decode(charcode: str, gamecodes: dict) -> Union[str, None]:
         charcode = charcode[8:]  # anything after this is mutations/implants, two chars each
 
         # after 8th character, characters come in pairs to give mutations or implants
-        # for mutations, first character is category (A-E), second character is mutation from that category (A-?)
+        # for mutations, first character is category (A-E), second character is mutation from that
+        # category (A-?)
         # AA for first mutation, AB for second; last mutation (Socially Repugnant) is EF
         # Exception: UU: unstable genotype - character can be U2 or U3 for multiple levels of UU!
         # these are chained together, e.g. BJQMMOEIBNBOBPBRDPED is mutations BN, BO, BP, BR, DP, ED
-        # if the build is implant-capable instead of mutated, the character pairs are 00 for no implants
-        # or 01-16 otherwise; implant 16 is determined by caste (true kin class).
+        # if the build is implant-capable instead of mutated, the character pairs are 00 for no
+        # implantsor 01-16 otherwise; implant 16 is determined by caste (true kin class).
 
         extensions = []  # implants or mutations
         if genotype == "True Kin":
@@ -173,7 +176,7 @@ def decode(charcode: str, gamecodes: dict) -> Union[str, None]:
             if genotype == "Mutated Human":
                 extensions.append(gamecodes['mutation_codes'][charcode[:2]])
                 if charcode[:2] in gamecodes['mutation_bonuses']:
-                    bonuses = list(map(operator_add, bonuses, gamecodes['mutation_bonuses'][charcode[:2]]))
+                    bonuses = list(map(add, bonuses, gamecodes['mutation_bonuses'][charcode[:2]]))
             charcode = charcode[2:]
 
         # skills are not in the build code, they're determined solely by class

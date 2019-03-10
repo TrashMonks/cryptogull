@@ -4,6 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+flake8 = "*"
 
 [packages]
 discord-py = {extras = ["voice"],git = "https://github.com/Rapptz/discord.py",ref = "rewrite"}

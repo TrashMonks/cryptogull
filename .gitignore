@@ -1,0 +1,3 @@
+logs/
+.flake8
+discordtoken*
