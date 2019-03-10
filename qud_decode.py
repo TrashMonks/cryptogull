@@ -4,7 +4,7 @@ import logging
 from typing import Union
 from operator import add as add
 
-logging.basicConfig(filename='bot.log', level=logging.INFO)
+log = logging.getLogger(__name__)
 
 
 def read_gamedata() -> dict:
@@ -105,7 +105,7 @@ def read_gamedata() -> dict:
                         'B4': [0, 0, 2, 0, 0, 0],   # Two-hearted
                         'CD': [0, 0, 0, 0, 0, -1],  # Beak (D)
                         }
-
+    log.debug("Completed computing gamecodes.")
     return {'genotype_codes': genotype_codes,
             'caste_codes': caste_codes,
             'calling_codes': calling_codes,
@@ -201,8 +201,8 @@ def decode(charcode: str, gamecodes: dict) -> Union[str, None]:
         charsheet += f"\n{extname}{', '.join(extensions)}"
         charsheet += f"\nSkills:    {', '.join(skills)}"
         return charsheet
-    except:  # something went wrong, most likely an invalid character code
-        logging.exception(f"Exception while decoding character code {charcode}")
+    except:  # something went wrong, most likely an invalid character code # noqa: E722
+        log.exception(f"Exception while decoding character code {charcode}.")
         return None
 
 
