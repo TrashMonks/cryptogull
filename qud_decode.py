@@ -70,50 +70,51 @@ def read_gamedata() -> dict:
             class_skills[calling.attrib['Name']] = skills
 
     mutations = et.parse(xmlmutations).getroot()
-    mutation_codes = {}
+    mod_codes = {}
     for category in mutations:
         for mutation in category:
-            mutation_codes[mutation.attrib['Code'].upper()] = mutation.attrib['Name']
+            mod_codes[mutation.attrib['Code'].upper()] = mutation.attrib['Name']
             # mark defects with '(D)' as in game
             if category.attrib['Name'] in ('PhysicalDefects', 'MentalDefects'):
-                mutation_codes[mutation.attrib['Code'].upper()] += ' (D)'
+                mod_codes[mutation.attrib['Code'].upper()] += ' (D)'
     # some manual fixups
-    mutation_codes.pop('UU')
+    mod_codes.pop('UU')
     for i in range(1, 5):
-        mutation_codes[f'U{i}'] = f'Unstable Genome ({i})'
+        mod_codes[f'U{i}'] = f'Unstable Genome ({i})'
 
     # these are not available from XML
-    implant_codes = {'01': 'dermal insulation',
-                     '04': 'optical bioscanner',
-                     '05': 'optical technoscanner',
-                     '06': 'night vision',
-                     '07': 'hyper-elastic ankle tendons',
-                     '08': 'parabolic muscular subroutine',
-                     '09': 'translucent skin',
-                     '11': 'stabilizer arm locks',
-                     '12': 'rapid release finger flexors',
-                     '13': 'carbide hand bones',
-                     '14': 'pentaceps',
-                     '15': 'inflatable axons',
-                     '16': ('nocturnal apex', 'cherubic visage', 'air current microsensor'),
-                     }  # subtypes A-D, E-H, I-L
+    mod_codes.update({'00': 'none',
+                      '01': 'dermal insulation',
+                      '04': 'optical bioscanner',
+                      '05': 'optical technoscanner',
+                      '06': 'night vision',
+                      '07': 'hyper-elastic ankle tendons',
+                      '08': 'parabolic muscular subroutine',
+                      '09': 'translucent skin',
+                      '11': 'stabilizer arm locks',
+                      '12': 'rapid release finger flexors',
+                      '13': 'carbide hand bones',
+                      '14': 'pentaceps',
+                      '15': 'inflatable axons',
+                      '16': ('nocturnal apex', 'cherubic visage', 'air current microsensor'),
+                      })  # subtypes A-D, E-H, I-L
 
     # these are not available from XML
-    mutation_bonuses = {'BE': [2, 0, 0, 0, 0, 0],   # Double-muscled
-                        'BK': [0, 0, -1, 0, 0, 0],  # Heightened Quickness
-                        'B2': [-1, 2, 0, 0, 0, 0],  # Triple-jointed
-                        'B4': [0, 0, 2, 0, 0, 0],   # Two-hearted
-                        'CD': [0, 0, 0, 0, 0, -1],  # Beak (D)
-                        }
+    mod_bonuses = {'BE': [2, 0, 0, 0, 0, 0],   # Double-muscled
+                   'BK': [0, 0, -1, 0, 0, 0],  # Heightened Quickness
+                   'B2': [-1, 2, 0, 0, 0, 0],  # Triple-jointed
+                   'B4': [0, 0, 2, 0, 0, 0],   # Two-hearted
+                   'CD': [0, 0, 0, 0, 0, -1],  # Beak (D)
+                   '00': [0, 0, 1, 0, 0, 0],   # True Kin but no implant
+                   }
     log.debug("Completed computing gamecodes.")
     return {'genotype_codes': genotype_codes,
             'caste_codes': caste_codes,
             'calling_codes': calling_codes,
-            'mutation_codes': mutation_codes,
+            'mod_codes': mod_codes,
             'class_bonuses': class_bonuses,
             'class_skills': class_skills,
-            'implant_codes': implant_codes,
-            'mutation_bonuses': mutation_bonuses,
+            'mod_bonuses': mod_bonuses,
             }
 
 
@@ -152,8 +153,8 @@ def decode(charcode: str, gamecodes: dict) -> Union[str, None]:
         # AA for first mutation, AB for second; last mutation (Socially Repugnant) is EF
         # Exception: UU: unstable genotype - character can be U2 or U3 for multiple levels of UU!
         # these are chained together, e.g. BJQMMOEIBNBOBPBRDPED is mutations BN, BO, BP, BR, DP, ED
-        # if the build is implant-capable instead of mutated, the character pairs are 00 for no
-        # implantsor 01-16 otherwise; implant 16 is determined by caste (true kin class).
+        # If the build is implant-capable instead of mutated, the character pairs are 00 for no
+        # implants or 01-16 otherwise; implant 16 is determined by caste (true kin class).
 
         extensions = []  # implants or mutations
         if genotype == "True Kin":
@@ -161,23 +162,18 @@ def decode(charcode: str, gamecodes: dict) -> Union[str, None]:
         else:
             extname = "Mutations: "
         while len(charcode) > 0:
-            if genotype == "True Kin":
-                if charcode[:2] == '16':  # the 16th implant changes depending on arcology of origin
-                    if subtypecode in 'ABCD':
-                        extensions.append(gamecodes['implant_codes']['16'][0])
-                    if subtypecode in 'EFGH':
-                        extensions.append(gamecodes['implant_codes']['16'][1])
-                    if subtypecode in 'IJKL':
-                        extensions.append(gamecodes['implant_codes']['16'][2])
-                elif charcode[:2] == '00':  # player chose no implant
-                    extensions.append('none')
-                else:
-                    extensions.append(gamecodes['implant_codes'][charcode[:2]])
-            if genotype == "Mutated Human":
-                extensions.append(gamecodes['mutation_codes'][charcode[:2]])
-                if charcode[:2] in gamecodes['mutation_bonuses']:
-                    bonuses = list(map(add, bonuses, gamecodes['mutation_bonuses'][charcode[:2]]))
-            charcode = charcode[2:]
+            if charcode[:2] == '16':  # the 16th implant changes depending on arcology of origin
+                if subtypecode in 'ABCD':
+                    extensions.append(gamecodes['mod_codes']['16'][0])
+                if subtypecode in 'EFGH':
+                    extensions.append(gamecodes['mod_codes']['16'][1])
+                if subtypecode in 'IJKL':
+                    extensions.append(gamecodes['mod_codes']['16'][2])
+            else:
+                extensions.append(gamecodes['mod_codes'][charcode[:2]])
+                if charcode[:2] in gamecodes['mod_bonuses']:
+                    bonuses = list(map(add, bonuses, gamecodes['mod_bonuses'][charcode[:2]]))
+                charcode = charcode[2:]
 
         # skills are not in the build code, they're determined solely by class
         skills = [skill for skill in gamecodes['class_skills'][class_]]
