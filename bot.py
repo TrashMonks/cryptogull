@@ -11,7 +11,7 @@ import qud_decode
 LOGDIR = Path('logs')
 
 with open("config.yml") as f:
-    config = yaml.load(f)
+    config = yaml.safe_load(f)
 
 with open('discordtoken.sec') as f:
     token = f.read()
