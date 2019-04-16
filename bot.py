@@ -1,8 +1,6 @@
-import asyncio
 import datetime
 import logging
 import re
-import time
 import yaml
 from pathlib import Path
 
@@ -44,62 +42,30 @@ def setup_logger() -> logging.Logger:
 log = setup_logger()
 
 
-def handle_exit():
-    log.info("Attempting to shutdown gracefully...")
-    client.loop.run_until_complete(client.logout())
-    for t in asyncio.Task.all_tasks(loop=client.loop):
-        if t.done():
-            t.exception()
-            continue
-        t.cancel()
-        try:
-            client.loop.run_until_complete(asyncio.wait_for(t, 5, loop=client.loop))
-            t.exception()
-        except asyncio.InvalidStateError:
-            pass
-        except asyncio.TimeoutError:
-            pass
-        except asyncio.CancelledError:
-            pass
+@client.event
+async def on_ready():
+    log.info(f'Logged in as {client.user}.')
 
 
-while True:
-    @client.event
-    async def on_ready():
-        log.info(f'Logged in as {client.user}.')
+@client.event
+async def on_message(message: discord.message.Message):
+    if message.channel.id not in config['channels']:
+        return
 
-    @client.event
-    async def on_message(message: discord.message.Message):
-        if message.channel.id not in config['channels']:
-            return
+    if message.author == client.user:
+        return
 
-        if message.author == client.user:
-            return
+    match = valid_charcode.search(message.content)
+    if match:
+        code = match[0]
+        log.info(f'Received a message with matching character build code:')
+        log.info(f'<{message.author}> {message.content}')
+        decode = qud_decode.decode(code, gamecodes)
+        if decode:
+            response = "```less\n" + decode + "\n```"
+            await message.channel.send(response)
+            log.info(f'Replied with {response}')
+        else:
+            log.error(f"Character code {code} did not decode successfully.")
 
-        match = valid_charcode.search(message.content)
-        if match:
-            code = match[0]
-            log.info(f'Received a message with matching character build code:')
-            log.info(f'<{message.author}> {message.content}')
-            decode = qud_decode.decode(code, gamecodes)
-            if decode:
-                response = "```less\n" + decode + "\n```"
-                await message.channel.send(response)
-                log.info(f'Replied with {response}')
-            else:
-                log.error(f"Character code {code} did not decode successfully.")
-
-    try:
-        client.loop.run_until_complete(client.start(token))
-    except KeyboardInterrupt:
-        log.info("Shutting down...")
-        handle_exit()
-        client.loop.close()
-        log.info("Shut down.")
-        break
-    except Exception:  # noqa: E722
-        log.exception("Caught unexpected error, trying restart in 60 seconds.", exc_info=True)
-        handle_exit()
-        time.sleep(60)
-    log.info("Restarting...")
-    client = discord.Client(loop=client.loop)
+client.run(token)
