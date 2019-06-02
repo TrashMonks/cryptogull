@@ -57,7 +57,6 @@ def read_gamedata() -> dict:
         skill_names[skill_cat.attrib['Class']] = '(' + skill_cat.attrib['Name'] + ")"
         for power in skill_cat:
             skill_names[power.attrib['Class']] = power.attrib['Name']
-    print(skill_names)
 
     class_bonuses = {}
     class_skills = {}
