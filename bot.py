@@ -17,7 +17,7 @@ with open('discordtoken.sec') as f:
     token = f.read()
 client = discord.Client()
 gamecodes = qud_decode.read_gamedata()
-valid_charcode = re.compile(r"[AB][A-L][A-Z]{6}(?:[01ABCDEU][0-9A-Z])*")
+valid_charcode = re.compile(r"(?:^|\s)[AB][A-L][A-Z]{6}(?:[01ABCDEU][0-9A-Z])*")
 
 
 def setup_logger() -> logging.Logger:
@@ -57,12 +57,12 @@ async def on_message(message: discord.message.Message):
 
     match = valid_charcode.search(message.content)
     if match:
-        code = match[0]
+        code = match[0].strip()  # may have whitespace
         log.info(f'Received a message with matching character build code:')
         log.info(f'<{message.author}> {message.content}')
         decode = qud_decode.decode(code, gamecodes)
         if decode:
-            response = "```less\n" + decode + "\n```"
+            response = f"```less\nCode:      {code}\n" + decode + "\n```"
             await message.channel.send(response)
             log.info(f'Replied with {response}')
         else:
