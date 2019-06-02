@@ -127,7 +127,6 @@ def decode(charcode: str, gamecodes: dict) -> Union[str, None]:
     """
     Take a Qud character build code of at least 8 characters and return a text description.
     """
-
     assert(len(charcode) >= 8)  # in Discord bot, this is caught by the regex
     try:
         # 1st character: A for true kin, B for mutated human
@@ -178,7 +177,7 @@ def decode(charcode: str, gamecodes: dict) -> Union[str, None]:
                 extensions.append(gamecodes['mod_codes'][charcode[:2]])
                 if charcode[:2] in gamecodes['mod_bonuses']:
                     bonuses = list(map(add, bonuses, gamecodes['mod_bonuses'][charcode[:2]]))
-                charcode = charcode[2:]
+            charcode = charcode[2:]
 
         # skills are not in the build code, they're determined solely by class
         skills = [skill for skill in gamecodes['class_skills'][class_]]
