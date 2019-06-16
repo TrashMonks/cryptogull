@@ -107,7 +107,7 @@ def read_gamedata() -> dict:
 
     # some manual fixups
     mod_codes.pop('UU')
-    for i in range(1, 5):
+    for i in range(1, 6):
         mod_codes[f'U{i}'] = f'Unstable Genome ({i})'
 
     return {'genotype_codes': genotype_codes,
