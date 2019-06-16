@@ -6,6 +6,7 @@ from pathlib import Path
 
 import discord
 
+import gamedata
 import qud_decode
 
 LOGDIR = Path('logs')
@@ -16,7 +17,7 @@ with open("config.yml") as f:
 with open('discordtoken.sec') as f:
     token = f.read()
 client = discord.Client()
-gamecodes = qud_decode.read_gamedata()
+gamecodes = gamedata.read_gamedata()
 valid_charcode = re.compile(r"(?:^|\s)[AB][A-L][A-Z]{6}(?:[01ABCDEU][0-9A-Z])*")
 
 
@@ -60,12 +61,12 @@ async def on_message(message: discord.message.Message):
         code = match[0].strip()  # may have whitespace
         log.info(f'Received a message with matching character build code:')
         log.info(f'<{message.author}> {message.content}')
-        decode = qud_decode.decode(code, gamecodes)
-        if decode:
+        try:
+            decode = qud_decode.decode(code, gamecodes)
             response = f"```less\nCode:      {code}\n" + decode + "\n```"
             await message.channel.send(response)
             log.info(f'Replied with {response}')
-        else:
-            log.error(f"Character code {code} did not decode successfully.")
+        except:
+            log.exception(f"Exception while decoding and sending character code {code}.")
 
 client.run(token)
