@@ -6,7 +6,7 @@ and for building a printable character sheet based on the attributes.
 import pprint
 import logging
 from typing import Union
-from operator import add as add
+from operator import add
 
 from gamedata import read_gamedata
 

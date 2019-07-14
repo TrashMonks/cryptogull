@@ -1,6 +1,6 @@
 """
 Load Caves of Qud game data from gamefiles.
-We're mostly interested in the two-character codes that correspond to various attributes.
+We're mostly interested in the two-character codes that map to specific implants and mutations.
 """
 
 from xml.etree import ElementTree as et
@@ -63,8 +63,8 @@ def read_gamedata() -> dict:
 
     # read True Kin Castes
     arcologies = SUBTYPES[0]
-    for arcology in arcologies:
-        for caste in arcology:
+    for category in arcologies:
+        for caste in category:
             caste_codes[caste.attrib['Code'].upper()] = caste.attrib['Name']
             stat_bonuses = [0, 0, 0, 0, 0, 0]
             for element in caste:
@@ -96,11 +96,11 @@ def read_gamedata() -> dict:
 
     # read mutations
     mod_codes = {}
-    for arcology in MUTATIONS:
-        for mutation in arcology:
+    for category in MUTATIONS:
+        for mutation in category:
             mod_codes[mutation.attrib['Code'].upper()] = mutation.attrib['Name']
             # mark defects with '(D)' as in game
-            if arcology.attrib['Name'] in ('PhysicalDefects', 'MentalDefects'):
+            if category.attrib['Name'] in ('PhysicalDefects', 'MentalDefects'):
                 mod_codes[mutation.attrib['Code'].upper()] += ' (D)'
     # add implants to mutations
     mod_codes.update(IMPLANT_CODES)  # not in XML
