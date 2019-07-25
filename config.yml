@@ -1,2 +1,6 @@
-# character-builds, build-club, testing
+# Channels to listen in:
+# character-builds, build-club, testing (private)
 channels: [449342897788026882, 571405896597635073, 367847130582220802]
+# Users to ignore:
+# Cryptogull, Testington
+ignore: [502293569764327444, 531213550253899777]

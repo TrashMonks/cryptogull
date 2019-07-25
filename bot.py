@@ -53,7 +53,7 @@ async def on_message(message: discord.message.Message):
     if message.channel.id not in config['channels']:
         return
 
-    if message.author == client.user:
+    if message.author.id in config['ignore'] or message.author == client.user:
         return
 
     match = valid_charcode.search(message.content)
