@@ -50,7 +50,8 @@ async def on_ready():
 
 @client.event
 async def on_message(message: discord.message.Message):
-    if message.channel.id not in config['channels']:
+    if not isinstance(message.channel, discord.channel.DMChannel)\
+            and message.channel.id not in config['channels']:
         return
 
     if message.author.id in config['ignore'] or message.author == client.user:
@@ -59,8 +60,7 @@ async def on_message(message: discord.message.Message):
     match = valid_charcode.search(message.content)
     if match:
         code = match[0].strip()  # may have whitespace
-        log.info(f'Received a message with matching character build code:')
-        log.info(f'<{message.author}> {message.content}')
+        log.info(f'({message.channel}) <{message.author}> {message.content}')
         try:
             decode = qud_decode.decode(code, gamecodes)
             response = f"```less\nCode:      {code}\n" + decode + "\n```"
@@ -68,5 +68,6 @@ async def on_message(message: discord.message.Message):
             log.info(f'Replied with {response}')
         except:
             log.exception(f"Exception while decoding and sending character code {code}.")
+
 
 client.run(token)
