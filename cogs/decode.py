@@ -35,6 +35,5 @@ class Decode(commands.Cog):
                 decode = qud_decode.decode(code, self.gamecodes)
                 response = f"```less\nCode:      {code}\n" + decode + "\n```"
                 await message.channel.send(response)
-                log.info(f'Replied with {response}')
             except:  # noqa E722
                 log.exception(f"Exception while decoding and sending character code {code}.")
