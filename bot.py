@@ -1,10 +1,11 @@
 import datetime
 import logging
 import re
-import yaml
-from pathlib import Path
 
 import discord
+import yaml
+from discord.ext.commands import Bot
+from pathlib import Path
 
 import gamedata
 import qud_decode
@@ -16,7 +17,7 @@ with open("config.yml") as f:
 
 with open('discordtoken.sec') as f:
     token = f.read()
-client = discord.Client()
+bot = Bot(command_prefix='?')
 gamecodes = gamedata.read_gamedata()
 valid_charcode = re.compile(r"(?:^|\s)[AB][A-L][A-Z]{6}(?:[01ABCDEU][0-9A-Z])*")
 
@@ -43,18 +44,18 @@ def setup_logger() -> logging.Logger:
 log = setup_logger()
 
 
-@client.event
+@bot.event
 async def on_ready():
-    log.info(f'Logged in as {client.user}.')
+    log.info(f'Logged in as {bot.user}.')
 
 
-@client.event
+@bot.event
 async def on_message(message: discord.message.Message):
     if not isinstance(message.channel, discord.channel.DMChannel)\
             and message.channel.id not in config['channels']:
         return
 
-    if message.author.id in config['ignore'] or message.author == client.user:
+    if message.author.id in config['ignore'] or message.author == bot.user:
         return
 
     match = valid_charcode.search(message.content)
@@ -66,8 +67,8 @@ async def on_message(message: discord.message.Message):
             response = f"```less\nCode:      {code}\n" + decode + "\n```"
             await message.channel.send(response)
             log.info(f'Replied with {response}')
-        except:
+        except:  # noqa E722
             log.exception(f"Exception while decoding and sending character code {code}.")
 
 
-client.run(token)
+bot.run(token)
