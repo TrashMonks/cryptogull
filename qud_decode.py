@@ -4,13 +4,10 @@ and for building a printable character sheet based on the attributes.
 """
 
 import pprint
-import logging
 from typing import Union
 from operator import add
 
 from gamedata import read_gamedata
-
-log = logging.getLogger(__name__)
 
 
 def decode(charcode: str, gamecodes: dict) -> Union[str, None]:
