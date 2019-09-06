@@ -38,4 +38,3 @@ class Decode(commands.Cog):
                 log.info(f'Replied with {response}')
             except:  # noqa E722
                 log.exception(f"Exception while decoding and sending character code {code}.")
-        await self.bot.process_commands(message)

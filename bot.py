@@ -1,6 +1,7 @@
 import datetime
 import logging
 
+import aiohttp
 import yaml
 from discord.ext import commands
 from pathlib import Path
@@ -41,10 +42,15 @@ log = setup_logger()
 
 
 @bot.event
+async def on_connect():
+    bot.aiohttp_session = aiohttp.ClientSession()
+
+
+@bot.event
 async def on_ready():
     log.info(f'Logged in as {bot.user}.')
 
 
 bot.add_cog(Decode(bot, config))
-bot.add_cog(Wiki(bot))
+bot.add_cog(Wiki(bot, config))
 bot.run(token)
