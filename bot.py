@@ -16,7 +16,7 @@ with open("config.yml") as f:
 
 with open('discordtoken.sec') as f:
     token = f.read()
-bot = commands.Bot(command_prefix='!')
+bot = commands.Bot(command_prefix='?')
 
 
 def setup_logger() -> logging.Logger:
