@@ -5,4 +5,5 @@ channels: [449342897788026882, 571405896597635073, 367847130582220802]
 # Cryptogull, Testington
 ignore: [502293569764327444, 531213550253899777]
 wiki: cavesofqud.gamepedia.com
-wiki search limit: 5
+wiki title search limit: 10
+wiki fulltext search limit: 5

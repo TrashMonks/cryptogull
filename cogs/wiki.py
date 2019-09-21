@@ -1,3 +1,11 @@
+"""Commands for operating on the wiki API at https://cavesofqud.gamepedia.com/api.php
+
+API request builder:
+https://cavesofqud.gamepedia.com/Special:ApiSandbox#action=query&format=json&list=search&srsearch=intitle%3Amod&srwhat=title
+API help:
+https://cavesofqud.gamepedia.com/api.php?action=help&modules=query%2Bsearch
+"""
+
 import logging
 
 import discord
@@ -11,7 +19,8 @@ class Wiki(commands.Cog):
 
     def __init__(self, bot, config):
         self.bot = bot
-        self.limit = config['wiki search limit']
+        self.title_limit = config['wiki title search limit']
+        self.fulltext_limit = config['wiki fulltext search limit']
         self.url = 'https://' + config['wiki'] + '/api.php'
 
     async def pageids_to_urls(self, pageids):
@@ -104,7 +113,7 @@ class Wiki(commands.Cog):
                   'list': 'search',
                   'srnamespace': 0,
                   'srwhat': 'text',
-                  'srlimit': self.limit,
+                  'srlimit': self.title_limit,
                   'srsearch': 'intitle:' + ' '.join(args)}
         async with self.bot.aiohttp_session.get(url=self.url, params=params) as reply:
             response = await reply.json()
@@ -138,7 +147,7 @@ class Wiki(commands.Cog):
                   'srsearch': ' '.join(args),
                   'srnamespace': 0,
                   'srwhat': 'text',
-                  'srlimit': self.limit,
+                  'srlimit': self.fulltext_limit,
                   'srprop': 'snippet'}
         async with self.bot.aiohttp_session.get(url=self.url, params=params) as reply:
             response = await reply.json()
