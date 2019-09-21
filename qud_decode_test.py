@@ -6,7 +6,7 @@ exceptions, and other obvious regressions.
 """
 
 from qud_decode import decode
-from gamedata import read_gamedata
+from character_codes.character_codes import read_gamedata
 
 gamedata = read_gamedata()
 

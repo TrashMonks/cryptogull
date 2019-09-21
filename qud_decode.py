@@ -7,7 +7,7 @@ import pprint
 from typing import Union
 from operator import add
 
-from gamedata import read_gamedata
+from character_codes.character_codes import read_gamedata
 
 
 def decode(charcode: str, gamecodes: dict) -> Union[str, None]:

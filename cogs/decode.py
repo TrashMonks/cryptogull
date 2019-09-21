@@ -4,7 +4,7 @@ import re
 from discord.ext import commands
 import discord
 
-import gamedata
+from character_codes import character_codes
 import qud_decode
 
 log = logging.getLogger('bot.' + __name__)
@@ -16,7 +16,7 @@ class Decode(commands.Cog):
     def __init__(self, bot, config):
         self.bot = bot
         self.config = config
-        self.gamecodes = gamedata.read_gamedata()
+        self.gamecodes = character_codes.read_gamedata()
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.message.Message):
