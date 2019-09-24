@@ -1,10 +1,10 @@
 import datetime
 import logging
+from pathlib import Path
 
 import aiohttp
 import yaml
-from discord.ext import commands
-from pathlib import Path
+from discord.ext.commands import Bot
 
 from cogs.decode import Decode
 from cogs.wiki import Wiki
@@ -16,7 +16,7 @@ with open("config.yml") as f:
 
 with open('discordtoken.sec') as f:
     token = f.read()
-bot = commands.Bot(command_prefix='?')
+bot = Bot(command_prefix='?')
 
 
 def setup_logger() -> logging.Logger:

@@ -5,8 +5,8 @@ Run qud_decode through a variety of character build codes to detect deadlocks,
 exceptions, and other obvious regressions.
 """
 
-from qud_decode import decode
 from character_codes.character_codes import read_gamedata
+from qud_decode import decode
 
 gamedata = read_gamedata()
 

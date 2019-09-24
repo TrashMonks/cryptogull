@@ -1,26 +1,27 @@
 import logging
 import re
 
-from discord.ext import commands
-import discord
+from discord.channel import DMChannel
+from discord.ext.commands import Bot, Cog
+from discord.message import Message
 
-from character_codes import character_codes
 import qud_decode
+from character_codes import character_codes
 
 log = logging.getLogger('bot.' + __name__)
 
 valid_charcode = re.compile(r"(?:^|\s)[AB][A-L][A-Z]{6}(?:[01ABCDEU][0-9A-Z])*")
 
 
-class Decode(commands.Cog):
-    def __init__(self, bot, config):
+class Decode(Cog):
+    def __init__(self, bot: Bot, config: dict):
         self.bot = bot
         self.config = config
         self.gamecodes = character_codes.read_gamedata()
 
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.message.Message):
-        if not isinstance(message.channel, discord.channel.DMChannel) \
+    @Cog.listener()
+    async def on_message(self, message: Message):
+        if not isinstance(message.channel, DMChannel) \
                 and message.channel.id not in self.config['channels']:
             return
 

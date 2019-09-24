@@ -8,22 +8,22 @@ https://cavesofqud.gamepedia.com/api.php?action=help&modules=query%2Bsearch
 
 import logging
 
-import discord
-from discord.ext import commands
+from discord import Colour, Embed
+from discord.ext.commands import Bot, Cog, Context, command
 
 log = logging.getLogger('bot.' + __name__)
 
 
-class Wiki(commands.Cog):
+class Wiki(Cog):
     """Search the official Caves of Qud wiki."""
 
-    def __init__(self, bot, config):
+    def __init__(self, bot: Bot, config: dict):
         self.bot = bot
         self.title_limit = config['wiki title search limit']
         self.fulltext_limit = config['wiki fulltext search limit']
         self.url = 'https://' + config['wiki'] + '/api.php'
 
-    async def pageids_to_urls(self, pageids):
+    async def pageids_to_urls(self, pageids: list) -> list:
         """Return a list of the full URLs for a list of existing page IDs."""
         str_pageids = [str(pageid) for pageid in pageids]
         params = {'format': 'json',
@@ -36,8 +36,8 @@ class Wiki(commands.Cog):
         urls = [response['query']['pages'][str(pageid)]['fullurl'] for pageid in pageids]
         return urls
 
-    @commands.command()
-    async def wiki(self, ctx, *args):
+    @command()
+    async def wiki(self, ctx: Context, *args):
         """Search article titles for the given text, and embed a list of matching articles.
 
         Using prefixsearch, a sample API response for 'sun':
@@ -133,12 +133,12 @@ class Wiki(commands.Cog):
         for match, url in zip(results, urls):
             title = match['title']
             reply += f'\n[{title}]({url})'
-        embed = discord.Embed(colour=discord.Colour(0xc3c9b1),
-                              description=reply)
+        embed = Embed(colour=Colour(0xc3c9b1),
+                      description=reply)
         await ctx.send(embed=embed)
 
-    @commands.command()
-    async def wikisearch(self, ctx, *args):
+    @command()
+    async def wikisearch(self, ctx: Context, *args):
         """Perform a fulltext search for the given query, and embed a list of matches."""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         params = {'format': 'json',
@@ -171,6 +171,6 @@ class Wiki(commands.Cog):
             snippet = match['snippet'].replace('<span class="searchmatch">', '**')
             snippet = snippet.replace('</span>', '**')
             reply += snippet + '\n'
-        embed = discord.Embed(colour=discord.Colour(0xc3c9b1),
-                              description=reply)
+        embed = Embed(colour=Colour(0xc3c9b1),
+                      description=reply)
         await ctx.send(embed=embed)

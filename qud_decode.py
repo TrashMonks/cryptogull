@@ -4,8 +4,8 @@ and for building a printable character sheet based on the attributes.
 """
 
 import pprint
-from typing import Union
 from operator import add
+from typing import Union
 
 from character_codes.character_codes import read_gamedata
 
@@ -62,7 +62,7 @@ def decode(charcode: str, gamecodes: dict) -> Union[str, None]:
                       skills)
 
 
-def make_sheet(attrs, bonuses, class_, class_called, extensions, extname, genotype, skills):
+def make_sheet(attrs, bonuses, class_, class_called, extensions, extname, genotype, skills) -> str:
     """Build a printable character sheet given the parsed attributes."""
     charsheet = f"""Genotype:  {genotype}
 {class_called:11}{class_}"""
