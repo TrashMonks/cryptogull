@@ -111,7 +111,7 @@ class Wiki(commands.Cog):
         params = {'format': 'json',
                   'action': 'query',
                   'list': 'search',
-                  'srnamespace': 0,
+                  'srnamespace': '0|14',
                   'srwhat': 'text',
                   'srlimit': self.title_limit,
                   'srsearch': 'intitle:' + ' '.join(args)}
