@@ -3,14 +3,14 @@ Functions for parsing a Caves of Qud build code into character attributes,
 and for building a printable character sheet based on the attributes.
 """
 
-import pprint
 from operator import add
 from typing import Union
 
-from character_codes.character_codes import read_gamedata
+from shared import gameroot
+gamecodes = gameroot.get_character_codes()
 
 
-def decode(charcode: str, gamecodes: dict) -> Union[str, None]:
+def decode(charcode: str) -> Union[str, None]:
     """
     Take a Qud character build code of at least 8 characters and return a text description.
     """
@@ -82,12 +82,3 @@ def make_sheet(attrs, bonuses, class_, class_called, extensions, extname, genoty
     charsheet += f"\n{extname}{', '.join(extensions)}"
     charsheet += f"\nSkills:    {', '.join(skills)}"
     return charsheet
-
-
-# optional interactive mode for testing:
-if __name__ == '__main__':
-    gamedata = read_gamedata()
-    pprint.pprint(gamedata)
-    while True:
-        code = input("Enter code: ")
-        print(decode(code, gamedata))

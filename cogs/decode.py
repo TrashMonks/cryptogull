@@ -6,7 +6,6 @@ from discord.ext.commands import Bot, Cog
 from discord.message import Message
 
 import qud_decode
-from character_codes import character_codes
 from shared import config
 
 log = logging.getLogger('bot.' + __name__)
@@ -18,7 +17,6 @@ class Decode(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
         self.config = config
-        self.gamecodes = character_codes.read_gamedata()
 
     @Cog.listener()
     async def on_message(self, message: Message):
@@ -34,7 +32,7 @@ class Decode(Cog):
             code = match[0].strip()  # may have whitespace
             log.info(f'({message.channel}) <{message.author}> {message.content}')
             try:
-                decode = qud_decode.decode(code, self.gamecodes)
+                decode = qud_decode.decode(code)
                 response = f"```less\nCode:      {code}\n" + decode + "\n```"
                 await message.channel.send(response)
             except:  # noqa E722
