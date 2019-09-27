@@ -11,13 +11,15 @@ import logging
 from discord import Colour, Embed
 from discord.ext.commands import Bot, Cog, Context, command
 
+from shared import config, http_session
+
 log = logging.getLogger('bot.' + __name__)
 
 
 class Wiki(Cog):
     """Search the official Caves of Qud wiki."""
 
-    def __init__(self, bot: Bot, config: dict):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.title_limit = config['wiki title search limit']
         self.fulltext_limit = config['wiki fulltext search limit']
@@ -31,7 +33,7 @@ class Wiki(Cog):
                   'prop': 'info',
                   'inprop': 'url',
                   'pageids': '|'.join(str_pageids)}
-        async with self.bot.aiohttp_session.get(url=self.url, params=params) as reply:
+        async with http_session.get(url=self.url, params=params) as reply:
             response = await reply.json()
         urls = [response['query']['pages'][str(pageid)]['fullurl'] for pageid in pageids]
         return urls
@@ -115,7 +117,7 @@ class Wiki(Cog):
                   'srwhat': 'text',
                   'srlimit': self.title_limit,
                   'srsearch': 'intitle:' + ' '.join(args)}
-        async with self.bot.aiohttp_session.get(url=self.url, params=params) as reply:
+        async with http_session.get(url=self.url, params=params) as reply:
             response = await reply.json()
         if 'error' in response:
             try:
@@ -149,7 +151,7 @@ class Wiki(Cog):
                   'srwhat': 'text',
                   'srlimit': self.fulltext_limit,
                   'srprop': 'snippet'}
-        async with self.bot.aiohttp_session.get(url=self.url, params=params) as reply:
+        async with http_session.get(url=self.url, params=params) as reply:
             response = await reply.json()
         if 'error' in response:
             try:

@@ -11,6 +11,7 @@ pre-commit = "*"
 [packages]
 pyyaml = "*"
 discord-py = "*"
+hagadias = {git = "https://github.com/TrashMonks/hagadias.git",ref = "master"}
 
 [requires]
 python_version = "3.7"

@@ -7,6 +7,7 @@ from discord.message import Message
 
 import qud_decode
 from character_codes import character_codes
+from shared import config
 
 log = logging.getLogger('bot.' + __name__)
 
@@ -14,7 +15,7 @@ valid_charcode = re.compile(r"(?:^|\s)[AB][A-L][A-Z]{6}(?:[01ABCDEU][0-9A-Z])*")
 
 
 class Decode(Cog):
-    def __init__(self, bot: Bot, config: dict):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.config = config
         self.gamecodes = character_codes.read_gamedata()

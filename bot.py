@@ -3,16 +3,14 @@ import logging
 from pathlib import Path
 
 import aiohttp
-import yaml
 from discord.ext.commands import Bot
 
 from cogs.decode import Decode
+from cogs.tiles import Tiles
 from cogs.wiki import Wiki
 
 LOGDIR = Path('logs')
 
-with open("config.yml") as f:
-    config = yaml.safe_load(f)
 
 with open('discordtoken.sec') as f:
     token = f.read()
@@ -51,6 +49,7 @@ async def on_ready():
     log.info(f'Logged in as {bot.user}.')
 
 
-bot.add_cog(Decode(bot, config))
-bot.add_cog(Wiki(bot, config))
+bot.add_cog(Decode(bot))
+bot.add_cog(Tiles(bot))
+bot.add_cog(Wiki(bot))
 bot.run(token)
