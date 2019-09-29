@@ -43,5 +43,5 @@ class Tiles(Cog):
             return await ctx.send(msg, file=File(fp=data, filename=f'{obj.displayname}.png'))
         else:
             msg = f"Sorry, the Qud object `{obj.name}` (display name: '{obj.displayname}')" \
-                  "doesn't have a tile."
+                  " doesn't have a tile."
             await ctx.send(msg)
