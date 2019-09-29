@@ -12,15 +12,15 @@ log = logging.getLogger('bot.' + __name__)
 
 
 class Tiles(Cog):
-    """Send game tiles to Discord.
-
-    Optional postfix: recolor color1 color2
-    Append this to the command to recolor the tile with color1 as the tile color and color2
-    as the detailcolor.  color1 and color2 should be Qud color codes like 'w' and 'c'."""
+    """Send game tiles to Discord."""
 
     @command()
     async def tile(self, ctx: Context, *args):
-        """Send the tile for the named Qud object."""
+        """Send the tile for the named Qud object.
+
+        Optional postfix: recolor color1 color2
+        Append this to the command to recolor the tile with color1 as the tile color and color2
+        as the detailcolor.  color1 and color2 should be Qud color codes like 'w' and 'c'."""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         query = ' '.join(args)
         if 'recolor' in query:
