@@ -51,7 +51,7 @@ class Tiles(Cog):
                 colors = recolor.split()
                 if len(colors) != 2 or not all(color in QUD_COLORS for color in colors):
                     return await ctx.send('Syntax error with optional `recolor` argument.'
-                                          ' See `?help tile for details.')
+                                          ' See `?help tile` for details.')
                 # user requested a recolor of the tile, use the old tile to make a new one
                 filename = obj.tile.filename
                 colorstring = obj.tile.colorstring
