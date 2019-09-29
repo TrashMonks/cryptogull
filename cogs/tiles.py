@@ -42,5 +42,6 @@ class Tiles(Cog):
             msg = f"`{obj.name}` (display name: '{obj.displayname}'):"
             return await ctx.send(msg, file=File(fp=data, filename=f'{obj.displayname}.png'))
         else:
-            msg = f"Sorry, the Qud object {obj.name} ({obj.displayname}) doesn't have a tile."
+            msg = f"Sorry, the Qud object `{obj.name}` (display name: '{obj.displayname}')" \
+                  "doesn't have a tile."
             await ctx.send(msg)
