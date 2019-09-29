@@ -40,75 +40,7 @@ class Wiki(Cog):
 
     @command()
     async def wiki(self, ctx: Context, *args):
-        """Search article titles for the given text, and embed a list of matching articles.
-
-        Using prefixsearch, a sample API response for 'sun':
-{'batchcomplete': '',
- 'query': {'prefixsearch': [{'ns': 0,
-                             'pageid': 1439,
-                             'title': 'Sun-dried banana'},
-                            {'ns': 0, 'pageid': 4059, 'title': 'Sunder Mind'},
-                            {'ns': 0,
-                             'pageid': 1992,
-                             'title': 'Sun and moon mask'}]}}
-
-        Using srsearch and intitle:, a sample API response for 'sun':
-{'batchcomplete': '',
- 'query': {'search': [{'ns': 0,
-                       'pageid': 1439,
-                       'size': 616,
-                       'snippet': '<span class="searchmatch">sun</span>-dried '
-                                  'banana    <span '
-                                  'class="searchmatch">sun</span>-dried banana '
-                                  'Moisture was baked out of fruit by the salt '
-                                  '<span class="searchmatch">sun</span>, but '
-                                  'Spindle glitter still alights the '
-                                  'disc-chip.  Perfect  In India',
-                       'timestamp': '2019-09-03T19:42:32Z',
-                       'title': 'Sun-dried banana',
-                       'wordcount': 57},
-                      {'ns': 0,
-                       'pageid': 1992,
-                       'size': 403,
-                       'snippet': '<span class="searchmatch">sun</span> and '
-                                  'moon mask    <span '
-                                  'class="searchmatch">sun</span> and moon '
-                                  'mask This is a spectacularly crafted <span '
-                                  'class="searchmatch">sun</span> and moon '
-                                  'mask. It makes you feel uneasy.  Perfect',
-                       'timestamp': '2019-08-28T22:48:07Z',
-                       'title': 'Sun and moon mask',
-                       'wordcount': 23},
-                      {'ns': 0,
-                       'pageid': 1990,
-                       'size': 382,
-                       'snippet': 'smiling <span '
-                                  'class="searchmatch">sun</span> mask    '
-                                  'smiling <span '
-                                  'class="searchmatch">sun</span> mask This is '
-                                  'a very fancy smiling <span '
-                                  'class="searchmatch">sun</span> mask. It '
-                                  'smells faintly of ancient, dried grapes.  '
-                                  'Perfect',
-                       'timestamp': '2019-08-28T22:48:06Z',
-                       'title': 'Smiling sun mask',
-                       'wordcount': 22},
-                      {'ns': 0,
-                       'pageid': 1995,
-                       'size': 485,
-                       'snippet': 'Issachari <span '
-                                  'class="searchmatch">sun</span> veil    '
-                                  'Issachari <span '
-                                  'class="searchmatch">sun</span> veil A veil '
-                                  'cut from a thin, flame-retardant fabric '
-                                  'woven by the Issachari nomad tribes.  '
-                                  'Perfect',
-                       'timestamp': '2019-08-28T22:48:10Z',
-                       'title': 'Issachari sun veil',
-                       'wordcount': 22}],
-           'searchinfo': {'totalhits': 4}}}
-
-"""
+        """Search titles of articles for the given text."""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         params = {'format': 'json',
                   'action': 'query',
@@ -141,7 +73,7 @@ class Wiki(Cog):
 
     @command()
     async def wikisearch(self, ctx: Context, *args):
-        """Perform a fulltext search for the given query, and embed a list of matches."""
+        """Search all articles for the given text."""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         params = {'format': 'json',
                   'action': 'query',
