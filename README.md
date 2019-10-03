@@ -32,3 +32,8 @@ where the `x`s are the number from **step 4**, and `y` is the number from **step
 7. Go to the URL to join your bot user to the new server. Accept any prompts.
 8. Run `bot.py`. It will load the bot token from `discordtoken.sec` and connect to Discord, appearing in the server you
 added it to.
+
+If you want to test character code decoding, there's a whitelist of channels in `config.yml`. Add yours there. The bot
+shouldn't listen to itself, but just in case, add the bot user ID to the 'Users to ignore' list. To get these IDs, just
+turn on 'developer mode' in the Discord client, under User Settings->Appearance. Then right click on anything to get its
+ID.
