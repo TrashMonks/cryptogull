@@ -1,6 +1,7 @@
 """Commands for sending rendered game tiles as attachments."""
 
 import logging
+import random
 
 from discord import File
 from discord.ext.commands import Cog, Context, command
@@ -48,7 +49,12 @@ class Tiles(Cog):
         if obj.tile is not None:
             tile = obj.tile
             if recolor != '':
-                colors = recolor.split()
+                if recolor == 'random':
+                    def random_color():
+                        return random.choice(list(QUD_COLORS.keys()))
+                    colors = [random_color(), random_color()]
+                else:
+                    colors = recolor.split()
                 if len(colors) != 2 or not all(color in QUD_COLORS for color in colors):
                     return await ctx.send('Syntax error with optional `recolor` argument.'
                                           ' See `?help tile` for details.')
