@@ -27,7 +27,7 @@ bot token!)
 which is the number created by checking the 'Send Messages', 'Attach Files', and 'Read Message History' checkboxes. If
 you're developing features that use higher permissions, check those permission boxes as well and use the permissions number
 created by doing that.
-6. Craft a URL to join the bot the the server. The format is
+6. Craft a URL to join the bot to the server. The format is
 `https://discordapp.com/api/oauth2/authorize?client_id=xxxxxxxxxxxxxxxxxx&scope=bot&permissions=y`
 where the `x`s are the number from **step 4**, and `y` is the number from **step 5**.
 7. Go to the URL to join your bot user to the new server. Accept any prompts.
