@@ -23,9 +23,10 @@ directory. This file is listed in `.gitignore`, so you don't have to worry about
 servers you're in.
 4. Grab the 'Client ID' from the 'General Information' tab of the Discord application you created (different from your
 bot token!)
-5. Grab the permissions number you need from the 'Bot' tab of the Discord application you created. This is probably just
-the number that is shown when you tick off the 'Send Messages' and 'Read Message History' checkboxes (67584). If you're
-developing features that use higher permissions, tick those too.
+5. Grab the permissions number you need from the 'Bot' tab of the Discord application you created. This should be 100352,
+which is the number created by checking the 'Send Messages', 'Attach Files', and 'Read Message History' checkboxes. If
+you're developing features that use higher permissions, check those permission boxes as well and use the permissions number
+created by doing that.
 6. Craft a URL to join the bot the the server. The format is
 `https://discordapp.com/api/oauth2/authorize?client_id=xxxxxxxxxxxxxxxxxx&scope=bot&permissions=y`
 where the `x`s are the number from **step 4**, and `y` is the number from **step 5**.
