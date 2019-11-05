@@ -1,5 +1,6 @@
 import re
 
+from discord import Embed
 from discord.ext.commands import Cog, CommandError, MessageConverter, TextChannelConverter, command
 
 class Cryochamber(Cog):
@@ -25,4 +26,4 @@ class Cryochamber(Cog):
                 await self._preserve_message(pin, destination_channel)
 
     async def _preserve_message(self, message, channel):
-        await channel.send(message)
+        await channel.send(embed=Embed(description=message.content))
