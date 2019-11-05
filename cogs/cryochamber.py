@@ -17,9 +17,12 @@ class Cryochamber(Cog):
 
         if source_channel_specifier_match is None:
             source_message = await get_message(context, command_match.group('source_specifier'))
-            await destination_channel.send(source_message)
+            await self._preserve_message(source_message, destination_channel)
         else:
             source_channel = await get_channel(context, source_channel_specifier_match.group('source_channel_specifier'))
 
             for pin in sorted(await source_channel.pins(), key=lambda message: message.created_at):
-                await destination_channel.send(pin)
+                await self._preserve_message(pin, destination_channel)
+
+    async def _preserve_message(self, message, channel):
+        await channel.send(message)
