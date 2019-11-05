@@ -5,6 +5,7 @@ from pathlib import Path
 import aiohttp
 from discord.ext.commands import Bot
 
+from cogs.cryochamber import Cryochamber
 from cogs.decode import Decode
 from cogs.tiles import Tiles
 from cogs.wiki import Wiki
@@ -49,6 +50,7 @@ async def on_ready():
     log.info(f'Logged in as {bot.user}.')
 
 
+bot.add_cog(Cryochamber(bot))
 bot.add_cog(Decode(bot))
 bot.add_cog(Tiles(bot))
 bot.add_cog(Wiki(bot))
