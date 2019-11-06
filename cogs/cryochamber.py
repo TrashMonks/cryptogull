@@ -1,7 +1,7 @@
 import re
 
 from discord import Embed
-from discord.ext.commands import Cog, CommandError, MessageConverter, TextChannelConverter, command
+from discord.ext.commands import Cog, CommandError, MessageConverter, MissingPermissions, TextChannelConverter, command
 
 class Cryochamber(Cog):
     @command()
@@ -14,6 +14,10 @@ class Cryochamber(Cog):
             raise CommandError('wrong syntax: ' + arg)
 
         destination_channel = await get_channel(context, command_match.group('destination_channel_specifier'))
+
+        if not destination_channel.permissions_for(context.author).manage_messages:
+            raise MissingPermissions(['manage_messages'])
+
         source_channel_specifier_match = re.fullmatch(r'pins from (?P<source_channel_specifier>.*?)', command_match.group('source_specifier'))
 
         if source_channel_specifier_match is None:
