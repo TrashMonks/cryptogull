@@ -1,6 +1,6 @@
 import re
 
-from discord import Embed
+from discord import Embed, Attachment, Colour
 from discord.ext.commands import Cog, CommandError, MessageConverter, TextChannelConverter, command
 
 class Cryochamber(Cog):
@@ -26,4 +26,10 @@ class Cryochamber(Cog):
                 await self._preserve_message(pin, destination_channel)
 
     async def _preserve_message(self, message, channel):
-        await channel.send(embed=Embed(description=message.content))
+        embedded_msg = Embed(colour=Colour(0xf403f), description=message.content + " [(original message)](" + message.jump_url + ")", timestamp=message.created_at)
+        embedded_msg.set_author(name=message.author.name, icon_url= str(message.author.avatar_url))
+        embedded_msg.set_footer(text="in #" + message.channel.name)
+        for attach in message.attachments:
+            embedded_msg.set_image(url = attach.url)
+        await channel.send(embed=embedded_msg)
+        
