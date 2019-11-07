@@ -30,7 +30,10 @@ class Cryochamber(Cog):
                 await self._preserve_message(pin, destination_channel)
 
     async def _preserve_message(self, message, channel):
-        embedded_msg = Embed(colour=Colour(0xf403f), description=message.content + " [(original message)](" + message.jump_url + ")", timestamp=message.created_at)
+        attach_str = ""
+        if len(message.attachments) > 0:
+            attach_str = "(" + str(len(message.attachments)) + " attachments)"
+        embedded_msg = Embed(colour=Colour(0xf403f), description=message.content + " [(original)"+ attach_str +"](" + message.jump_url + ")", timestamp=message.created_at)
         embedded_msg.set_author(name=message.author.name, icon_url= str(message.author.avatar_url))
         embedded_msg.set_footer(text="in #" + message.channel.name)
         for attach in message.attachments:
