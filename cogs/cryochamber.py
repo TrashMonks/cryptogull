@@ -37,6 +37,7 @@ class Cryochamber(Cog):
         embedded_msg.set_author(name=message.author.name, icon_url= str(message.author.avatar_url))
         embedded_msg.set_footer(text="in #" + message.channel.name)
         for attach in message.attachments:
-            embedded_msg.set_image(url = attach.url)
+            if attach.width is not None and attach.height is not None:
+                embedded_msg.set_image(url = attach.url)
         await channel.send(embed=embedded_msg)
         
