@@ -1,12 +1,7 @@
 import re
 
-<<<<<<< HEAD
 from discord import Embed, Attachment, Colour
 from discord.ext.commands import Cog, CommandError, MessageConverter, TextChannelConverter, command
-=======
-from discord import Embed, Attachment, Colour
-from discord.ext.commands import Cog, CommandError, MessageConverter, TextChannelConverter, command
->>>>>>> 9e08f303e6257922aa511fee9e09d187d4f3ddec
 
 class Cryochamber(Cog):
     @command()
