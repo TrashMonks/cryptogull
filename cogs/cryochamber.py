@@ -1,13 +1,13 @@
 import re
 
 from discord import Embed, Attachment, Colour
-from discord.ext.commands import Cog, CommandError, MessageConverter, TextChannelConverter, command
+from discord.ext.commands import Cog, CommandError, MessageConverter, TextChannelConverter, group
 
 class Cryochamber(Cog):
     def __init__(self, _):
         self.ongoing_preservations = set()
 
-    @command()
+    @group(invoke_without_command=True)
     async def preserve(self, context, *, arg):
         get_channel = TextChannelConverter().convert
         get_message = MessageConverter().convert
@@ -39,6 +39,10 @@ class Cryochamber(Cog):
                 self.ongoing_preservations.remove((source_channel.name, destination_channel.name))
             else:
                 raise ValueError('unknown temporal modifier: ' + temporal_modifier)
+
+    @preserve.command()
+    async def what(self, context):
+        await context.send(self.ongoing_preservations)
 
     async def _preserve_message(self, message, channel):
         attach_str = ""
