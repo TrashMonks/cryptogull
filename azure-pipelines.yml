@@ -10,10 +10,12 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- script: |
-    sudo apt install python3.7
-    python3 -m pip install pipenv
-  displayName: 'Set up Python on host OS'
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.7'
+  displayName: 'Use Python 3.7'
+- script: python3 -m pip install pipenv
+  displayName: 'Install pipenv'
 
 - script: python3 -m pipenv sync --dev
   displayName: 'Set up pipenv environment'
