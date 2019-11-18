@@ -11,7 +11,7 @@ pool:
 
 steps:
 - script: |
-    apt install python3.7
+    sudo apt install python3.7
     python3 -m pip install pipenv
   displayName: 'Set up Python on host OS'
 
