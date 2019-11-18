@@ -11,12 +11,12 @@ pool:
 
 steps:
 - script: |
-    apt install python3.7
-    python3.7 -m pip install pipenv
+    apt install python3
+    python3 -m pip install pipenv
   displayName: 'Set up Python on host OS'
 
-- script: python3.7 -m pipenv sync --dev
+- script: python3 -m pipenv sync --dev
   displayName: 'Set up pipenv environment'
 
-- script: python3.7 -m pipenv run python -m flake8
+- script: python3 -m pipenv run python -m flake8
   displayName: 'Run lint'
