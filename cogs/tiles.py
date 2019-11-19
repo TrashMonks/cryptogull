@@ -41,6 +41,7 @@ class Tiles(Cog):
                 msg = "Sorry, that specific object wasn't found, and it's too short to search."
                 return await ctx.send(msg)
         if obj is None:
+            # there was no exact match, and the query wasn't too short, so offer an alternative
             loop = asyncio.get_running_loop()
             # doing a fuzzy match on the qindex keys can take about 2 seconds, so
             # run in an executor so we can keep processing other commands in the meantime
@@ -49,7 +50,7 @@ class Tiles(Cog):
                                                      process.extractOne,
                                                      query,
                                                      list(qindex))
-            msg = f"Sorry, nothing matching that object was found. The closest object ID is" \
+            msg = "Sorry, nothing matching that object was found. The closest object ID is" \
                   f" `{nearest[0]}`."
             return await ctx.send(msg)
         if obj.tile is not None:
