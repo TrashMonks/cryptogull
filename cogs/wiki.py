@@ -42,16 +42,10 @@ class Wiki(Cog):
         urls = [response['query']['pages'][str(pageid)]['fullurl'] for pageid in pageids]
         return urls
 
-    async def refresh_titles_cache(self):
-        """Helper function to get all article titles for custom search and fuzzy matching."""
-        # TODO: put cache time limit in config
-        if self.all_titles != {} and time.monotonic() - self.all_titles_stamp < 900:
-            # we have cached titles, and they're less than 15 minutes old
-            return
-        # else, we need to fetch new titles and update timestamp
+    async def read_titles(self, namespace):
+        fresh_titles = {}
         # there's a limit on how many titles we can fetch at a time (currently 5000 for bots)
         # and we may have more wiki articles than that someday, so fetch in batches
-        fresh_titles = {}
         got_all = False
         apfrom = ''  # the article title to 'continue' querying from, if necessary
         while not got_all:
@@ -59,6 +53,7 @@ class Wiki(Cog):
                       'action': 'query',
                       'list': 'allpages',
                       'apfrom': apfrom,
+                      'apnamespace': namespace,
                       'aplimit': 5000}  # TODO: add to config
             async with http_session.get(url=self.url, params=params) as reply:
                 response = await reply.json()
@@ -72,7 +67,20 @@ class Wiki(Cog):
                 apfrom = response['continue']['apcontinue']
             else:
                 got_all = True
-        self.all_titles = fresh_titles
+        return fresh_titles
+
+    async def refresh_titles_cache(self):
+        """Helper function to get all article titles for custom search and fuzzy matching."""
+        # TODO: put cache time limit in config
+        if self.all_titles != {} and time.monotonic() - self.all_titles_stamp < 900:
+            # we have cached titles, and they're less than 15 minutes old
+            return
+        # else, we need to fetch new titles and update timestamp
+        new_titles = {}
+        namespaces = [0, 14]  # Main, Category  TODO: add to config
+        for namespace in namespaces:
+            new_titles.update(await self.read_titles(namespace))
+        self.all_titles = new_titles
         self.all_titles_stamp = time.monotonic()
 
     @command()
