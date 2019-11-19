@@ -9,7 +9,8 @@ log = logging.getLogger('bot.' + __name__)
 
 
 class Roll(Cog):
-    """Takes a dice string argument and either returns the stats for it or use as a base to roll."""
+    """Takes a dice string argument and either returns the stats for it or use as a base to roll.
+    Syntax: ?dice (dice string)"""
 
     @command()
     async def dice(self, ctx: Context, *args):
@@ -23,9 +24,12 @@ class Roll(Cog):
         embedded_msg = Embed(colour=Colour(0xf403f), description=msg)
         return await ctx.send(embed=embedded_msg)
 
+    """Randomly rolls based on the string provided using Hagadias's dice roll helper.
+    Syntax: ?roll (dice string)
+    The dice string can only contain [0-9][d-+]. Unlike the Qud wiki module, it parses 
+    ranges ex. "1-5" as subtraction."""
     @command()
     async def roll(self, ctx: Context, *args):
-        """Randomly rolls based on the string provided using Hagadias's dice roll helper."""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         val = ' '.join(args)
         if val == "":
