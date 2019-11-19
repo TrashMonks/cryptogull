@@ -8,11 +8,11 @@ from discord.ext.commands import Bot, Cog, Context, command
 log = logging.getLogger('bot.' + __name__)
 
 class Roll(Cog):
-    """homemade nut milk"""
+    """Takes a dice string argument and either returns the stats for it or use as a base to roll."""
 
     @command()
     async def dice(self, ctx: Context, *args):
-        """homemade nut milk"""
+        """Returns the (min, max) Average (average)."""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         val = ' '.join(args)
         avg = DiceBag(val).average() 
