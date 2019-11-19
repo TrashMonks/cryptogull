@@ -22,10 +22,10 @@ class Cryochamber(Cog):
         else:
             return True
 
-    """Main Preserve function. Things in [] are optional arguments, stuff in () are variables.
+    """Main preserve function. Things in [] are optional arguments, stuff in () are variables.
     The user must be able to manage messages in order to invoke these functions.
 
-       ?preserve (message link) in (distination channel)
+       ?preserve (message link) in (destination channel)
            Message link can be gotten by enabling developer commands on Discord and
            selecting "Copy Link".
 
@@ -33,12 +33,13 @@ class Cryochamber(Cog):
            Embeds all messages pinned in the specified channel and reposts them in order or pinned,
            earliest first.
 
-           future  | any future pins in that channel will be immeadiately reposted to the
+           future  | **NOT FULLY IMPLEMENTED** 
+                     any future pins in that channel will be immeadiately reposted to the
                      destination. All current channels tagged with this can be checked
                      using ?preserve what
            no more | cancel a previous command that uses future.
 
-       ?preserve what
+       ?preserve what **NOT FULLY IMPLEMENTED** 
            Returns all original channel - destination channels tagged as future pins as a set."""
     @group(invoke_without_command=True)
     @check(can_manage_messages)
