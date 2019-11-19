@@ -5,7 +5,9 @@ https://cavesofqud.gamepedia.com/Special:ApiSandbox#action=query&format=json&lis
 API help:
 https://cavesofqud.gamepedia.com/api.php?action=help&modules=query%2Bsearch
 """
-
+import asyncio
+import concurrent.futures
+import functools
 import logging
 import time
 
@@ -90,10 +92,15 @@ class Wiki(Cog):
         async with ctx.typing():
             await self.refresh_titles_cache()  # fetch, or refresh, self.all_pages
             query = ' '.join(args)
-            results = process.extractBests(query,
-                                           self.all_titles.keys(),
-                                           score_cutoff=75,
-                                           limit=10)  # TODO: read from config
+            loop = asyncio.get_running_loop()
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                results = await loop.run_in_executor(
+                    pool,
+                    functools.partial(process.extractBests,
+                                      query,
+                                      self.all_titles.keys(),
+                                      score_cutoff=75,
+                                      limit=10))  # TODO: read from config
             if len(results) == 0:
                 return await ctx.send(f'Sorry, no matches were found for that query.')
             pageids = [self.all_titles[item[0]] for item in results]  # map titles to IDs
