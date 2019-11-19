@@ -2,31 +2,46 @@
 import re
 
 from discord import Embed, Colour
-from discord.ext.commands import Cog, CommandError, MessageConverter, TextChannelConverter, group
+from discord.ext.commands import (Cog, CommandError, MessageConverter,
+                                  TextChannelConverter, group, check)
 
 
 class Cryochamber(Cog):
     def __init__(self, _):
         self.ongoing_preservations = set()
 
-    """Main Preserve function. Things in [] are optional arguments, stuff in () are variables. 
+    async def can_manage_messages(ctx):
+        get_channel = TextChannelConverter().convert
+        arg = ctx.message.content
+        exp = r'(?P<source_specifier>.*?) in (?P<destination_channel_specifier>.*?)'
+        command_match = re.fullmatch(exp, arg)
+        dest_channel = await get_channel(ctx,
+                                         command_match.group('destination_channel_specifier'))
+        if not dest_channel.permissions_for(ctx.author).manage_messages:
+            return False
+        else:
+            return True
+
+    """Main Preserve function. Things in [] are optional arguments, stuff in () are variables.
     The user must be able to manage messages in order to invoke these functions.
 
        ?preserve (message link) in (distination channel)
-           Message link can be gotten by enabling developer commands on Discord and selecting "Copy Link".
-         
+           Message link can be gotten by enabling developer commands on Discord and
+           selecting "Copy Link".
+
        ?preserve [future|no more] pins from (original channel) in (destination channel)
-           Embeds all messages pinned in the specified channel and reposts them in order or pinned, 
+           Embeds all messages pinned in the specified channel and reposts them in order or pinned,
            earliest first.
 
-           future  | any future pins in that channel will be immeadiately reposted to the destination.
-                     All current channels tagged with future can be checked using ?preserve what
+           future  | any future pins in that channel will be immeadiately reposted to the
+                     destination. All current channels tagged with this can be checked
+                     using ?preserve what
            no more | cancel a previous command that uses future.
-           
+
        ?preserve what
            Returns all original channel - destination channels tagged as future pins as a set."""
     @group(invoke_without_command=True)
-    @commands.check(can_manage_messages)
+    @check(can_manage_messages)
     async def preserve(self, context, *, arg):
         get_channel = TextChannelConverter().convert
         get_message = MessageConverter().convert
@@ -61,15 +76,15 @@ class Cryochamber(Cog):
                 self.ongoing_preservations.remove((src_channel.name, dest_channel.name))
             else:
                 raise ValueError('unknown temporal modifier: ' + temporal_modifier)
-    
-    """Returns which channels the bot is currently watching for future pins, 
+
+    """Returns which channels the bot is currently watching for future pins,
     and where it's reposting to."""
     @preserve.command()
     async def what(self, context):
         await context.send(self.ongoing_preservations)
 
-    """Formats the embedded message. It returns the original message with a link back to the 
-    original message as well as denoting how many attachments there are. It will only embed the 
+    """Formats the embedded message. It returns the original message with a link back to the
+    original message as well as denoting how many attachments there are. It will only embed the
     first image included."""
     async def _preserve_message(self, message, channel):
         attach_str = ""
@@ -90,11 +105,3 @@ class Cryochamber(Cog):
             if attach.width is not None and attach.height is not None:
                 embedded_msg.set_image(url=attach.url)
         await channel.send(embed=embedded_msg)
-
-    async def can_manage_messages(ctx):
-        dest_channel = await get_channel(ctx,
-                                         command_match.group('destination_channel_specifier'))
-        if not dest_channel.permissions_for(context.author).manage_messages:
-            return False
-        else:
-            return True
