@@ -20,10 +20,10 @@ class Cryochamber(Cog):
            earliest first.
 
            future  | any future pins in that channel will be immeadiately reposted to the destination.
-                     All current channels tagged with future can be checked using ?what
+                     All current channels tagged with future can be checked using ?preserve what
            no more | cancel a previous command that uses future.
            
-       ?what
+       ?preserve what
            Returns all original channel - destination channels tagged as future pins as a set."""
     @group(invoke_without_command=True)
     @commands.check(can_manage_messages)
