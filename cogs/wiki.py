@@ -7,9 +7,11 @@ https://cavesofqud.gamepedia.com/api.php?action=help&modules=query%2Bsearch
 """
 
 import logging
+import time
 
 from discord import Colour, Embed
 from discord.ext.commands import Bot, Cog, Context, command
+from fuzzywuzzy import process
 
 from shared import config, http_session
 
@@ -24,9 +26,11 @@ class Wiki(Cog):
         self.title_limit = config['wiki title search limit']
         self.fulltext_limit = config['wiki fulltext search limit']
         self.url = 'https://' + config['wiki'] + '/api.php'
+        self.all_titles = {}  # mapping of titles to pageids, for conversion to URLs by API
+        self.all_titles_stamp = 0.0  # after self.all_titles is filled, this will be its timestamp
 
     async def pageids_to_urls(self, pageids: list) -> list:
-        """Return a list of the full URLs for a list of existing page IDs."""
+        """Helper function to return a list of the full URLs for a list of existing page IDs."""
         str_pageids = [str(pageid) for pageid in pageids]
         params = {'format': 'json',
                   'action': 'query',
@@ -38,38 +42,61 @@ class Wiki(Cog):
         urls = [response['query']['pages'][str(pageid)]['fullurl'] for pageid in pageids]
         return urls
 
+    async def refresh_titles_cache(self):
+        """Helper function to get all article titles for custom search and fuzzy matching."""
+        # TODO: put cache time limit in config
+        if self.all_titles != {} and time.monotonic() - self.all_titles_stamp < 900:
+            # we have cached titles, and they're less than 15 minutes old
+            return
+        # else, we need to fetch new titles and update timestamp
+        # there's a limit on how many titles we can fetch at a time (currently 5000 for bots)
+        # and we may have more wiki articles than that someday, so fetch in batches
+        fresh_titles = {}
+        got_all = False
+        apfrom = ''  # the article title to 'continue' querying from, if necessary
+        while not got_all:
+            params = {'format': 'json',
+                      'action': 'query',
+                      'list': 'allpages',
+                      'apfrom': apfrom,
+                      'aplimit': 5000}  # TODO: add to config
+            async with http_session.get(url=self.url, params=params) as reply:
+                response = await reply.json()
+            new_items = response['query']['allpages']
+            for item in new_items:
+                title = item['title']
+                # filter out some Cargo tables that shouldn't be in main namespace
+                if not title.startswith('DynamicObjectsTable:'):
+                    fresh_titles[title] = item['pageid']
+            if 'continue' in response:
+                apfrom = response['continue']['apcontinue']
+            else:
+                got_all = True
+        self.all_titles = fresh_titles
+        self.all_titles_stamp = time.monotonic()
+
     @command()
     async def wiki(self, ctx: Context, *args):
         """Search titles of articles for the given text."""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
-        params = {'format': 'json',
-                  'action': 'query',
-                  'list': 'search',
-                  'srnamespace': '0|14',
-                  'srwhat': 'text',
-                  'srlimit': self.title_limit,
-                  'srsearch': 'intitle:' + ' '.join(args)}
-        async with http_session.get(url=self.url, params=params) as reply:
-            response = await reply.json()
-        if 'error' in response:
-            try:
-                info = ''.join(response['error']['info'])
-                return await ctx.send(f'Sorry, that query resulted in a search error: {info}')
-            except ValueError as e:
-                log.exception(e)
-                return await ctx.send(f'Sorry, that query resulted in a search error with no'
-                                      ' error message. Exception logged.')
-        results = response['query']['search']
-        if len(results) == 0:
-            return await ctx.send('Sorry, that query didn\'t find any article titles.')
-        urls = await self.pageids_to_urls([item['pageid'] for item in results])
-        reply = ''
-        for match, url in zip(results, urls):
-            title = match['title']
-            reply += f'\n[{title}]({url})'
-        embed = Embed(colour=Colour(0xc3c9b1),
-                      description=reply)
-        await ctx.send(embed=embed)
+        async with ctx.typing():
+            await self.refresh_titles_cache()  # fetch, or refresh, self.all_pages
+            query = ' '.join(args)
+            results = process.extractBests(query,
+                                           self.all_titles.keys(),
+                                           score_cutoff=75,
+                                           limit=10)  # TODO: read from config
+            if len(results) == 0:
+                return await ctx.send(f'Sorry, no matches were found for that query.')
+            pageids = [self.all_titles[item[0]] for item in results]  # map titles to IDs
+            urls = await self.pageids_to_urls(pageids)
+            reply = ''
+            for title, url in zip((result[0] for result in results), urls):
+                reply += f'\n[{title}]({url})'
+
+            embed = Embed(colour=Colour(0xc3c9b1),
+                          description=reply)
+            await ctx.send(embed=embed)
 
     @command()
     async def wikisearch(self, ctx: Context, *args):
