@@ -26,7 +26,7 @@ class Roll(Cog):
 
     """Randomly rolls based on the string provided using Hagadias's dice roll helper.
     Syntax: ?roll (dice string)
-    The dice string can only contain [0-9][d-+]. Unlike the Qud wiki module, it parses 
+    The dice string can only contain [0-9][d-+]. Unlike the Qud wiki module, it parses
     ranges ex. "1-5" as subtraction."""
     @command()
     async def roll(self, ctx: Context, *args):
