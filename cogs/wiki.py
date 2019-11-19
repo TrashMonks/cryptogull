@@ -1,9 +1,6 @@
 """Commands for operating on the wiki API at https://cavesofqud.gamepedia.com/api.php
 
-API request builder:
-https://cavesofqud.gamepedia.com/Special:ApiSandbox#action=query&format=json&list=search&srsearch=intitle%3Amod&srwhat=title
-API help:
-https://cavesofqud.gamepedia.com/api.php?action=help&modules=query%2Bsearch
+API help: https://cavesofqud.gamepedia.com/api.php?action=help&modules=query%2Bsearch
 """
 import asyncio
 import concurrent.futures
@@ -32,7 +29,10 @@ class Wiki(Cog):
         self.all_titles_stamp = 0.0  # after self.all_titles is filled, this will be its timestamp
 
     async def pageids_to_urls(self, pageids: list) -> list:
-        """Helper function to return a list of the full URLs for a list of existing page IDs."""
+        """Helper function to return a list of the full URLs for a list of existing page IDs.
+        Sandbox link for this query:
+        https://cavesofqud.gamepedia.com/Special:ApiSandbox#action=query&format=json&prop=info&list=&pageids=1&inprop=url
+        """
         str_pageids = [str(pageid) for pageid in pageids]
         params = {'format': 'json',
                   'action': 'query',
@@ -45,6 +45,10 @@ class Wiki(Cog):
         return urls
 
     async def read_titles(self, namespace):
+        """Helper function to read all the page titles from a single namespace.
+        Sandbox link for this query:
+        https://cavesofqud.gamepedia.com/Special:ApiSandbox#action=query&format=json&prop=&list=allpages&pageids=1&apnamespace=0
+        """
         fresh_titles = {}
         # there's a limit on how many titles we can fetch at a time (currently 5000 for bots)
         # and we may have more wiki articles than that someday, so fetch in batches
@@ -72,8 +76,10 @@ class Wiki(Cog):
         return fresh_titles
 
     async def refresh_titles_cache(self):
-        """Helper function to get all article titles for custom search and fuzzy matching."""
+        """Helper function to get, or refresh, all relevant page titles for our custom search."""
         # TODO: put cache time limit in config
+        # use time.monotonic because we don't actually care what time it is, only that it ticks,
+        # and can't go backwards due to time zone change/daylight savings.
         if self.all_titles != {} and time.monotonic() - self.all_titles_stamp < 900:
             # we have cached titles, and they're less than 15 minutes old
             return
@@ -93,6 +99,9 @@ class Wiki(Cog):
             await self.refresh_titles_cache()  # fetch, or refresh, self.all_pages
             query = ' '.join(args)
             loop = asyncio.get_running_loop()
+            # run this CPU task in an executor to avoid blocking the bot in the meantime.
+            # functools.partial workaround is required in order to pass keyword arguments through.
+            # see: https://docs.python.org/3/library/asyncio-eventloop.html#asyncio-pass-keywords
             with concurrent.futures.ThreadPoolExecutor() as pool:
                 results = await loop.run_in_executor(
                     pool,
@@ -115,7 +124,10 @@ class Wiki(Cog):
 
     @command()
     async def wikisearch(self, ctx: Context, *args):
-        """Search all articles for the given text."""
+        """Search all articles for the given text.
+        Sandbox link for this query:
+        https://cavesofqud.gamepedia.com/Special:ApiSandbox#action=query&format=json&list=search&srsearch=test&srwhat=text&srprop=snippet
+        """
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         params = {'format': 'json',
                   'action': 'query',
