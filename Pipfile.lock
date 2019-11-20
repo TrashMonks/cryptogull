@@ -66,10 +66,10 @@
         },
         "discord-py": {
             "hashes": [
-                "sha256:2d5fec14b1c047b561336e969939e7f34564489851ec1a7edb8d303087127256"
+                "sha256:7c843b523bb011062b453864e75c7b675a03faf573c58d14c9f096e85984329d"
             ],
             "index": "pypi",
-            "version": "==1.2.4"
+            "version": "==1.2.5"
         },
         "fuzzywuzzy": {
             "hashes": [
@@ -81,7 +81,7 @@
         },
         "hagadias": {
             "git": "https://github.com/TrashMonks/hagadias.git",
-            "ref": "fb4b06eaee1b5fa9e0c76feff37198f24c05fe14"
+            "ref": "7d9abf768e38e4e98350f4c73f7cc012563b29e9"
         },
         "idna": {
             "hashes": [
