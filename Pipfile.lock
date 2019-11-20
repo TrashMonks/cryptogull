@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c755721bd6dc4fb545d4241dbeb796683d0c5b796967c3342120fd78389e5973"
+            "sha256": "5d7423cf7a4302511b13240848fa9ce022a237f82f9ddf41516d54ef7d42facd"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -70,6 +70,14 @@
             ],
             "index": "pypi",
             "version": "==1.2.5"
+        },
+        "fuzzywuzzy": {
+            "hashes": [
+                "sha256:5ac7c0b3f4658d2743aa17da53a55598144edbc5bee3c6863840636e6926f254",
+                "sha256:6f49de47db00e1c71d40ad16da42284ac357936fa9b66bea1df63fed07122d62"
+            ],
+            "index": "pypi",
+            "version": "==0.17.0"
         },
         "hagadias": {
             "git": "https://github.com/TrashMonks/hagadias.git",
