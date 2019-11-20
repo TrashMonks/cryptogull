@@ -40,7 +40,6 @@ class Tiles(Cog):
             if len(query) < 3:
                 msg = "Sorry, that specific object wasn't found, and it's too short to search."
                 return await ctx.send(msg)
-        if obj is None:
             # there was no exact match, and the query wasn't too short, so offer an alternative
             loop = asyncio.get_running_loop()
             # doing a fuzzy match on the qindex keys can take about 2 seconds, so

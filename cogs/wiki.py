@@ -1,6 +1,7 @@
 """Commands for operating on the wiki API at https://cavesofqud.gamepedia.com/api.php
 
-API help: https://cavesofqud.gamepedia.com/api.php?action=help&modules=query%2Bsearch
+API documentation: https://cavesofqud.gamepedia.com/api.php?action=help
+The API currently used in the above link is 'query'.
 """
 import asyncio
 import concurrent.futures
@@ -47,30 +48,31 @@ class Wiki(Cog):
     async def read_titles(self, namespace):
         """Helper function to read all the page titles from a single namespace.
         Sandbox link for this query:
-        https://cavesofqud.gamepedia.com/Special:ApiSandbox#action=query&format=json&prop=&list=allpages&pageids=1&apnamespace=0
+        https://cavesofqud.gamepedia.com/Special:ApiSandbox#action=query&format=json&prop=&list=allpages&pageids=1&apnamespace=0&apfilterredir=nonredirects
         """
         fresh_titles = {}
         # there's a limit on how many titles we can fetch at a time (currently 5000 for bots)
         # and we may have more wiki articles than that someday, so fetch in batches
         got_all = False
-        apfrom = ''  # the article title to 'continue' querying from, if necessary
+        next_query_start = ''  # the article title to continue querying from, if necessary
         while not got_all:
             params = {'format': 'json',
                       'action': 'query',
                       'list': 'allpages',
-                      'apfrom': apfrom,
+                      'apfrom': next_query_start,  # is given by API if we didn't get all items
                       'apnamespace': namespace,
-                      'aplimit': 5000}  # TODO: add to config
+                      'apfilterredir': 'nonredirects',  # don't include redirects
+                      'aplimit': 5000}  # how many pages to return per query # TODO: add to config
             async with http_session.get(url=self.url, params=params) as reply:
                 response = await reply.json()
             new_items = response['query']['allpages']
             for item in new_items:
                 title = item['title']
-                # filter out some Cargo tables that shouldn't be in main namespace
-                if not title.startswith('DynamicObjectsTable:'):
+                # filter out some temporary Cargo tables that won't be in main namespace later
+                if not title.startswith('TEMP'):
                     fresh_titles[title] = item['pageid']
             if 'continue' in response:
-                apfrom = response['continue']['apcontinue']
+                next_query_start = response['continue']['apcontinue']
             else:
                 got_all = True
         return fresh_titles
@@ -93,7 +95,17 @@ class Wiki(Cog):
 
     @command()
     async def wiki(self, ctx: Context, *args):
-        """Search titles of articles for the given text."""
+        """Search titles of articles for the given text.
+
+        The best matches for the query will be given, up to a similarity limit. The fuzzy search
+        from the fuzzywuzzy package uses Levenshtein distance to determine a similarity:
+        https://en.wikipedia.org/wiki/Levenshtein_distance
+        up to a certain cutoff.
+
+        The old search would allow "carbide" to return "two-handed carbide battle axe" since the
+        query was in the title; the new search will still allow that, but will prioritize titles
+        that are "closer" to the query first.
+        """
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         async with ctx.typing():
             await self.refresh_titles_cache()  # fetch, or refresh, self.all_pages
@@ -108,7 +120,7 @@ class Wiki(Cog):
                     functools.partial(process.extractBests,
                                       query,
                                       self.all_titles.keys(),
-                                      score_cutoff=75,
+                                      score_cutoff=75,  # TODO: read from config
                                       limit=10))  # TODO: read from config
             if len(results) == 0:
                 return await ctx.send(f'Sorry, no matches were found for that query.')
@@ -125,40 +137,44 @@ class Wiki(Cog):
     @command()
     async def wikisearch(self, ctx: Context, *args):
         """Search all articles for the given text.
+        This command relies on the fulltext search implemented by the wiki, since downloading all
+        the pages locally would be prohibitive. Since the wiki only implements one fulltext search
+        algorithm we just have to use its results.
         Sandbox link for this query:
-        https://cavesofqud.gamepedia.com/Special:ApiSandbox#action=query&format=json&list=search&srsearch=test&srwhat=text&srprop=snippet
+        https://cavesofqud.gamepedia.com/Special:ApiSandbox#action=query&format=json&list=search&srsearch=test&srnamespace=0%7C14&srlimit=10&srwhat=text&srprop=snippet
         """
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         params = {'format': 'json',
                   'action': 'query',
-                  'list': 'search',
-                  'srsearch': ' '.join(args),
-                  'srnamespace': 0,
-                  'srwhat': 'text',
-                  'srlimit': self.fulltext_limit,
-                  'srprop': 'snippet'}
-        async with http_session.get(url=self.url, params=params) as reply:
-            response = await reply.json()
-        if 'error' in response:
-            try:
-                info = ''.join(response['error']['info'])
-                return await ctx.send(f'Sorry, that query resulted in a search error: {info}')
-            except ValueError as e:
-                log.exception(e)
-                return await ctx.send(f'Sorry, that query resulted in a search error with no'
-                                      ' error message. Exception logged.')
-        matches = response['query']['searchinfo']['totalhits']
-        if matches == 0:
-            return await ctx.send(f'Sorry, no matches were found for that query.')
-        results = response['query']['search']
-        urls = await self.pageids_to_urls([item['pageid'] for item in results])
-        reply = ''
-        for num, (match, url) in enumerate(zip(results, urls), start=1):
-            title = match['title']
-            reply += f'[{title}]({url}): '
-            snippet = match['snippet'].replace('<span class="searchmatch">', '**')
-            snippet = snippet.replace('</span>', '**')
-            reply += snippet + '\n'
-        embed = Embed(colour=Colour(0xc3c9b1),
-                      description=reply)
-        await ctx.send(embed=embed)
+                  'list': 'search',  # this parameter makes it a fulltext search
+                  'srsearch': ' '.join(args),  # what to search for
+                  'srnamespace': '0|14',  # 'Main' and 'Category' namespaces
+                  'srwhat': 'text',  # search page body
+                  'srlimit': self.fulltext_limit,  # how many pages to return
+                  'srprop': 'snippet'}  # include a short preview of the match
+        async with ctx.typing():
+            async with http_session.get(url=self.url, params=params) as reply:
+                response = await reply.json()
+            if 'error' in response:
+                try:
+                    info = ''.join(response['error']['info'])
+                    return await ctx.send(f'Sorry, that query resulted in a search error: {info}')
+                except ValueError as e:
+                    log.exception(e)
+                    return await ctx.send(f'Sorry, that query resulted in a search error with no'
+                                          ' error message. Exception logged.')
+            matches = response['query']['searchinfo']['totalhits']
+            if matches == 0:
+                return await ctx.send(f'Sorry, no matches were found for that query.')
+            results = response['query']['search']
+            urls = await self.pageids_to_urls([item['pageid'] for item in results])
+            reply = ''
+            for num, (match, url) in enumerate(zip(results, urls), start=1):
+                title = match['title']
+                reply += f'[{title}]({url}): '
+                snippet = match['snippet'].replace('<span class="searchmatch">', '**')
+                snippet = snippet.replace('</span>', '**')
+                reply += snippet + '\n'
+            embed = Embed(colour=Colour(0xc3c9b1),
+                          description=reply)
+            await ctx.send(embed=embed)
