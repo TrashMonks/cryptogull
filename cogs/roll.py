@@ -1,9 +1,9 @@
 """Command to imitate an ingame dice roll. Can roll randomly, or return the summary of the roll."""
-from hagadias.helpers import DiceBag
 import logging
 
 from discord import Colour, Embed
 from discord.ext.commands import Cog, Context, command
+from hagadias.helpers import DiceBag
 
 log = logging.getLogger('bot.' + __name__)
 
@@ -17,10 +17,13 @@ class Roll(Cog):
         """Returns the (min, max) Average (average)."""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         val = ' '.join(args)
-        avg = DiceBag(val).average()
-        min = DiceBag(val).minimum()
-        max = DiceBag(val).maximum()
-        msg = f'{val}: ({min}, {max}), average {avg}'
+        try:
+            avgval = DiceBag(val).average()
+            minval = DiceBag(val).minimum()
+            maxval = DiceBag(val).maximum()
+            msg = f'{val}: ({minval}, {maxval}), average {avgval}'
+        except ValueError as e:
+            msg = f'{e}'
         embedded_msg = Embed(colour=Colour(0xf403f), description=msg)
         return await ctx.send(embed=embedded_msg)
 
@@ -33,8 +36,11 @@ class Roll(Cog):
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         val = ' '.join(args)
         if val == "":
-            return await ctx.send("There needs to be a string specified in a parsable way!")
-        shakeResult = DiceBag(val).shake()  # randomly roll using stat value
-        msg = f'{val}: **{shakeResult}**!'
+            return await ctx.send("There needs to be a string specified!")
+        try:
+            shakeResult = DiceBag(val).shake()  # randomly roll using stat value
+            msg = f'{val}: **{shakeResult}**!'
+        except ValueError as e:
+            msg = f'{e}'
         embedded_msg = Embed(colour=Colour(0xf403f), description=msg)
         return await ctx.send(embed=embedded_msg)
