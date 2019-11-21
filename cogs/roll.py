@@ -16,7 +16,9 @@ class Roll(Cog):
     async def dice(self, ctx: Context, *args):
         """Returns the (min, max) Average (average)."""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
-        val = ' '.join(args)
+        val = ''.join(args)
+        if len(val) < 3:  # this argument is way too short, you don't need a bot for this.
+            return await ctx.send("That string is too short to be parsed (< 3 characters)")
         try:
             avgval = DiceBag(val).average()
             minval = DiceBag(val).minimum()
@@ -34,9 +36,11 @@ class Roll(Cog):
     @command()
     async def roll(self, ctx: Context, *args):
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
-        val = ' '.join(args)
+        val = ''.join(args)
         if val == "":
             return await ctx.send("There needs to be a string specified!")
+        if len(val) < 3:  # This argument is way too short, you don't need a bot for this.
+            return await ctx.send("That string is too short to be parsed (< 3 characters)")
         try:
             shakeResult = DiceBag(val).shake()  # randomly roll using stat value
             msg = f':game_die: {val}: **{shakeResult}**!'
