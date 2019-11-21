@@ -3,7 +3,7 @@ import logging
 
 from discord import Colour, Embed
 from discord.ext.commands import Cog, Context, command
-from hagadias.helpers import DiceBag
+from hagadias.dicebag import DiceBag
 
 log = logging.getLogger('bot.' + __name__)
 
@@ -39,7 +39,7 @@ class Roll(Cog):
             return await ctx.send("There needs to be a string specified!")
         try:
             shakeResult = DiceBag(val).shake()  # randomly roll using stat value
-            msg = f'{val}: **{shakeResult}**!'
+            msg = f':game_die: {val}: **{shakeResult}**!'
         except ValueError as e:
             msg = f'{e}'
         embedded_msg = Embed(colour=Colour(0xf403f), description=msg)
