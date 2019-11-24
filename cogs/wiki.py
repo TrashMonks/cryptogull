@@ -50,7 +50,7 @@ class Wiki(Cog):
         params = {'format': 'json',
                   'action': 'query',
                   'list': 'search',
-                  'srnamespace': '0|14|10001',
+                  'srnamespace': '0|14|10000',
                   'srwhat': 'text',
                   'srlimit': self.title_limit,
                   'srsearch': 'intitle:' + srquery}
