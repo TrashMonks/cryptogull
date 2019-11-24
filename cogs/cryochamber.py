@@ -13,7 +13,7 @@ async def can_manage_messages(ctx: Context) -> bool:
     get_channel = TextChannelConverter().convert
     arg = ctx.message.content
     # regex test link: https://regex101.com/r/kb819e/1
-    exp = r'(?P<source_specifier>.*?) in (?P<destination_channel_specifier>.*)'
+    exp = r'(?P<source_specifier>.*?) in (?P<destination_channel_specifier>.*?)'
     command_match = re.fullmatch(exp, arg)
     dest_channel = await get_channel(ctx,
                                      command_match.group('destination_channel_specifier'))
