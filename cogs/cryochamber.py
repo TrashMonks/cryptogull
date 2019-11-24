@@ -4,20 +4,13 @@ import re
 
 from discord import Embed, TextChannel, Colour, Message
 from discord.ext.commands import (Cog, CommandError, MessageConverter,
-                                  TextChannelConverter, group, check, Context)
+                                  TextChannelConverter, group, Context)
 
 log = logging.getLogger('bot.' + __name__)
 
 
-async def can_manage_messages(ctx: Context) -> bool:
-    get_channel = TextChannelConverter().convert
-    arg = ctx.message.content
-    # regex test link: https://regex101.com/r/kb819e/1
-    exp = r'(?P<source_specifier>.*?) in (?P<destination_channel_specifier>.*?)'
-    command_match = re.fullmatch(exp, arg)
-    dest_channel = await get_channel(ctx,
-                                     command_match.group('destination_channel_specifier'))
-    if not dest_channel.permissions_for(ctx.author).manage_messages:
+async def can_manage_messages(author, dest_channel) -> bool:
+    if not dest_channel.permissions_for(author).manage_messages:
         return False
     else:
         return True
@@ -28,14 +21,14 @@ class Cryochamber(Cog):
         self.ongoing_preservations = set()
 
     @group(invoke_without_command=True)
-    @check(can_manage_messages)
     async def preserve(self, context: Context, *, arg):
         """Main preserve function. Things in [] are optional arguments, stuff in () are variables.
-            The user must be able to manage messages in order to invoke these functions.
+            The user must be able to manage messages in order to invoke these functions. | means
+            options.
 
-               ?preserve (message link) in (destination channel)
-                   Message link can be gotten by enabling developer commands on Discord and
-                   selecting "Copy Link".
+               ?preserve (message link)|(message id) in (destination channel)
+                   Message link can be gotten by enabling developer mode on Discord in Appearance
+                   and selecting "Copy Link" or "Copy ID".
 
                ?preserve [future|no more] pins from (original channel) in (destination channel)
                    Embeds all messages pinned in the specified channel and reposts them in order or
@@ -64,6 +57,10 @@ class Cryochamber(Cog):
 
         dest_channel = await get_channel(context,
                                          command_match.group('destination_channel_specifier'))
+        # inline check to see if the author has the proper manage message permissions
+        if can_manage_messages(context.message.author, dest_channel) is False:
+            return await context.send('You do not have the proper permissions to use this command.')
+
         # regex test link: https://regex101.com/r/pMzemV/1/
         exp = r'(?:(?P<temporal_modifier>future|no more) )' \
               r'?pins from (?P<source_channel_specifier>.*?)'
