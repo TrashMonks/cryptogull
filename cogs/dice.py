@@ -8,33 +8,37 @@ from hagadias.dicebag import DiceBag
 log = logging.getLogger('bot.' + __name__)
 
 
-class Roll(Cog):
-    """Takes a dice string argument and either returns the stats for it or use as a base to roll.
-    Syntax: ?dice (dice string)"""
+class Dice(Cog):
+    """Simulate or roll dice from dice strings, like `2d6+3`."""
 
     @command()
     async def dice(self, ctx: Context, *args):
-        """Returns the (min, max) Average (average)."""
+        """Give statistical information about a dice string.
+
+        Example strings: `14d8`, `4d6+5`, `1d8+1d6+1d4`"""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         val = ''.join(args)
         if len(val) < 3:  # this argument is way too short, you don't need a bot for this.
-            return await ctx.send("That string is too short to be parsed (< 3 characters)")
+            return await ctx.send("That string is too short to be parsed (< 3 characters).")
         try:
             avgval = DiceBag(val).average()
             minval = DiceBag(val).minimum()
             maxval = DiceBag(val).maximum()
-            msg = f'{val}: ({minval}, {maxval}), average {avgval}'
+            msg = f'Expected value: {avgval} (minimum: {minval}, maximum: {maxval})'
         except ValueError as e:
             msg = f'{e}'
         embedded_msg = Embed(colour=Colour(0xf403f), description=msg)
         return await ctx.send(embed=embedded_msg)
 
-    """Randomly rolls based on the string provided using Hagadias's dice roll helper.
-    Syntax: ?roll (dice string)
-    The dice string can only contain [0-9][d-+]. Unlike the Qud wiki module, it parses
-    ranges ex. "1-5" as subtraction."""
+    # Randomly rolls based on the string provided using Hagadias's dice roll helper.
+    # Syntax: ?roll (dice string)
+    # The dice string can only contain [0-9][d-+]. Unlike the Qud wiki module, it parses
+    # ranges ex. "1-5" as subtraction.
     @command()
     async def roll(self, ctx: Context, *args):
+        """Simulate a roll of a dice string.
+
+        Example strings: `14d8`, `4d6+5`, `1d8+1d6+1d4`"""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         val = ''.join(args)
         if val == "":
@@ -42,8 +46,8 @@ class Roll(Cog):
         if len(val) < 3:  # This argument is way too short, you don't need a bot for this.
             return await ctx.send("That string is too short to be parsed (< 3 characters)")
         try:
-            shakeResult = DiceBag(val).shake()  # randomly roll using stat value
-            msg = f':game_die: {val}: **{shakeResult}**!'
+            result = DiceBag(val).shake()  # randomly roll using stat value
+            msg = f':game_die: {val}: **{result}**!'
         except ValueError as e:
             msg = f'{e}'
         embedded_msg = Embed(colour=Colour(0xf403f), description=msg)
