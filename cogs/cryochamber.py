@@ -3,8 +3,9 @@
 This cog provides support for copying pinned messages (in the form of embeds) from a channel to
 another channel.
 
-The "preserve" command can copy current pins, or if the "future" option is supplied, will copy
-messages in the future when they become pinned.
+The "preserve" command will copy current pins in the order the messages were posted, or if the
+"future" option is supplied, will copy messages in the future in the order that they become pinned.
+The "future" posting is cancelled by calling the command again with "no more" instead of "future".
 
 The "preserve" command can also be used to copy individual messages, regardless of whether or not
 they are pinned.
@@ -47,7 +48,7 @@ class Cryochamber(Cog):
 
                ?preserve [future|no more] pins from (original channel) in (destination channel)
                    Embeds all messages pinned in the specified channel and reposts them in order of
-                   pinning, earliest first.
+                   their creation, earliest first.
 
                    future  | **NOT FULLY IMPLEMENTED**
                              any future pins in that channel will be immediately reposted to the
