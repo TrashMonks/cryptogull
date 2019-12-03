@@ -42,13 +42,18 @@ class Wiki(Cog):
     async def wiki(self, ctx: Context, *args):
         """Search titles of articles for the given text."""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
+        srquery = ' '.join(args)
+        if str.isspace(srquery):  # If no search term specified, return basic help
+            return await ctx.send(embed=Embed(title='?wiki', description='Search the official '
+                                              'Caves of Qud wiki for matching titles.'
+                                              '\n\nSyntax: ?wiki (search query)'))
         params = {'format': 'json',
                   'action': 'query',
                   'list': 'search',
-                  'srnamespace': '0|14',
+                  'srnamespace': '0|14|10000',
                   'srwhat': 'text',
                   'srlimit': self.title_limit,
-                  'srsearch': 'intitle:' + ' '.join(args)}
+                  'srsearch': 'intitle:' + srquery}
         async with http_session.get(url=self.url, params=params) as reply:
             response = await reply.json()
         if 'error' in response:

@@ -1,4 +1,7 @@
+.idea/
+__pycache__/
+cogs/__pycache__
 logs/
 Textures/
-.flake8
+config.yml
 discordtoken*
