@@ -9,13 +9,6 @@ from discord.ext.commands import (Cog, CommandError, MessageConverter,
 log = logging.getLogger('bot.' + __name__)
 
 
-async def can_manage_messages(author, dest_channel) -> bool:
-    if not dest_channel.permissions_for(author).manage_messages:
-        return False
-    else:
-        return True
-
-
 class Cryochamber(Cog):
     """Support for archiving preserved messages.
 
@@ -75,8 +68,7 @@ class Cryochamber(Cog):
 
         dest_channel = await get_channel(context,
                                          command_match.group('destination_channel_specifier'))
-        # inline check to see if the author has the proper manage message permissions
-        if can_manage_messages(context.message.author, dest_channel) is False:
+        if not dest_channel.permissions_for(context.message.author).manage_messages:
             return await context.send('You do not have the proper permissions to use this command.')
 
         # regex test link: https://regex101.com/r/pMzemV/1/
