@@ -1,17 +1,4 @@
-"""Commands for preserving Discord messages in another channel.
-
-This cog provides support for copying pinned messages (in the form of embeds) from a channel to
-another channel.
-
-The "preserve" command will copy current pins in the order the messages were posted, or if the
-"future" option is supplied, will copy messages in the future in the order that they become pinned.
-The "future" posting is cancelled by calling the command again with "no more" instead of "future".
-
-The "preserve" command can also be used to copy individual messages, regardless of whether or not
-they are pinned.
-
-Permission to manage messages in the "target" channel is a prerequisite for any of the commands.
-"""
+"""Commands for preserving Discord messages in another channel."""
 import logging
 import re
 
@@ -30,7 +17,22 @@ async def can_manage_messages(author, dest_channel) -> bool:
 
 
 class Cryochamber(Cog):
-    """Support for archiving preserved messages."""
+    """Support for archiving preserved messages.
+
+    Provides support for copying pinned messages (in the form of embeds) from a channel to another
+    channel.
+
+    The "preserve" command will copy current pins in the order the messages were posted, or if the
+    "future" option is supplied, will copy messages in the future in the order that they become
+    pinned. The "future" posting is cancelled by calling the command again with "no more" instead of
+    "future".
+
+    The "preserve" command can also be used to copy individual messages, regardless of whether or
+    not they are pinned.
+
+    Permission to manage messages in the "target" channel is a prerequisite for any of the commands.
+    See the command help for individual commands for full documentation.
+    """
     def __init__(self, _):
         self.ongoing_preservations = set()
 
