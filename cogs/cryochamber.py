@@ -1,4 +1,16 @@
-"""Commands for preserving Discord messages in another channel."""
+"""Commands for preserving Discord messages in another channel.
+
+This cog provides support for copying pinned messages (in the form of embeds) from a channel to
+another channel.
+
+The "preserve" command can copy current pins, or if the "future" option is supplied, will copy
+messages in the future when they become pinned.
+
+The "preserve" command can also be used to copy individual messages, regardless of whether or not
+they are pinned.
+
+Permission to manage messages in the "target" channel is a prerequisite for any of the commands.
+"""
 import logging
 import re
 
@@ -17,12 +29,15 @@ async def can_manage_messages(author, dest_channel) -> bool:
 
 
 class Cryochamber(Cog):
+    """Support for archiving preserved messages."""
     def __init__(self, _):
         self.ongoing_preservations = set()
 
     @group(invoke_without_command=True)
     async def preserve(self, context: Context, *, arg):
-        """Main preserve function. Things in [] are optional arguments, stuff in () are variables.
+        """Main preserve function. See command help for details.
+
+         Things in [] are optional arguments, stuff in () are variables.
             The user must be able to manage messages in order to invoke these functions. | means
             options.
 
@@ -31,11 +46,11 @@ class Cryochamber(Cog):
                    and selecting "Copy Link" or "Copy ID".
 
                ?preserve [future|no more] pins from (original channel) in (destination channel)
-                   Embeds all messages pinned in the specified channel and reposts them in order or
-                   pinned, earliest first.
+                   Embeds all messages pinned in the specified channel and reposts them in order of
+                   pinning, earliest first.
 
                    future  | **NOT FULLY IMPLEMENTED**
-                             any future pins in that channel will be immeadiately reposted to the
+                             any future pins in that channel will be immediately reposted to the
                              destination. All current channels tagged with this can be checked
                              using ?preserve what
                    no more | cancel a previous command that uses future.
@@ -76,18 +91,23 @@ class Cryochamber(Cog):
             temporal_modifier = source_channel_match.group('temporal_modifier')
 
             if temporal_modifier is None:
+                # immediate mode: copy currently pinned messages now.
                 for pin in sorted(await src_channel.pins(), key=lambda message: message.created_at):
                     await self._preserve_message(pin, dest_channel)
             elif temporal_modifier == 'future':
+                # future mode: set up preservation of future pins.
                 self.ongoing_preservations.add((src_channel.name, dest_channel.name))
             elif temporal_modifier == 'no more':
+                # cancel mode: stop preserving future pins.
                 self.ongoing_preservations.remove((src_channel.name, dest_channel.name))
             else:
                 raise ValueError('unknown temporal modifier: ' + temporal_modifier)
 
     @preserve.command()
     async def what(self, context: Context):
-        """Replies with which channels the bot is currently watching for future pins,
+        """See which channels are currently being watched for preservation.
+
+        Replies with which channels the bot is currently watching for future pins,
         and where it's reposting to."""
         await context.send(str(self.ongoing_preservations))
 
