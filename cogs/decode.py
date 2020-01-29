@@ -5,7 +5,7 @@ from discord.channel import DMChannel
 from discord.ext.commands import Bot, Cog
 from discord.message import Message
 
-import qud_decode
+from helpers import qud_decode
 from shared import config
 
 log = logging.getLogger('bot.' + __name__)
