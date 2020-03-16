@@ -13,7 +13,8 @@ build_codes = ('AAPMNNJL16',
                'BJQMMOEIBNBOBPBRDPED',
                'BAIIMLLRB5CHDADCDDDX',
                'BCCGDEHEBKB2CDDB',
-               'BAMMMMLLU5EB'
+               'BAMMMMLLU5EB',
+               'BINKMMKKBPBSB1B2CADP',
                )
 
 # Stress test with every mutation and implant:

@@ -18,7 +18,7 @@ class Tiles(Cog):
     """Send game tiles to Discord."""
 
     @command()
-    async def tile(self, ctx: Context, *args):
+    async def tile(self, ctx: Context, *args, smalltile=False):
         """Send the tile for the named Qud object.
 
         Optional postfix: recolor color1 color2
@@ -71,7 +71,10 @@ class Tiles(Cog):
                 raw_transparent = obj.tile.raw_transparent
                 tile = QudTile(filename, colorstring, colors[0], colors[1], qudname,
                                raw_transparent)
-            data = tile.get_bytesio()
+            if smalltile:
+                data = tile.get_bytesio()
+            else:
+                data = tile.get_big_bytesio()
             data.seek(0)
             msg = f"`{obj.name}` (display name: '{obj.displayname}'):"
             return await ctx.send(msg, file=File(fp=data, filename=f'{obj.displayname}.png'))
@@ -79,3 +82,10 @@ class Tiles(Cog):
             msg = f"Sorry, the Qud object `{obj.name}` (display name: '{obj.displayname}')" \
                   " doesn't have a tile."
             await ctx.send(msg)
+
+    @command()
+    async def smalltile(self, ctx: Context, *args):
+        """Send the small (game size) tile for the named Qud object.
+
+        Optional arguments from the 'tile' command are allowed."""
+        return await self.tile(ctx, *args, smalltile=True)
