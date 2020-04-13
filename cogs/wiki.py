@@ -40,13 +40,12 @@ class Wiki(Cog):
 
     @command()
     async def wiki(self, ctx: Context, *args):
-        """Search titles of articles for the given text."""
+        """Search the titles of articles on the official Caves of Qud wiki.
+        """
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         srquery = ' '.join(args)
-        if str.isspace(srquery):  # If no search term specified, return basic help
-            return await ctx.send(embed=Embed(title='?wiki', description='Search the official '
-                                              'Caves of Qud wiki for matching titles.'
-                                              '\n\nSyntax: ?wiki (search query)'))
+        if srquery == '' or str.isspace(srquery):  # If no search term specified, return basic help
+            return await ctx.send_help(ctx.command)
         params = {'format': 'json',
                   'action': 'query',
                   'list': 'search',
@@ -78,12 +77,15 @@ class Wiki(Cog):
 
     @command()
     async def wikisearch(self, ctx: Context, *args):
-        """Search all articles for the given text."""
+        """Search the text of articles on the official Caves of Qud wiki."""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
+        srsearch = ' '.join(args)
+        if srsearch == '' or str.isspace(srsearch):  # no search term specified, return basic help
+            return await ctx.send_help(ctx.command)
         params = {'format': 'json',
                   'action': 'query',
                   'list': 'search',
-                  'srsearch': ' '.join(args),
+                  'srsearch': srsearch,
                   'srnamespace': 0,
                   'srwhat': 'text',
                   'srlimit': self.fulltext_limit,
