@@ -35,7 +35,7 @@ class Decode(Cog):
                 sheet = qud_decode.make_sheet(code)
                 response = f"```less\nCode:      {code}\n" + sheet + "\n```"
                 sheet_beta = qud_decode.make_sheet_qud_beta(code)
-                response += f"```\nIF ON BETA BRANCH:\n" + sheet_beta + "\n```"
+                response += f"```\nOr if using the beta branch:\n" + sheet_beta + "\n```"
                 await message.channel.send(response)
             except:  # noqa E722
                 log.exception(f"Exception while decoding and sending character code {code}.")

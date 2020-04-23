@@ -93,8 +93,6 @@ def make_sheet_qud_beta(charcode: str) -> str:
     Interprets character attributes differently on the Qud beta branch.
     """
     char = decode(charcode)
-    charsheet = f"""Genotype:  {char.genotype}
-{char.class_called:11}{char.class_}"""
     attributes = ('Strength:', 'Agility:', 'Toughness:', 'Intelligence:', 'Willpower:', 'Ego:')
     attr_strings = []
     for attr_text, attr, bonus in zip(attributes, char.attrs, char.bonuses):
@@ -104,10 +102,8 @@ def make_sheet_qud_beta(charcode: str) -> str:
             attr_strings.append(f'{attr_text:14}{attr:2}+{bonus}')
         elif bonus < 0:
             attr_strings.append(f'{attr_text:14}{attr:2}{bonus}')
-    charsheet += f"""
+    charsheet = f"""
 {attr_strings[0]:21}    {attr_strings[3]}
 {attr_strings[1]:21}    {attr_strings[4]}
 {attr_strings[2]:21}    {attr_strings[5]}"""
-    charsheet += f"\n{char.extname}{', '.join(char.extensions)}"
-    charsheet += f"\nSkills:    {', '.join(char.skills)}"
     return charsheet
