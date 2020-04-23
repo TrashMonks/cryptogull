@@ -10,6 +10,7 @@ from cogs.decode import Decode
 from cogs.tiles import Tiles
 from cogs.wiki import Wiki
 from cogs.dice import Dice
+from cogs.blueprints import BlueprintQuery
 
 LOGDIR = Path('logs')
 
@@ -56,4 +57,5 @@ bot.add_cog(Tiles(bot))
 bot.add_cog(Wiki(bot))
 bot.add_cog(Dice(bot))
 bot.add_cog(Cryochamber(bot))
+bot.add_cog(BlueprintQuery(bot))
 bot.run(token)
