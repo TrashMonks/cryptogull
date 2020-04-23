@@ -1,16 +1,21 @@
-# Channels to listen in:
-# character-builds, build-club, testing (private)
-channels: [449342897788026882, 571405896597635073, 367847130582220802]
-
-# Users to ignore:
-# Cryptogull, Testington
-ignore: [502293569764327444, 531213550253899777]
-
-# Wiki
-wiki: cavesofqud.gamepedia.com
-wiki title search limit: 10
-wiki fulltext search limit: 5
-
 # Game installation to read from
 Qud install folder: C:\Steam\steamapps\common\Caves of Qud
-# Qud install folder: /home/jeff/.local/share/Steam/steamapps/common/Caves of Qud
+# Qud install folder: C:\Program Files (x86)\Steam\steamapps\common\Caves of Qud
+# Qud install folder: /home/user/.local/share/Steam/steamapps/common/Caves of Qud
+
+#############################
+# Configs for individual cogs
+#############################
+Decode:
+  # Channels to listen in:
+  # character-builds, build-club, testing (private)
+  channels: [449342897788026882, 571405896597635073, 367847130582220802]
+
+  # Users to ignore:
+  # Cryptogull, Testington
+  ignore: [502293569764327444, 531213550253899777]
+
+Wiki:
+  wiki: cavesofqud.gamepedia.com
+  wiki title search limit: 10
+  wiki fulltext search limit: 5

@@ -16,7 +16,7 @@ valid_charcode = re.compile(r"(?:^|\s)[AB][A-L][A-Z]{6}(?:[01ABCDEU][0-9A-Z])*")
 class Decode(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
-        self.config = config
+        self.config = config['Decode']
 
     @Cog.listener()
     async def on_message(self, message: Message):

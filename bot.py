@@ -16,7 +16,7 @@ LOGDIR = Path('logs')
 
 
 with open('discordtoken.sec') as f:
-    token = f.read()
+    token = f.read().strip()
 bot = Bot(command_prefix='?')
 
 

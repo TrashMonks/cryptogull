@@ -21,9 +21,10 @@ class Wiki(Cog):
 
     def __init__(self, bot: Bot):
         self.bot = bot
-        self.title_limit = config['wiki title search limit']
-        self.fulltext_limit = config['wiki fulltext search limit']
-        self.url = 'https://' + config['wiki'] + '/api.php'
+        self.config = config['Wiki']
+        self.title_limit = self.config['title search limit']
+        self.fulltext_limit = self.config['fulltext search limit']
+        self.url = 'https://' + self.config['site'] + '/api.php'
 
     async def pageids_to_urls(self, pageids: list) -> list:
         """Return a list of the full URLs for a list of existing page IDs."""
