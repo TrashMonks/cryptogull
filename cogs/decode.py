@@ -32,8 +32,8 @@ class Decode(Cog):
             code = match[0].strip()  # may have whitespace
             log.info(f'({message.channel}) <{message.author}> {message.content}')
             try:
-                decode = qud_decode.decode(code)
-                response = f"```less\nCode:      {code}\n" + decode + "\n```"
+                sheet = qud_decode.make_sheet(code)
+                response = f"```less\nCode:      {code}\n" + sheet + "\n```"
                 await message.channel.send(response)
             except:  # noqa E722
                 log.exception(f"Exception while decoding and sending character code {code}.")

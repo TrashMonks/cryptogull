@@ -3,16 +3,19 @@ Functions for parsing a Caves of Qud build code into character attributes,
 and for building a printable character sheet based on the attributes.
 """
 
+from collections import namedtuple
 from operator import add
-from typing import Union
 
 from shared import gameroot
 gamecodes = gameroot.get_character_codes()
 
+Character = namedtuple('Character', ['attrs', 'bonuses', 'class_', 'class_called',
+                                     'extensions', 'extname', 'genotype', 'skills'])
 
-def decode(charcode: str) -> Union[str, None]:
+
+def decode(charcode: str) -> Character:
     """
-    Take a Qud character build code of at least 8 characters and return a text description.
+    Take a Qud character build code of at least 8 characters and return a Character.
     """
     # 1st character: A for true kin, B for mutated human
     genotype = gamecodes['genotype_codes'][charcode[0]]
@@ -58,17 +61,17 @@ def decode(charcode: str) -> Union[str, None]:
     # skills are not in the build code, they're determined solely by class
     skills = [skill for skill in gamecodes['class_skills'][class_]]
 
-    return make_sheet(attrs, bonuses, class_, class_called, extensions, extname, genotype,
-                      skills)
+    return Character(attrs, bonuses, class_, class_called, extensions, extname, genotype, skills)
 
 
-def make_sheet(attrs, bonuses, class_, class_called, extensions, extname, genotype, skills) -> str:
+def make_sheet(charcode: str) -> str:
     """Build a printable character sheet given the parsed attributes."""
-    charsheet = f"""Genotype:  {genotype}
-{class_called:11}{class_}"""
+    char = decode(charcode)
+    charsheet = f"""Genotype:  {char.genotype}
+{char.class_called:11}{char.class_}"""
     attributes = ('Strength:', 'Agility:', 'Toughness:', 'Intelligence:', 'Willpower:', 'Ego:')
     attr_strings = []
-    for attr_text, attr, bonus in zip(attributes, attrs, bonuses):
+    for attr_text, attr, bonus in zip(attributes, char.attrs, char.bonuses):
         if bonus == 0:
             attr_strings.append(f'{attr_text:14}{attr:2}')
         elif bonus > 0:
@@ -79,6 +82,6 @@ def make_sheet(attrs, bonuses, class_, class_called, extensions, extname, genoty
 {attr_strings[0]:21}    {attr_strings[3]}
 {attr_strings[1]:21}    {attr_strings[4]}
 {attr_strings[2]:21}    {attr_strings[5]}"""
-    charsheet += f"\n{extname}{', '.join(extensions)}"
-    charsheet += f"\nSkills:    {', '.join(skills)}"
+    charsheet += f"\n{char.extname}{', '.join(char.extensions)}"
+    charsheet += f"\nSkills:    {', '.join(char.skills)}"
     return charsheet
