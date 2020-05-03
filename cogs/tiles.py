@@ -19,7 +19,7 @@ class Tiles(Cog):
 
     @command()
     async def tile(self, ctx: Context, *args, smalltile=False):
-        """Send the tile for the named Qud object.
+        """Send the tile for the named Qud blueprint.
 
         Optional postfix: recolor color1 color2
         Append this to the command to recolor the tile with color1 as the tile color and color2
@@ -38,7 +38,8 @@ class Tiles(Cog):
                 break
         if obj is None:
             if len(query) < 3:
-                msg = "Sorry, that specific object wasn't found, and it's too short to search."
+                msg = "Sorry, that specific blueprint name wasn't found, and it's too" \
+                      " short to search."
                 return await ctx.send(msg)
             # there was no exact match, and the query wasn't too short, so offer an alternative
             loop = asyncio.get_running_loop()
@@ -49,7 +50,7 @@ class Tiles(Cog):
                                                      process.extractOne,
                                                      query,
                                                      list(qindex))
-            msg = "Sorry, nothing matching that object was found. The closest object ID is" \
+            msg = "Sorry, nothing matching that name was found. The closest blueprint name is" \
                   f" `{nearest[0]}`."
             return await ctx.send(msg)
         if obj.tile is not None:
@@ -79,7 +80,7 @@ class Tiles(Cog):
             msg = f"`{obj.name}` (display name: '{obj.displayname}'):"
             return await ctx.send(msg, file=File(fp=data, filename=f'{obj.displayname}.png'))
         else:
-            msg = f"Sorry, the Qud object `{obj.name}` (display name: '{obj.displayname}')" \
+            msg = f"Sorry, the Qud blueprint `{obj.name}` (display name: '{obj.displayname}')" \
                   " doesn't have a tile."
             await ctx.send(msg)
 
