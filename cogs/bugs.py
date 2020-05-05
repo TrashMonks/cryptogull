@@ -27,7 +27,6 @@ class Bugs(Cog):
                 payload.emoji.name != self.config['trigger'] or \
                 payload.message_id in self.processed_messages:
             return
-        self.processed_messages.add(payload.message_id)
         channel = self.bot.get_channel(payload.channel_id)
         message = await channel.fetch_message(payload.message_id)
         ctx: Context = await self.bot.get_context(message)
@@ -50,6 +49,7 @@ class Bugs(Cog):
             log.exception(e)
             await ctx.message.add_reaction(self.config['fail reaction'])
         else:
+            self.processed_messages.add(payload.message_id)
             log.info(f'Successfully created issue #{response["id"]}.')
             await ctx.message.add_reaction(self.config['success reaction'])
 
