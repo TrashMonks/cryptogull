@@ -39,7 +39,7 @@ class Bugs(Cog):
             log.info('Not allowed due to lacking roles.')
             log.info(f'Allowed roles: {", ".join(self.config["allowed roles"])}; user roles:'
                      f' {", ".join([role.name for role in reacter.roles])}')
-            need_roles_md = [f'`{role}`' for role in reacter.roles]
+            need_roles_md = [f'`{role}`' for role in self.config["allowed roles"]]
             await ctx.send(f'<@{payload.user_id}>, 🐛 requires one of the following roles:'
                            f' {", ".join(need_roles_md)}')
             return
