@@ -1,0 +1,35 @@
+# Secret bot token
+Discord token: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  # Testington
+Prefix: "!"
+# Folder to write logs to; will be created if it does not exist
+Log folder: logs
+# Game installation to read from
+Qud install folder: C:\Steam\steamapps\common\Caves of Qud
+
+#############################
+# Configs for individual cogs
+#############################
+Bugs:
+  # Channels to listen in
+  channels: [449667247297003520, 459482205635215360, 367847130582220802]  # bugs, beta-bugs, testing
+  allowed roles: [Mayor, Journeyfriend]
+  trigger: 🐛
+  success reaction: ☑
+  fail reaction: ❌
+  title max length: 80
+  endpoint: https://api.bitbucket.org/2.0/repositories/syntaxaire/test-issue-tracker/issues
+  oauth2 key: xxxxxxxxxxxxxxxxxx
+  oauth2 secret: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+Decode:
+  # Channels to listen in
+  # character-builds, build-club, testing (private)
+  channels: [449342897788026882, 571405896597635073, 367847130582220802]
+
+  # Users to ignore
+  ignore: [502293569764327444, 707217285525405758]  # Cryptogull, Testington
+
+Wiki:
+  site: cavesofqud.gamepedia.com
+  title search limit: 10
+  fulltext search limit: 5

@@ -2,22 +2,18 @@ import datetime
 import logging
 from pathlib import Path
 
-import aiohttp
 from discord.ext.commands import Bot
 
+from cogs.blueprints import BlueprintQuery
+from cogs.bugs import Bugs
 from cogs.cryochamber import Cryochamber
 from cogs.decode import Decode
+from cogs.dice import Dice
 from cogs.tiles import Tiles
 from cogs.wiki import Wiki
-from cogs.dice import Dice
-from cogs.blueprints import BlueprintQuery
+from shared import config
 
-LOGDIR = Path('logs')
-
-
-with open('discordtoken.sec') as f:
-    token = f.read().strip()
-bot = Bot(command_prefix='?')
+LOGDIR = Path(config['Log folder'])
 
 
 def setup_logger() -> logging.Logger:
@@ -29,7 +25,7 @@ def setup_logger() -> logging.Logger:
     logger.setLevel(logging.DEBUG)  # capture all log levels
     console_log = logging.StreamHandler()
     console_log.setLevel(logging.DEBUG)  # log levels to be shown at the console
-    file_log = logging.FileHandler(logfile)
+    file_log = logging.FileHandler(logfile, 'w', 'utf8')
     file_log.setLevel(logging.DEBUG)  # log levels to be written to file
     formatter = logging.Formatter('{asctime} - {name} - {levelname} - {message}', style='{')
     console_log.setFormatter(formatter)
@@ -39,23 +35,23 @@ def setup_logger() -> logging.Logger:
     return logger
 
 
-log = setup_logger()
+def main():
+    log = setup_logger()
+    bot = Bot(command_prefix=config['Prefix'])
+
+    @bot.event
+    async def on_ready():
+        log.info(f'Logged in as {bot.user}.')
+
+    bot.add_cog(Bugs(bot))
+    bot.add_cog(Decode(bot))
+    bot.add_cog(Tiles(bot))
+    bot.add_cog(Wiki(bot))
+    bot.add_cog(Dice(bot))
+    bot.add_cog(Cryochamber(bot))
+    bot.add_cog(BlueprintQuery(bot))
+    bot.run(config['Discord token'])
 
 
-@bot.event
-async def on_connect():
-    bot.aiohttp_session = aiohttp.ClientSession()
-
-
-@bot.event
-async def on_ready():
-    log.info(f'Logged in as {bot.user}.')
-
-
-bot.add_cog(Decode(bot))
-bot.add_cog(Tiles(bot))
-bot.add_cog(Wiki(bot))
-bot.add_cog(Dice(bot))
-bot.add_cog(Cryochamber(bot))
-bot.add_cog(BlueprintQuery(bot))
-bot.run(token)
+if __name__ == '__main__':
+    main()

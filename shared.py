@@ -24,7 +24,7 @@ async def create_http_session():
     return session
 
 
-with open("config.yml") as f:
+with open("config.yml", encoding='utf8') as f:
     config = yaml.safe_load(f)
 
 http_session = asyncio.get_event_loop().run_until_complete(create_http_session())

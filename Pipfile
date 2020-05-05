@@ -13,6 +13,8 @@ pyyaml = "*"
 discord-py = "*"
 hagadias = {git = "https://github.com/TrashMonks/hagadias.git",ref = "master"}
 fuzzywuzzy = "*"
+aiodns = "*"
+oauthlib = "*"
 
 [requires]
 python_version = "3.7"
