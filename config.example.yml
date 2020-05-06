@@ -19,7 +19,7 @@ Bugs:
   allowed roles: [       # Roles that can open a new issue via react:
     443578758629425152,  # Sultan
     447173558330982400,  # Mayor
-    447173988112662549,  # Journeyfriend
+    579024675598761995,  # Tinker
     707378307649241210,  # Bug Herder
   ]
   trigger: 🐛
