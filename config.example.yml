@@ -1,33 +1,44 @@
-# Secret bot token
-Discord token: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  # Testington
-Prefix: "!"
-# Folder to write logs to; will be created if it does not exist
+# Secret bot token:
+Discord token: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Prefix: "?"
+# Folder to write logs to; will be created if it does not exist:
 Log folder: logs
-# Game installation to read from
+# Game installation to read from:
 Qud install folder: C:\Steam\steamapps\common\Caves of Qud
+
 
 #############################
 # Configs for individual cogs
 #############################
 Bugs:
-  # Channels to listen in
-  channels: [449667247297003520, 459482205635215360, 367847130582220802]  # bugs, beta-bugs, testing
-  allowed roles: [Mayor, Journeyfriend]
+  channels: [            # Channels to listen for bug reacts in:
+    449667247297003520,  # #bugs
+    459482205635215360,  # #beta-bugs
+    449312747683971072,  # #modding
+  ]
+  allowed roles: [       # Roles that can open a new issue via react:
+    443578758629425152,  # Sultan
+    447173558330982400,  # Mayor
+    447173988112662549,  # Journeyfriend
+    707378307649241210,  # Bug Herder
+  ]
   trigger: 🐛
   success reaction: ☑
   fail reaction: ❌
   title max length: 80
-  endpoint: https://api.bitbucket.org/2.0/repositories/syntaxaire/test-issue-tracker/issues
+  endpoint: https://api.bitbucket.org/2.0/repositories/test/test-issue-tracker/issues
   oauth2 key: xxxxxxxxxxxxxxxxxx
   oauth2 secret: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 Decode:
-  # Channels to listen in
-  # character-builds, build-club, testing (private)
-  channels: [449342897788026882, 571405896597635073, 367847130582220802]
-
-  # Users to ignore
-  ignore: [502293569764327444, 707217285525405758]  # Cryptogull, Testington
+  channels: [            # Channels to listen for character build codes in:
+    449342897788026882,  # #character-builds
+    571405896597635073,  # #build-club
+    482714670860468234,  # #trash-divining
+  ]
+  ignore: [              # Users to ignore:
+    502293569764327444,  # Cryptogull
+  ]
 
 Wiki:
   site: cavesofqud.gamepedia.com

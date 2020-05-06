@@ -17,48 +17,57 @@ class Bugs(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
         self.config = config['Bugs']
-        self.processed_messages = set()
         self.oauthclient = BackendApplicationClient(self.config['oauth2 key'])
 
     @Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
-        """Process all incoming reacts and filter out the uninteresting ones."""
+        """Watch for reactions that might trigger an issue report."""
+        # process all incoming reacts and filter out the uninteresting ones:
         if payload.channel_id not in self.config['channels'] or \
-                payload.emoji.name != self.config['trigger'] or \
-                payload.message_id in self.processed_messages:
+                payload.emoji.name != self.config['trigger']:
             return
+        # bootstrap to a context from the raw reaction
         channel = self.bot.get_channel(payload.channel_id)
-        message = await channel.fetch_message(payload.message_id)
+        message: discord.Message = await channel.fetch_message(payload.message_id)
         ctx: Context = await self.bot.get_context(message)
         reacter = ctx.guild.get_member(payload.user_id)
         log.info(f'Issue requested by {reacter} ({payload.user_id})'
                  f' by reacting to the following message by {message.author} ({message.author.id}:')
         log.info(f'({message.channel}) <{message.author}> {message.content}')
-        if not any(role.name in self.config['allowed roles'] for role in reacter.roles):
+
+        # have we already reported this issue and reacted with a checkmark?
+        reactions = message.reactions
+        for reaction in reactions:
+            if reaction.emoji == self.config['success reaction'] and reaction.me:
+                log.info(f'Found an existing checkmark on this message, so not reporting.')
+                return
+
+        # role check: can this user open an issue from Discord?
+        if not any(role.id in self.config['allowed roles'] for role in reacter.roles):
             log.info('Not allowed due to lacking roles.')
             log.info(f'Allowed roles: {", ".join(self.config["allowed roles"])}; user roles:'
-                     f' {", ".join([role.name for role in reacter.roles])}')
-            need_roles_md = [f'`{role}`' for role in self.config["allowed roles"]]
-            await ctx.send(f'<@{payload.user_id}>, 🐛 requires one of the following roles:'
-                           f' {", ".join(need_roles_md)}')
+                     f' {", ".join([role.id for role in reacter.roles])}')
             return
-        await self.check_bitbucket_token()
+
         try:
             response = await self.create_bitbucket_issue(ctx, reacter)
         except Exception as e:
             log.exception(e)
             await ctx.message.add_reaction(self.config['fail reaction'])
         else:
-            self.processed_messages.add(payload.message_id)
-            log.info(f'Successfully created issue #{response["id"]}.')
+            # we successfully opened an issue, so manage our own reactions on the message
+            reactions = message.reactions
+            for reaction in reactions:
+                if reaction.emoji == self.config['fail reaction'] and reaction.me:
+                    await message.remove_reaction(self.config['fail reaction'], self.bot.user)
             await ctx.message.add_reaction(self.config['success reaction'])
+            log.info(f'Successfully created issue #{response["id"]}.')
 
-    async def check_bitbucket_token(self):
+    async def check_oauth_token(self):
         """Create or refresh our Bitbucket OAuth2 token."""
-        # is our token nonexistent, expired, or expiring in the next 5 seconds?
-        # TODO: Use refresh token instead of creating it each time.
+        # is our token nonexistent, expired, or expiring in the next 30 seconds?
         if self.oauthclient.expires_in is None or \
-                self.oauthclient.expires_in < time.time() + 5:
+                self.oauthclient.expires_in < time.time() + 30:
             auth = aiohttp.BasicAuth(self.config['oauth2 key'],
                                      self.config['oauth2 secret'])
             data = {'grant_type': 'client_credentials'}
@@ -72,21 +81,23 @@ class Bugs(Cog):
         """Create a Bitbucket issue regarding the given Discord Context.
 
         Return the Bitbucket API response."""
-        title = ctx.message.clean_content[:self.config['title max length']]
-        if ctx.message.clean_content > title:
-            title = title[:len(title) - 3] + "..."
+        await self.check_oauth_token()
+        title = ctx.message.clean_content
+        if len(title) > self.config['title max length']:
+            title = title[:self.config['title max length']] + "..."
+        message = '  \n> '.join(ctx.message.clean_content.split('\n'))
         content = f"""Issue requested by: {requester.display_name}
 
 Message ([jump](https://discordapp.com/channels/{ctx.guild.id}/{ctx.channel.id}/{ctx.message.id})):
 
-```
-<{ctx.author.display_name}> {ctx.message.clean_content}
-```"""
+> <{ctx.author.display_name}> {message}
+"""
+        print(content)
         params = {
             'state': 'new',
             'kind': 'bug',
             'priority': 'trivial',
-            'title': f'[Discord: #{ctx.channel}] {title}',
+            'title': f'[#{ctx.channel}] {title}',
             'content': {
                 'raw': content
             }
