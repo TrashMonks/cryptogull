@@ -1,3 +1,4 @@
+import io
 import logging
 import time
 
@@ -34,34 +35,33 @@ class Bugs(Cog):
         log.info(f'Issue requested by {reacter} ({payload.user_id})'
                  f' by reacting to the following message by {message.author} ({message.author.id}:')
         log.info(f'({message.channel}) <{message.author}> {message.content}')
-
-        # have we already reported this issue and reacted with a checkmark?
+        # have we already reacted to this message with a checkmark?
         reactions = message.reactions
         for reaction in reactions:
             if reaction.emoji == self.config['success reaction'] and reaction.me:
                 log.info(f'Found an existing checkmark on this message, so not reporting.')
                 return
-
-        # role check: can this user open an issue from Discord?
+        # role check: can the person who added the reaction open an issue from Discord?
         if not any(role.id in self.config['allowed roles'] for role in reacter.roles):
             log.info('Not allowed due to lacking roles.')
-            log.info(f'Allowed roles: {", ".join(self.config["allowed roles"])}; user roles:'
-                     f' {", ".join([role.id for role in reacter.roles])}')
             return
-
         try:
             response = await self.create_bitbucket_issue(ctx, reacter)
         except Exception as e:
             log.exception(e)
-            await ctx.message.add_reaction(self.config['fail reaction'])
-        else:
-            # we successfully opened an issue, so manage our own reactions on the message
-            reactions = message.reactions
-            for reaction in reactions:
-                if reaction.emoji == self.config['fail reaction'] and reaction.me:
-                    await message.remove_reaction(self.config['fail reaction'], self.bot.user)
-            await ctx.message.add_reaction(self.config['success reaction'])
-            log.info(f'Successfully created issue #{response["id"]}.')
+            return await ctx.message.add_reaction(self.config['fail reaction'])
+        # success emoji
+        reactions = message.reactions
+        for reaction in reactions:
+            if reaction.emoji == self.config['fail reaction'] and reaction.me:
+                await message.remove_reaction(self.config['fail reaction'], self.bot.user)
+        await ctx.message.add_reaction(self.config['success reaction'])
+        log.info(f'Successfully created issue #{response["id"]}.')
+        # attachments
+        try:
+            await self.upload_issue_attachments(ctx, response['id'])
+        except Exception as e:
+            log.exception(e)
 
     async def check_oauth_token(self):
         """Create or refresh our Bitbucket OAuth2 token."""
@@ -92,7 +92,6 @@ Message ([jump](https://discordapp.com/channels/{ctx.guild.id}/{ctx.channel.id}/
 
 > <{ctx.author.display_name}> {message}
 """
-        print(content)
         params = {
             'state': 'new',
             'kind': 'bug',
@@ -103,8 +102,20 @@ Message ([jump](https://discordapp.com/channels/{ctx.guild.id}/{ctx.channel.id}/
             }
         }
         headers = {'Authorization': f'Bearer {self.oauthclient.token["access_token"]}'}
-        async with http_session.post(url=self.config['endpoint'],
+        async with http_session.post(self.config['endpoint'],
                                      headers=headers,
                                      json=params) as request:
             response = await request.json()
         return response
+
+    async def upload_issue_attachments(self, ctx: Context, issue_id: int):
+        """Upload any attachments from the given Discord Context to the issue ID."""
+        for num, attachment in enumerate(ctx.message.attachments):
+            log.info(f'Uploading attachment {num}: {attachment.filename} ({attachment.size} bytes)')
+            headers = {'Authorization': f'Bearer {self.oauthclient.token["access_token"]}'}
+            stream = io.BytesIO()
+            await attachment.save(stream, seek_begin=True)
+            data = aiohttp.FormData()
+            data.add_field('file', stream, filename=attachment.filename)
+            url = f'{self.config["endpoint"]}/{issue_id}/attachments'
+            await http_session.post(url, headers=headers, data=data)
