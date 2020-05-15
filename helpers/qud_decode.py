@@ -107,3 +107,48 @@ def make_sheet_qud_beta(charcode: str) -> str:
 {attr_strings[1]:21}    {attr_strings[4]}
 {attr_strings[2]:21}    {attr_strings[5]}"""
     return charsheet
+
+
+def point_spend(attr: int, base: int) -> int:
+    """Return the number of stat points required to raise a stat from base to given value."""
+    spent = 0
+    if attr > 18:
+        spent += (attr - 18) * 2
+        attr = 18
+    spent += attr - base
+    return spent
+
+
+def charcode_origin(charcode: str) -> str:
+    """Return 'beta' if this character code adds up to a max point spend from
+    post-2.0.200.0 (the 'beta branch') of Caves of Qud, 'stable' if it is from
+    before that, or 'unknown' if it is from neither (maybe altered)."""
+    mutant_points = 44
+    truekin_points = 38
+    char = decode(charcode)
+    points_spent = 0
+    base = 12 if char.genotype == "True Kin" else 10
+    origin = 'unknown'
+    # check if this adds up to a beta character
+    went_negative = False
+    for attr in char.attrs:
+        if attr < base:
+            went_negative = True
+        points_spent += point_spend(attr, base)
+    if (char.genotype == "Mutated Human" and points_spent == mutant_points)\
+            or (char.genotype == "True Kin" and points_spent == truekin_points)\
+            and not went_negative:
+        origin = 'beta'
+    # check if this adds up to a stable character
+    points_spent = 0
+    went_negative = False
+    for attr, bonus in zip(char.attrs, char.bonuses):
+        attr -= bonus
+        if attr < base:
+            went_negative = True
+        points_spent += point_spend(attr, base)
+    if (char.genotype == "Mutated Human" and points_spent == mutant_points)\
+            or (char.genotype == "True Kin" and points_spent == truekin_points)\
+            and not went_negative:
+        origin = 'stable'
+    return origin
