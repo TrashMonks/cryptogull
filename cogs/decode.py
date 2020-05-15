@@ -5,7 +5,7 @@ from discord.channel import DMChannel
 from discord.ext.commands import Bot, Cog
 from discord.message import Message
 
-from helpers import qud_decode
+from helpers.qud_decode import Character
 from shared import config
 
 log = logging.getLogger('bot.' + __name__)
@@ -34,9 +34,10 @@ class Decode(Cog):
             code = match[0].strip()  # may have whitespace
             log.info(f'({message.channel}) <{message.author}> {message.content}')
             try:
-                sheet = qud_decode.make_sheet(code)
+                char = Character.from_charcode(code)
+                sheet = char.make_sheet()
                 response = f"```less\nCode:      {code}\n" + sheet + "\n```"
-                sheet_beta = qud_decode.make_sheet_qud_beta(code)
+                sheet_beta = char.make_sheet_qud_beta()
                 response += f"```\nOr if using the beta branch:\n" + sheet_beta + "\n```"
                 await message.channel.send(response)
             except:  # noqa E722
