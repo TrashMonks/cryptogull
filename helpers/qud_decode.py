@@ -42,6 +42,7 @@ class Character:
         self.extname = extname
         self.genotype = genotype
         self.skills = skills
+        self._origin_cache = None
 
     @classmethod
     def from_charcode(cls, charcode: str):
@@ -105,9 +106,15 @@ class Character:
             if bonus == 0:
                 attr_strings.append(f'{attr_text:14}{attr:2}')
             elif bonus > 0:
-                attr_strings.append(f'{attr_text:14}{attr - bonus:2}+{bonus}')
+                if self.origin == 'stable':
+                    attr_strings.append(f'{attr_text:14}{attr - bonus:2}+{bonus}')
+                else:
+                    attr_strings.append(f'{attr_text:14}{attr:2}+{bonus}')
             elif bonus < 0:
-                attr_strings.append(f'{attr_text:14}{attr - bonus:2}{bonus}')
+                if self.origin == 'stable':
+                    attr_strings.append(f'{attr_text:14}{attr - bonus:2}{bonus}')
+                else:
+                    attr_strings.append(f'{attr_text:14}{attr:2}{bonus}')
         charsheet += f"""
 {attr_strings[0]:21}    {attr_strings[3]}
 {attr_strings[1]:21}    {attr_strings[4]}
@@ -116,31 +123,13 @@ class Character:
         charsheet += f"\nSkills:    {', '.join(self.skills)}"
         return charsheet
 
-    def make_sheet_qud_beta(self) -> str:
-        """Build a printable character sheet for the Character.
-
-        Interprets character attributes differently on the Qud beta branch.
-        """
-        attributes = ('Strength:', 'Agility:', 'Toughness:', 'Intelligence:', 'Willpower:', 'Ego:')
-        attr_strings = []
-        for attr_text, attr, bonus in zip(attributes, self.attrs, self.bonuses):
-            if bonus == 0:
-                attr_strings.append(f'{attr_text:14}{attr:2}')
-            elif bonus > 0:
-                attr_strings.append(f'{attr_text:14}{attr:2}+{bonus}')
-            elif bonus < 0:
-                attr_strings.append(f'{attr_text:14}{attr:2}{bonus}')
-        charsheet = f"""
-{attr_strings[0]:21}    {attr_strings[3]}
-{attr_strings[1]:21}    {attr_strings[4]}
-{attr_strings[2]:21}    {attr_strings[5]}"""
-        return charsheet
-
     @property
     def origin(self) -> str:
         """Return 'beta' if this character code adds up to a max point spend from
         post-2.0.200.0 (the 'beta branch') of Caves of Qud, 'stable' if it is from
         before that, or 'unknown' if it is from neither (maybe altered)."""
+        if self._origin_cache is not None:
+            return self._origin_cache
         mutant_points = 44
         truekin_points = 38
         points_spent = 0
@@ -168,4 +157,5 @@ class Character:
                 or (self.genotype == "True Kin" and points_spent == truekin_points)\
                 and not went_negative:
             origin = 'stable'
+        self._origin_cache = origin
         return origin

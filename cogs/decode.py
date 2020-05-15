@@ -37,8 +37,10 @@ class Decode(Cog):
                 char = Character.from_charcode(code)
                 sheet = char.make_sheet()
                 response = f"```less\nCode:      {code}\n" + sheet + "\n```"
-                sheet_beta = char.make_sheet_qud_beta()
-                response += f"```\nOr if using the beta branch:\n" + sheet_beta + "\n```"
+                if char.origin == 'beta':
+                    response += 'Game version: beta.'
+                elif char.origin == 'stable':
+                    response += 'Game version: stable.'
                 await message.channel.send(response)
             except:  # noqa E722
                 log.exception(f"Exception while decoding and sending character code {code}.")
