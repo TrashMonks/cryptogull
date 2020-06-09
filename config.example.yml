@@ -34,6 +34,7 @@ Decode:
   channels: [            # Channels to listen for character build codes in:
     449342897788026882,  # #character-builds
     571405896597635073,  # #build-club
+    716755952967352420,  # #bot-spam
     482714670860468234,  # #trash-divining
   ]
   ignore: [              # Users to ignore:
