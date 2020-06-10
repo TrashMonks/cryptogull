@@ -66,7 +66,9 @@ class Wiki(Cog):
                                       ' error message. Exception logged.')
         results = response['query']['search']
         if len(results) == 0:
-            return await ctx.send('Sorry, that query didn\'t find any article titles.')
+            await ctx.send('Sorry, that query didn\'t find any article titles.'
+                           ' Performing fulltext search:')
+            return await(self.wikisearch(ctx, *args))
         urls = await self.pageids_to_urls([item['pageid'] for item in results])
         reply = ''
         for match, url in zip(results, urls):
