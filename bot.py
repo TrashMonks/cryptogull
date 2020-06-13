@@ -2,6 +2,7 @@ import datetime
 import logging
 from pathlib import Path
 
+from discord import Game
 from discord.ext.commands import Bot
 
 from cogs.blueprints import BlueprintQuery
@@ -37,7 +38,8 @@ def setup_logger() -> logging.Logger:
 
 def main():
     log = setup_logger()
-    bot = Bot(command_prefix=config['Prefix'])
+    activity = Game("?help in #bot-spam")
+    bot = Bot(command_prefix=config['Prefix'], activity=activity)
 
     @bot.event
     async def on_ready():
