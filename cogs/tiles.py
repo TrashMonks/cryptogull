@@ -37,6 +37,13 @@ class Tiles(Cog):
                 obj = val
                 break
         if obj is None:
+            # no matching blueprint name
+            # but, is there a blueprint with a matching displayname?
+            for blueprint, qobject in qindex.items():
+                print(qobject.displayname)
+                if qobject.displayname.lower() == query.lower():
+                    obj = qobject
+        if obj is None:
             if len(query) < 3:
                 msg = "Sorry, that specific blueprint name wasn't found, and it's too" \
                       " short to search."
