@@ -37,9 +37,9 @@ class Decode(Cog):
                 char = Character.from_charcode(code)
                 sheet = char.make_sheet()
                 response = f"```less\nCode:      {code}\n" + sheet + "\n```"
-                if char.origin == 'beta':
+                if char.origin == 'post200':
                     response += 'Game version: beta.'
-                elif char.origin == 'stable':
+                elif char.origin == 'pre200':
                     response += 'Game version: stable.'
                 await message.channel.send(response)
             except:  # noqa E722
