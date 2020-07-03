@@ -12,6 +12,7 @@ from cogs.decode import Decode
 from cogs.dice import Dice
 from cogs.tiles import Tiles
 from cogs.wiki import Wiki
+from cogs.say import Say
 from shared import config
 
 LOGDIR = Path(config['Log folder'])
@@ -52,6 +53,7 @@ def main():
     bot.add_cog(Dice(bot))
     bot.add_cog(Cryochamber(bot))
     bot.add_cog(BlueprintQuery(bot))
+    bot.add_cog(Say(bot))
     bot.run(config['Discord token'])
 
 
