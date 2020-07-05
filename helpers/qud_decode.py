@@ -21,7 +21,17 @@ def point_spend(attr: int, base: int) -> int:
 
 
 class Character:
-    """Represents a Caves of Qud player character."""
+    """Represents a Caves of Qud player character.
+
+    Note regarding the transitional period from pre-2.0.200.0 character build codes:
+    All Characters are considered to be created with the new, post-2.0.200.0 build codes,
+    but there is functionality (for now) to temporarily consider the Character as if its
+    build code was pre-2.0.200.0. This will go away eventually.
+    This functionality is:
+        self.upgrade
+        self.origin (a conditional)
+        self.make_sheet (a conditional)
+    """
     def __init__(self,
                  attrs: List[int],       # one integer per stat, in game order
                  bonuses: List[int],     # one integer per stat, 0 if no bonus from class
@@ -101,7 +111,7 @@ class Character:
         char.extensions_codes = extensions_codes
         return char
 
-    def to_charcode(self, incode='post200', outcode='post200') -> str:
+    def to_charcode(self, upgrade=False) -> str:
         """Return a character build code for the Character.
         Assumes by default that all attributes are "correct", so if the Character was
         created using a build code, assume it was post200 unless overridden.
@@ -120,17 +130,23 @@ class Character:
         elif self.genotype == 'Mutated Human':
             class_codes_flip = {v: k for k, v in gamecodes['calling_codes'].items()}
         code += class_codes_flip[self.class_name]
-        # if we think we were created using a pre-2.0.200.0 build code,
-        # create a temporary "true" version of our attributes
-        if incode == 'pre200':
+        # if we are temporarily assuming we were created using a pre-2.0.200.0 build code,
+        # create a temporary "true" version of our attributes with bonuses subtracted
+        if upgrade:
             true_attrs = []
             for attr, bonus in zip(self.attrs, self.bonuses):
                 true_attrs.append(attr - bonus)
         else:
             true_attrs = self.attrs
-        for attr in self.attrs:
+        for attr in true_attrs:
             code += chr(attr + 59)
+        code += self.extensions_codes
         return code
+
+    def upgrade(self) -> str:
+        """Return an upgraded (post-2.0.200.0) character build code as if this character
+        were created with a pre-2.0.200.0 build code."""
+        return self.to_charcode(upgrade=True)
 
     def make_sheet(self) -> str:
         """Build a printable character sheet for the Character."""
@@ -147,7 +163,7 @@ class Character:
             else:
                 bonus_text = ''
             # pre-2.0.200.0 build codes had class bonuses baked into the attributes, so
-            # subtract those back out:
+            # subtract those back out on autodetected 'old' builds:
             if self.origin == 'pre200':
                 attr_strings.append(f'{attr_text:14}{attr - bonus:2}{bonus_text}')
             else:
@@ -196,3 +212,7 @@ class Character:
             origin = 'pre200'
         self._origin_cache = origin
         return origin
+
+    def __str__(self):
+        """Return a string representation of the Character."""
+        return f'Character {self.to_charcode()}'
