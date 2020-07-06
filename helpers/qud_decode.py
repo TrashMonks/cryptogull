@@ -21,8 +21,17 @@ def point_spend(attr: int, base: int) -> int:
 
 
 class Character:
-    """Represents a Caves of Qud game character."""
+    """Represents a Caves of Qud player character.
 
+    Note regarding the transitional period from pre-2.0.200.0 character build codes:
+    All Characters are considered to be created with the new, post-2.0.200.0 build codes,
+    but there is functionality (for now) to temporarily consider the Character as if its
+    build code was pre-2.0.200.0. This will go away eventually.
+    This functionality is:
+        self.upgrade
+        self.origin (a conditional)
+        self.make_sheet (a conditional)
+    """
     def __init__(self,
                  attrs: List[int],       # one integer per stat, in game order
                  bonuses: List[int],     # one integer per stat, 0 if no bonus from class
@@ -43,6 +52,8 @@ class Character:
         self.genotype = genotype
         self.skills = skills
         self._origin_cache = None
+
+        self.extensions_codes = ""
 
     @classmethod
     def from_charcode(cls, charcode: str):
@@ -70,6 +81,8 @@ class Character:
             attrs.append(ord(_) - 59)
         charcode = charcode[8:]
 
+        extensions_codes = charcode
+
         # after 8th character, characters come in pairs to give mutations or implants (if any)
         extensions = []
         if genotype == "True Kin":
@@ -93,8 +106,47 @@ class Character:
         # skills are not in the build code, they're determined solely by class
         skills = [skill for skill in gamecodes['class_skills'][class_name]]
 
-        return Character(attrs, bonuses, class_name, class_called,
+        char = Character(attrs, bonuses, class_name, class_called,
                          extensions, extname, genotype, skills)
+        char.extensions_codes = extensions_codes
+        return char
+
+    def to_charcode(self, upgrade=False) -> str:
+        """Return a character build code for the Character.
+        Assumes by default that all attributes are "correct", so if the Character was
+        created using a build code, assume it was post200 unless overridden.
+
+        Check origin then call if an 'auto upgrade' is desired.
+        Parameters: incode and outcode can be 'pre200' or 'post200'.
+        """
+        code = ''
+        if self.genotype == 'True Kin':
+            code = 'A'
+        elif self.genotype == 'Mutated Human':
+            code = 'B'
+        class_codes_flip = {}
+        if self.genotype == 'True Kin':
+            class_codes_flip = {v: k for k, v in gamecodes['caste_codes'].items()}
+        elif self.genotype == 'Mutated Human':
+            class_codes_flip = {v: k for k, v in gamecodes['calling_codes'].items()}
+        code += class_codes_flip[self.class_name]
+        # if we are temporarily assuming we were created using a pre-2.0.200.0 build code,
+        # create a temporary "true" version of our attributes with bonuses subtracted
+        if upgrade:
+            true_attrs = []
+            for attr, bonus in zip(self.attrs, self.bonuses):
+                true_attrs.append(attr - bonus)
+        else:
+            true_attrs = self.attrs
+        for attr in true_attrs:
+            code += chr(attr + 59)
+        code += self.extensions_codes
+        return code
+
+    def upgrade(self) -> str:
+        """Return an upgraded (post-2.0.200.0) character build code as if this character
+        were created with a pre-2.0.200.0 build code."""
+        return self.to_charcode(upgrade=True)
 
     def make_sheet(self) -> str:
         """Build a printable character sheet for the Character."""
@@ -103,18 +155,19 @@ class Character:
         attributes = ('Strength:', 'Agility:', 'Toughness:', 'Intelligence:', 'Willpower:', 'Ego:')
         attr_strings = []
         for attr_text, attr, bonus in zip(attributes, self.attrs, self.bonuses):
-            if bonus == 0:
-                attr_strings.append(f'{attr_text:14}{attr:2}')
-            elif bonus > 0:
-                if self.origin == 'stable':
-                    attr_strings.append(f'{attr_text:14}{attr - bonus:2}+{bonus}')
-                else:
-                    attr_strings.append(f'{attr_text:14}{attr:2}+{bonus}')
+            # print a +/- in front of any existing bonus
+            if bonus > 0:
+                bonus_text = f'+{bonus}'
             elif bonus < 0:
-                if self.origin == 'stable':
-                    attr_strings.append(f'{attr_text:14}{attr - bonus:2}{bonus}')
-                else:
-                    attr_strings.append(f'{attr_text:14}{attr:2}{bonus}')
+                bonus_text = f'{bonus}'  # already has a minus sign
+            else:
+                bonus_text = ''
+            # pre-2.0.200.0 build codes had class bonuses baked into the attributes, so
+            # subtract those back out on autodetected 'old' builds:
+            if self.origin == 'pre200':
+                attr_strings.append(f'{attr_text:14}{attr - bonus:2}{bonus_text}')
+            else:
+                attr_strings.append(f'{attr_text:14}{attr:2}{bonus_text}')
         charsheet += f"""
 {attr_strings[0]:21}    {attr_strings[3]}
 {attr_strings[1]:21}    {attr_strings[4]}
@@ -125,8 +178,8 @@ class Character:
 
     @property
     def origin(self) -> str:
-        """Return 'beta' if this character code adds up to a max point spend from
-        post-2.0.200.0 (the 'beta branch') of Caves of Qud, 'stable' if it is from
+        """Return 'post200' if this character code adds up to a max point spend from
+        post-2.0.200.0 (the 'beta branch') of Caves of Qud, 'pre200' if it is from
         before that, or 'unknown' if it is from neither (maybe altered)."""
         if self._origin_cache is not None:
             return self._origin_cache
@@ -135,7 +188,7 @@ class Character:
         points_spent = 0
         base = 12 if self.genotype == "True Kin" else 10
         origin = 'unknown'
-        # check if this adds up to a beta character
+        # check if this adds up to a post-2.0.200.0 character
         went_negative = False
         for attr in self.attrs:
             if attr < base:
@@ -144,8 +197,8 @@ class Character:
         if (self.genotype == "Mutated Human" and points_spent == mutant_points)\
                 or (self.genotype == "True Kin" and points_spent == truekin_points)\
                 and not went_negative:
-            origin = 'beta'
-        # check if this adds up to a stable character
+            origin = 'post200'
+        # check if this adds up to a pre-2.0.200.0 character
         points_spent = 0
         went_negative = False
         for attr, bonus in zip(self.attrs, self.bonuses):
@@ -156,6 +209,10 @@ class Character:
         if (self.genotype == "Mutated Human" and points_spent == mutant_points)\
                 or (self.genotype == "True Kin" and points_spent == truekin_points)\
                 and not went_negative:
-            origin = 'stable'
+            origin = 'pre200'
         self._origin_cache = origin
         return origin
+
+    def __str__(self):
+        """Return a string representation of the Character."""
+        return f'Character {self.to_charcode()}'

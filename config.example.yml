@@ -37,6 +37,7 @@ Decode:
     716755952967352420,  # #bot-spam
     482714670860468234,  # #trash-divining
   ]
+  # ignoring bots should be redundant, but specify anyway
   ignore: [              # Users to ignore:
     502293569764327444,  # Cryptogull
   ]
