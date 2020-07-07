@@ -44,8 +44,8 @@ class Decode(Cog):
             elif char.origin == 'pre200':
                 response += 'Game version: < 2.0.200.0.\n'
                 response += 'This code is from an old version of the game. '
-                response += 'The equivalent code is now '
-                response += char.upgrade() + '.'
+                response += 'To get that character now, you need to use '
+                response += char.upgrade() + ' instead.'
             await message.channel.send(response)
         except:  # noqa E722
             log.exception(f"Exception while decoding and sending character code {code}.")

@@ -93,7 +93,7 @@ class Tiles(Cog):
 
     @command()
     async def smalltile(self, ctx: Context, *args):
-        """Send the small (game size) tile for the named Qud object.
+        """Send the small (game size) tile for the named Qud blueprint.
 
         Optional arguments from the 'tile' command are allowed."""
         return await self.tile(ctx, *args, smalltile=True)
