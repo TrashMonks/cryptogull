@@ -86,7 +86,7 @@ class Bugs(Cog):
         if len(title) > self.config['title max length']:
             title = title[:self.config['title max length']] + "..."
         message = '  \n> '.join(ctx.message.clean_content.split('\n'))
-        content = f"""Issue requested by: {requester.display_name}
+        content = f"""Marked for crossposting by: {requester.display_name}
 
 Message ([jump](https://discordapp.com/channels/{ctx.guild.id}/{ctx.channel.id}/{ctx.message.id})):
 
