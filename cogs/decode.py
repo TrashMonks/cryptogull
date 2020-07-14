@@ -40,12 +40,14 @@ class Decode(Cog):
             sheet = char.make_sheet()
             response = f"```less\nCode:      {code}\n" + sheet + "\n```"
             if char.origin == 'post200':
-                response += 'Game version: >= 2.0.200.0'
+                response += 'Game version: >= 2.0.200'
             elif char.origin == 'pre200':
-                response += 'Game version: < 2.0.200.0.\n'
-                response += 'This code is from an old version of the game. '
-                response += 'To get that character now, you need to use '
+                response += 'Game version: < 2.0.200\n'
+                response += 'This code is from a version of the game lower than 2.0.200. '
+                response += 'To play that character on higher versions, you need to use '
                 response += char.upgrade() + ' instead.'
+            else:
+                response += 'Game version: Unknown'
             await message.channel.send(response)
         except:  # noqa E722
             log.exception(f"Exception while decoding and sending character code {code}.")
