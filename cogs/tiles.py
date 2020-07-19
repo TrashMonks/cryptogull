@@ -40,7 +40,6 @@ class Tiles(Cog):
             # no matching blueprint name
             # but, is there a blueprint with a matching displayname?
             for blueprint, qobject in qindex.items():
-                print(qobject.displayname)
                 if qobject.displayname.lower() == query.lower():
                     obj = qobject
         if obj is None:
@@ -59,7 +58,9 @@ class Tiles(Cog):
                                                      list(qindex))
             msg = "Sorry, nothing matching that name was found. The closest blueprint name is" \
                   f" `{nearest[0]}`."
-            return await ctx.send(msg)
+            await ctx.send(msg)
+            # send the tile for the nearest match
+            obj = qindex[nearest[0]]
         if obj.tile is not None:
             tile = obj.tile
             if recolor != '':
