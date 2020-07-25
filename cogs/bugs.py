@@ -39,7 +39,7 @@ class Bugs(Cog):
         reactions = message.reactions
         for reaction in reactions:
             if reaction.emoji == self.config['success reaction'] and reaction.me:
-                log.info(f'Found an existing checkmark on this message, so not reporting.')
+                log.info('Found an existing checkmark on this message, so not reporting.')
                 return
         # role check: can the person who added the reaction open an issue from Discord?
         if not any(role.id in self.config['allowed roles'] for role in reacter.roles):
@@ -86,7 +86,7 @@ class Bugs(Cog):
         if len(title) > self.config['title max length']:
             title = title[:self.config['title max length']] + "..."
         message = '  \n> '.join(ctx.message.clean_content.split('\n'))
-        content = f"""Issue requested by: {requester.display_name}
+        content = f"""Marked for crossposting by: {requester.display_name}
 
 Message ([jump](https://discordapp.com/channels/{ctx.guild.id}/{ctx.channel.id}/{ctx.message.id})):
 

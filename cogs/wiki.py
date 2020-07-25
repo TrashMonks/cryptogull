@@ -62,7 +62,7 @@ class Wiki(Cog):
                 return await ctx.send(f'Sorry, that query resulted in a search error: {info}')
             except ValueError as e:
                 log.exception(e)
-                return await ctx.send(f'Sorry, that query resulted in a search error with no'
+                return await ctx.send('Sorry, that query resulted in a search error with no'
                                       ' error message. Exception logged.')
         results = response['query']['search']
         if len(results) == 0:
@@ -101,11 +101,11 @@ class Wiki(Cog):
                 return await ctx.send(f'Sorry, that query resulted in a search error: {info}')
             except ValueError as e:
                 log.exception(e)
-                return await ctx.send(f'Sorry, that query resulted in a search error with no'
+                return await ctx.send('Sorry, that query resulted in a search error with no'
                                       ' error message. Exception logged.')
         matches = response['query']['searchinfo']['totalhits']
         if matches == 0:
-            return await ctx.send(f'Sorry, no matches were found for that query.')
+            return await ctx.send('Sorry, no matches were found for that query.')
         results = response['query']['search']
         urls = await self.pageids_to_urls([item['pageid'] for item in results])
         reply = ''
