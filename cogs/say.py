@@ -7,7 +7,7 @@ from discord.ext.commands import CommandError
 from discord import File
 from discord.ext.commands import Cog, Context, command
 
-from helpers.font import drawttf, DrawException
+from helpersfont import drawttf, DrawException
 
 log = logging.getLogger('bot.' + __name__)
 
@@ -45,6 +45,9 @@ class Say(Cog):
         optionalarg = match.group('option')
         if optionalarg is None:
             optionalarg = match.group('option2')
+            if optionalarg is None:
+                optionalarg = (ctx.message.author.nick if ctx.message.author.nick 
+                               else ctx.message.author.name)
         try:
             image = drawttf(match.group('text'), match.group('type'), optionalarg)
         except DrawException as e:

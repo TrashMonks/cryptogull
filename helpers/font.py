@@ -15,7 +15,7 @@ MAXH = 20
 PAD = 10
 innerpad = (CHARSIZE[0] * 2, CHARSIZE[1] * 2)
 ABSINNERPAD = (innerpad[0] + PAD, innerpad[1] + PAD)
-
+POPUPCLASSIC, DIALOGUECLASSIC = 1, 2
 
 class DrawException(Exception):
     """Custom exception for drawing errors."""
@@ -25,6 +25,10 @@ class DrawException(Exception):
 
 def drawttf(saying, bordertype='-popupclassic', arg='') -> Image:
     """Main function for drawing the message box."""
+    if arg is None:
+        arg = ''
+    if bordertype is None:
+        bordertype = '-p'
     # split text and wrap it
     wrapper = TextWrapper(width=MAXW, max_lines=MAXH, replace_whitespace=False)
     sayingarr = saying.split('\n')
@@ -34,28 +38,30 @@ def drawttf(saying, bordertype='-popupclassic', arg='') -> Image:
         a.append(wrapper.fill(paragraph))
     saying = '\n'.join(a)
     sayingdim = FONT.getsize_multiline(saying, spacing=-1)
-
+    # determine border type
+    kind = determineborder(bordertype)
     # generate image dimensions
-    tempw = sayingdim[0]
-    if tempw < MINW * CHARSIZE[0]:
-        tempw = MINW * CHARSIZE[0]
+    temptextw = sayingdim[0]
+    temptitlew = (FONT.getsize(f'[ {arg} ]')[0] if kind == DIALOGUECLASSIC 
+                  else 0)
+    tempminw = MINW * CHARSIZE[0]
+    tempw = max(temptextw, temptitlew, tempminw)
     imgdim = (tempw + (2 * ABSINNERPAD[0]), sayingdim[1] + (2 * ABSINNERPAD[1]))
     # generate base viridian color.
     image = Image.new(mode='RGBA', size=imgdim, color=QUD_VIRIDIAN)
     draw = ImageDraw.Draw(image)
-
+    # draw border
+    drawborder(kind, draw, imgdim, PAD, CHARSIZE, arg)
     # print text
-    temp = (imgdim[0] - sayingdim[0]) / 2
+    if kind == POPUPCLASSIC:
+        temp = (imgdim[0] - temptextw) / 2 # center text if popup
+    else:
+        temp = (imgdim[0] - tempw) / 2
     if temp < ABSINNERPAD[0]:
         temp = ABSINNERPAD[0]
     draw.multiline_text((temp, ABSINNERPAD[1] - 4), saying, font=FONT, spacing=-1,
                         fill=QUD_WHITE)
-    # draw specified border
-    if bordertype is None:
-        bordertype = '-popupclassic'
-    if arg is None:
-        arg = ''
-    drawborder(bordertype, draw, imgdim, PAD, CHARSIZE, arg)
+    
     # image post processing
     image = drawscanline(image)
     return image
@@ -69,12 +75,19 @@ def drawscanline(image: Image) -> Image:
         linedraw.line([(0, i * 6), (image.size[0] - 1, i * 6)], fill=(0, 0, 0, 16), width=3)
     return Image.alpha_composite(image, lines)
 
+def determineborder(kind):
+    if any(kind == t for t in ['-popupclassic', '-p']):
+        return POPUPCLASSIC
+    elif any(kind == t for t in ['-dialogueclassic', '-d']):
+        return DIALOGUECLASSIC
+    else:
+        raise DrawException("There was no border of that type.")
 
 def drawborder(kind, draw, imgdim, padding, charsize, title):
     """Draw the border over an image. Accepts multiple border types."""
-    if any(kind == t for t in ['-popupclassic', '-p']):
+    if kind == POPUPCLASSIC:
         return drawpopupclassic(draw, imgdim, padding, charsize)
-    elif any(kind == t for t in ['-dialogueclassic', '-d']):
+    elif kind == DIALOGUECLASSIC:
         return drawdialogueclassic(draw, imgdim, padding, charsize, title)
     else:
         raise DrawException("There was no border of that type.")
