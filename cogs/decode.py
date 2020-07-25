@@ -47,7 +47,7 @@ class Decode(Cog):
                 response += 'To play that character on higher versions, you need to use '
                 response += char.upgrade() + ' instead.'
             else:
-                response += 'Game version: Unknown'
+                response += 'Game version: 🧐'
             await message.channel.send(response)
         except:  # noqa E722
             log.exception(f"Exception while decoding and sending character code {code}.")
