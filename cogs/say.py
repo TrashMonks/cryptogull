@@ -7,7 +7,7 @@ from discord.ext.commands import CommandError
 from discord import File
 from discord.ext.commands import Cog, Context, command
 
-from helpers.font import drawttf
+from helpers.font import drawttf, DrawException
 
 log = logging.getLogger('bot.' + __name__)
 
@@ -16,22 +16,22 @@ class Say(Cog):
     """Reads the sent message in the specific channel and posts it."""
 
     @command()
-    async def say(self, ctx: Context, *args):
+    async def say(self, ctx: Context):
         """Make cryptogull say something!
 
         Format: ?say [-{border}[:{title}]] {text}
 
-        Borders:
-           -d, -dialogueclassic: classic dialogue border. specify a title to make it appear on
-             the upper left. if it's more than one word, group it together with single
-             quotation marks.
+        Border options:
+            -d, -dialogueclassic: Classic dialogue border. Specify a title
+              to make it appear on the upper left. If it's more than one word,
+              group it together with single quotation marks.
 
-             ex: ?say -d:Mehmet Live and drink, friend. May you find shade in Joppa.
+              Example: ?say -d:Mehmet Live and drink, friend. May you find shade in Joppa.
+              Example: ?say -d:'Drowsing Urchin' Sleeeeeeeep.
 
-           -p, -popupclassic: classic popup border. defaults to this is none are specified.
+            -p, -popupclassic: Classic popup border. Defaults to this if not specified.
 
-             ex: ?say -p There are hostiles nearby!
-
+              Example: ?say -p There are hostiles nearby!
         """
         # Regex tester: https://regex101.com/r/O0RVHC/2
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
@@ -45,9 +45,10 @@ class Say(Cog):
         optionalarg = match.group('option')
         if optionalarg is None:
             optionalarg = match.group('option2')
-        image, errormsg = drawttf(match.group('text'), match.group('type'), optionalarg)
-        if image is None:
-            return await ctx.send(errormsg)
+        try:
+            image = drawttf(match.group('text'), match.group('type'), optionalarg)
+        except DrawException as e:
+            return await ctx.send(e.message + ' See `?help say` for syntax.')
         else:
             png_b = io.BytesIO()
             image.save(png_b, format='png')
