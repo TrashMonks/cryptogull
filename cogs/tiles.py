@@ -100,7 +100,7 @@ class Tiles(Cog):
         return await self.tile(ctx, *args, smalltile=True)
 
     @command()
-    async def randomtile(self, ctx: Context):
+    async def randomtile(self, ctx: Context, *args):
         """Send a random game tile to the channel."""
         names = list(qindex)
         name = 'Object'
@@ -108,4 +108,4 @@ class Tiles(Cog):
         while obj.tile is None:
             name = random.choice(names)
             obj = qindex[name]
-        return await(self.tile(ctx, name))
+        return await(self.tile(ctx, name, *args))
