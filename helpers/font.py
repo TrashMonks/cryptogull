@@ -17,6 +17,7 @@ innerpad = (CHARSIZE[0] * 2, CHARSIZE[1] * 2)
 ABSINNERPAD = (innerpad[0] + PAD, innerpad[1] + PAD)
 POPUPCLASSIC, DIALOGUECLASSIC = 1, 2
 
+
 class DrawException(Exception):
     """Custom exception for drawing errors."""
     def __init__(self, message):
@@ -42,7 +43,7 @@ def drawttf(saying, bordertype='-popupclassic', arg='') -> Image:
     kind = determineborder(bordertype)
     # generate image dimensions
     temptextw = sayingdim[0]
-    temptitlew = (FONT.getsize(f'[ {arg} ]')[0] if kind == DIALOGUECLASSIC 
+    temptitlew = (FONT.getsize(f'[ {arg} ]')[0] if kind == DIALOGUECLASSIC
                   else 0)
     tempminw = MINW * CHARSIZE[0]
     tempw = max(temptextw, temptitlew, tempminw)
@@ -54,14 +55,14 @@ def drawttf(saying, bordertype='-popupclassic', arg='') -> Image:
     drawborder(kind, draw, imgdim, PAD, CHARSIZE, arg)
     # print text
     if kind == POPUPCLASSIC:
-        temp = (imgdim[0] - temptextw) / 2 # center text if popup
+        temp = (imgdim[0] - temptextw) / 2  # center text if popup
     else:
         temp = (imgdim[0] - tempw) / 2
     if temp < ABSINNERPAD[0]:
         temp = ABSINNERPAD[0]
     draw.multiline_text((temp, ABSINNERPAD[1] - 4), saying, font=FONT, spacing=-1,
                         fill=QUD_WHITE)
-    
+
     # image post processing
     image = drawscanline(image)
     return image
@@ -75,6 +76,7 @@ def drawscanline(image: Image) -> Image:
         linedraw.line([(0, i * 6), (image.size[0] - 1, i * 6)], fill=(0, 0, 0, 16), width=3)
     return Image.alpha_composite(image, lines)
 
+
 def determineborder(kind):
     if any(kind == t for t in ['-popupclassic', '-p']):
         return POPUPCLASSIC
@@ -82,6 +84,7 @@ def determineborder(kind):
         return DIALOGUECLASSIC
     else:
         raise DrawException("There was no border of that type.")
+
 
 def drawborder(kind, draw, imgdim, padding, charsize, title):
     """Draw the border over an image. Accepts multiple border types."""
