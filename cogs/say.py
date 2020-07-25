@@ -36,7 +36,7 @@ class Say(Cog):
         # Regex tester: https://regex101.com/r/O0RVHC/2
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         msg = ctx.message.content[5:]
-        exp = re.compile('(?P<type>-\w+)?(:)?(?(2)(\'(?P<option>.+)\'|(?P<option2>\w+)))\s?(?P<text>.+)', flags=re.MULTILINE | re.DOTALL) # noqa E501
+        exp = re.compile('(?P<type>-\w+)?(:)?(?(2)(\'(?P<option>.+?)\'|(?P<option2>\w+)))\s?(?P<text>.+)', flags=re.MULTILINE | re.DOTALL) # noqa E501
         match = exp.fullmatch(msg)
         if match is None:
             raise CommandError('wrong syntax: ' + msg)
