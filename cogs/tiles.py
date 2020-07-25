@@ -98,3 +98,14 @@ class Tiles(Cog):
 
         Optional arguments from the 'tile' command are allowed."""
         return await self.tile(ctx, *args, smalltile=True)
+
+    @command()
+    async def randomtile(self, ctx: Context):
+        """Send a random game tile to the channel."""
+        names = list(qindex)
+        name = 'Object'
+        obj = qindex['Object']
+        while obj.tile is None:
+            name = random.choice(names)
+            obj = qindex[name]
+        return await(self.tile(ctx, name))
