@@ -7,7 +7,7 @@ from discord.ext.commands import CommandError
 from discord import File
 from discord.ext.commands import Cog, Context, command
 
-from helpers.font import drawttf, DrawException
+from font import drawttf, DrawException
 
 log = logging.getLogger('bot.' + __name__)
 
@@ -56,4 +56,5 @@ class Say(Cog):
             png_b = io.BytesIO()
             image.save(png_b, format='png')
             png_b.seek(0)
-            return await ctx.send(file=File(fp=png_b, filename=f'{match.group("text")}.png'))
+            return await ctx.send(file=File(fp=png_b,
+                                  filename=f'{match.group("text")}-{ctx.message.author.id}.png'))
