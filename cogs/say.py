@@ -7,7 +7,7 @@ from discord.ext.commands import CommandError
 from discord import File
 from discord.ext.commands import Cog, Context, command
 
-from font import drawttf, DrawException
+from helpers.font import drawttf, DrawException
 
 log = logging.getLogger('bot.' + __name__)
 
