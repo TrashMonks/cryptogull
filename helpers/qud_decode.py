@@ -90,6 +90,10 @@ class Character:
         else:
             extname = "Mutations: "
         while len(charcode) > 0:
+            if charcode[:2].startswith('#'):
+                # temporarily skip this section of beta codes, still being implemented
+                charcode = charcode[2:]
+                continue
             if charcode[:2] == '16':  # the 16th implant changes depending on arcology of origin
                 if subtypecode in 'ABCD':
                     extensions.append(gamecodes['mod_codes']['16'][0])

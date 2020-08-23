@@ -10,7 +10,7 @@ from shared import config
 
 log = logging.getLogger('bot.' + __name__)
 
-valid_charcode = re.compile(r"(?:^|\s)[AB][A-L][A-Z]{6}(?:[01ABCDEU][0-9A-Z])*")
+valid_charcode = re.compile(r"(?:^|\s)[AB][A-L][A-Z]{6}(?:[01ABCDEU#][0-9A-Z])*")
 
 
 class Decode(Cog):
