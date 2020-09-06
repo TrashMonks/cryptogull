@@ -15,7 +15,6 @@ hagadias = {git = "https://github.com/TrashMonks/hagadias.git",ref = "master"}
 fuzzywuzzy = "*"
 aiodns = "*"
 oauthlib = "*"
-python-levenshtein = "*"
 
 [requires]
 python_version = "3.7"
