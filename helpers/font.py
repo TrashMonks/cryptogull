@@ -66,13 +66,10 @@ def drawttf(saying, bordertype='-popupclassic', dialog_title='') -> Image:
         leftx = (imgdim[0] - pxwidth) / 2
     if leftx < ABSINNERPAD[0]:
         leftx = ABSINNERPAD[0]
-    # draw.multiline_text((leftx, ABSINNERPAD[1] - 4), text, font=FONT, spacing=-1,
-    #                     fill=QUD_WHITE)
     cur_x = leftx
     cur_y = ABSINNERPAD[1] - 4
     chars_colors = iter_qud_colors(saying, game_colors)
     for line in text_lines:
-        print(line)
         for tracking, (char, code) in zip(line, chars_colors):
             # fast-forward if necessary to skip whitespace that was deleted by TextWrapper
             while char != tracking:
@@ -86,7 +83,6 @@ def drawttf(saying, bordertype='-popupclassic', dialog_title='') -> Image:
                 color = constants.QUD_COLORS[code]
             draw.text((cur_x, cur_y), char, font=FONT, fill=color)
             cur_x += CHARSIZE[0]
-            print(tracking, char, color)
         cur_x = leftx
         cur_y += CHARSIZE[1]
     # image post processing
@@ -168,12 +164,24 @@ def drawdialogueclassic(draw, imgdim, padding, charsize, title):
                     (imgdim[0] - padding - 2, imgdim[1] - padding - 1)], outline=QUD_WHITE, width=4)
     # draw person speaking. If title isn't specified, don't draw
     if title is not None and title != '':
-        textdim = FONT.getsize(f'[ {title} ]')
+        plain_title = strip_newstyle_qud_colors(title)
+        textdim = FONT.getsize(f'[ {plain_title} ]')
         draw.rectangle([(charsize[0] * 2 + padding, 0),
                         (charsize[0] * 2 + padding + textdim[0], textdim[1] + padding)],
                        fill=QUD_VIRIDIAN)
         draw.text((charsize[0] * 2 + padding, 0), '[', font=FONT, fill=QUD_WHITE)
         draw.text((charsize[0] + padding + textdim[0], 0), ']', font=FONT, fill=QUD_WHITE)
-        draw.text((charsize[0] * 2 + padding + FONT.getsize('[ ')[0], 0),
-                  title, font=FONT, fill=QUD_YELLOW)
+        cur_x = charsize[0] * 2 + padding + FONT.getsize('[ ')[0]
+        if plain_title != title:
+            for char, code in iter_qud_colors(title, game_colors):
+                if code is None:
+                    color = constants.QUD_COLORS['y']
+                else:
+                    color = constants.QUD_COLORS[code]
+                draw.text((cur_x, 0), char, font=FONT, fill=color)
+                cur_x += CHARSIZE[0]
+        else:
+            # didn't use any color shaders
+            draw.text((charsize[0] * 2 + padding + FONT.getsize('[ ')[0], 0),
+                      title, font=FONT, fill=QUD_YELLOW)
     return draw
