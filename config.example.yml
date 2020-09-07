@@ -42,6 +42,15 @@ Decode:
     502293569764327444,  # Cryptogull
   ]
 
+Reddit:
+  client ID: xxxxxxxxxxxxxx
+  secret: xxxxxxxxxxxxxxxxxxxxxxxxxxx
+  user agent: Cryptogull
+  # subreddit to watch:
+  subreddit: cavesofqud
+  # channel to relay to:
+  channel: xxxxxxxxxxxxxxxxxx
+
 Wiki:
   site: cavesofqud.gamepedia.com
   title search limit: 10

@@ -10,10 +10,11 @@ from cogs.bugs import Bugs
 from cogs.cryochamber import Cryochamber
 from cogs.decode import Decode
 from cogs.dice import Dice
+from cogs.hitdabricks import Hitdabricks
+from cogs.reddit import Reddit
+from cogs.say import Say
 from cogs.tiles import Tiles
 from cogs.wiki import Wiki
-from cogs.hitdabricks import Hitdabricks
-from cogs.say import Say
 from shared import config
 
 LOGDIR = Path(config['Log folder'])
@@ -47,15 +48,16 @@ def main():
     async def on_ready():
         log.info(f'Logged in as {bot.user}.')
 
+    bot.add_cog(BlueprintQuery(bot))
     bot.add_cog(Bugs(bot))
+    bot.add_cog(Cryochamber(bot))
     bot.add_cog(Decode(bot))
+    bot.add_cog(Dice(bot))
+    bot.add_cog(Hitdabricks(bot))
+    bot.add_cog(Reddit(bot))
+    bot.add_cog(Say(bot))
     bot.add_cog(Tiles(bot))
     bot.add_cog(Wiki(bot))
-    bot.add_cog(Dice(bot))
-    bot.add_cog(Cryochamber(bot))
-    bot.add_cog(BlueprintQuery(bot))
-    bot.add_cog(Hitdabricks(bot))
-    bot.add_cog(Say(bot))
     bot.run(config['Discord token'])
 
 
