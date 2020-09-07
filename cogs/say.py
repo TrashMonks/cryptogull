@@ -57,4 +57,4 @@ class Say(Cog):
             image.save(png_b, format='png')
             png_b.seek(0)
             return await ctx.send(file=File(fp=png_b,
-                                  filename=f'{match.group("text")}-{ctx.message.author.id}.png'))
+                                  filename=f'{ctx.message.author.id}-{match.group("text")}.png'))
