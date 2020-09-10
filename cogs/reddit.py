@@ -17,13 +17,15 @@ class Reddit(Cog):
         self.reddit = asyncpraw.Reddit(client_id=self.config['client ID'],
                                        client_secret=self.config['secret'],
                                        user_agent=self.config['user agent'])
-        self.channel = None
+        self.posts_channel = None
+        self.comments_channel = None
         self.subreddit = None
         self.loop = None
 
         @self.bot.event
         async def on_ready():
-            self.channel = bot.get_channel(int(self.config['channel']))
+            self.posts_channel = bot.get_channel(int(self.config['submissions channel']))
+            self.comments_channel = bot.get_channel(int(self.config['comments channel']))
             self.subreddit = await self.reddit.subreddit(self.config['subreddit'])
             self.loop = asyncio.get_running_loop()
             self.loop.create_task(self.watch_for_submissions())
@@ -45,7 +47,7 @@ class Reddit(Cog):
             embed.set_author(name=author.name,
                              url=f'https://reddit.com/u/{author.name}',
                              icon_url=author.icon_img)
-            await self.channel.send(embed=embed)
+            await self.posts_channel.send(embed=embed)
 
     async def watch_for_comments(self):
         """Watch for new comments in the subreddit and relay them in embeds."""
@@ -60,4 +62,4 @@ class Reddit(Cog):
             embed.set_author(name=author.name,
                              url=f'https://reddit.com/u/{author.name}',
                              icon_url=author.icon_img)
-            await self.channel.send(embed=embed)
+            await self.comments_channel.send(embed=embed)

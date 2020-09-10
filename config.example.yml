@@ -48,8 +48,10 @@ Reddit:
   user agent: Cryptogull
   # subreddit to watch:
   subreddit: cavesofqud
-  # channel to relay to:
-  channel: xxxxxxxxxxxxxxxxxx
+  # channel to relay new submissions to:
+  submissions channel: xxxxxxxxxxxxxxxxxx
+  # channel to relay new comments to:
+  comments channel: xxxxxxxxxxxxxxxxxx
 
 Wiki:
   site: cavesofqud.gamepedia.com
