@@ -50,6 +50,9 @@ Reddit:
     cavesofqud:
       submissions channel: xxxxxxxxxxxxxxxxxx
       comments channel: xxxxxxxxxxxxxxxxxx
+    other subreddit:
+      submissions channel: xxxxxxxxxxxxxxxxxx
+      comments channel: xxxxxxxxxxxxxxxxxx
 
 Wiki:
   site: cavesofqud.gamepedia.com
