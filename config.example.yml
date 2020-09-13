@@ -46,10 +46,10 @@ Reddit:
   client ID: xxxxxxxxxxxxxx
   secret: xxxxxxxxxxxxxxxxxxxxxxxxxxx
   user agent: Cryptogull
-  # subreddit to watch:
-  subreddit: cavesofqud
-  # channel to relay to:
-  channel: xxxxxxxxxxxxxxxxxx
+  subreddits:
+    cavesofqud:
+      submissions channel: xxxxxxxxxxxxxxxxxx
+      comments channel: xxxxxxxxxxxxxxxxxx
 
 Wiki:
   site: cavesofqud.gamepedia.com
