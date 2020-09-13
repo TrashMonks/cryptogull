@@ -46,6 +46,9 @@ Reddit:
   client ID: xxxxxxxxxxxxxx
   secret: xxxxxxxxxxxxxxxxxxxxxxxxxxx
   user agent: Cryptogull
+  # declare subreddits to be relayed to channels
+  # submissions and comments channel can be the same channel, or
+  # either can be omitted to create a posts-only or comments-only stream
   subreddits:
     cavesofqud:
       submissions channel: xxxxxxxxxxxxxxxxxx
