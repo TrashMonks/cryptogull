@@ -46,8 +46,10 @@ class Say(Cog):
         if optionalarg is None:
             optionalarg = match.group('option2')
             if optionalarg is None:
-                optionalarg = (ctx.message.author.nick if ctx.message.author.nick
-                               else ctx.message.author.name)
+                if hasattr(ctx.message.author, 'nick'):
+                    optionalarg = ctx.message.author.nick
+                else:
+                    optionalarg = ctx.message.author.name
         try:
             image = drawttf(match.group('text'), match.group('type'), optionalarg)
         except DrawException as e:
