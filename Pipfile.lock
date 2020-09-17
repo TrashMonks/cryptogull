@@ -130,7 +130,7 @@
         },
         "hagadias": {
             "git": "https://github.com/TrashMonks/hagadias.git",
-            "ref": "4ce4aa70429d93359cc48cd68fc7517335235cbc"
+            "ref": "89d766fbb914adb096e7cf5561840afff3035bfd"
         },
         "idna": {
             "hashes": [
@@ -366,11 +366,11 @@
         },
         "identify": {
             "hashes": [
-                "sha256:587748963462930dfd1a3863aee2ea74fd7accaf6b30fa7bf8936af181820c9d",
-                "sha256:e8806705ef7800786a37f3ea476663023fe165995e60491a8616412a935c77ba"
+                "sha256:56e70094705056ac75e66eb9f068beb323f4a31b24eb649cb1cf3126d138e35c",
+                "sha256:e5cc8ba10ca658c278f841813c5f1556804141c93f82a7e620a938528a0c3f32"
             ],
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
-            "version": "==1.5.1"
+            "version": "==1.5.2"
         },
         "iniconfig": {
             "hashes": [
