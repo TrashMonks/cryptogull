@@ -15,6 +15,7 @@ hagadias = {git = "https://github.com/TrashMonks/hagadias.git",ref = "master"}
 fuzzywuzzy = "*"
 aiodns = "*"
 oauthlib = "*"
+asyncpraw = "*"
 
 [requires]
 python_version = "3.8"
