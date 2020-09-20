@@ -38,40 +38,46 @@ class Reddit(Cog):
 async def relay_submissions(subreddit, channel):
     """Watch for new submissions in the subreddit and relay them in embeds."""
     async for submission in subreddit.stream.submissions(skip_existing=True):
-        try:
-            await submission.load()
-            embed = Embed(title=submission.title,
-                          url=submission.url,
-                          description=submission.selftext)
-            # need to check 'vars' because submission cannot be directly queried, see:
-            # https://asyncpraw.readthedocs.io/en/latest/getting_started/quick_start.html#determine-available-attributes-of-an-object
-            if 'thumbnail' in vars(submission) and submission.thumbnail != 'self':
-                # self-posts (text) have the text string 'self' instead of a thumbnail
-                embed.set_thumbnail(url=submission.thumbnail)
-            author = submission.author
-            await author.load()
-            embed.set_author(name=author.name,
-                             url=f'https://reddit.com/u/{author.name}',
-                             icon_url=author.icon_img)
-            await channel.send(embed=embed)
-        except Exception as e:
-            log.exception(e)
+        while True:
+            try:
+                await submission.load()
+                embed = Embed(title=submission.title,
+                              url=submission.url,
+                              description=submission.selftext)
+                # need to check 'vars' because submission cannot be directly queried, see:
+                # https://asyncpraw.readthedocs.io/en/latest/getting_started/quick_start.html#determine-available-attributes-of-an-object
+                if 'thumbnail' in vars(submission) and submission.thumbnail != 'self':
+                    # self-posts (text) have the text string 'self' instead of a thumbnail
+                    embed.set_thumbnail(url=submission.thumbnail)
+                author = submission.author
+                await author.load()
+                embed.set_author(name=author.name,
+                                 url=f'https://reddit.com/u/{author.name}',
+                                 icon_url=author.icon_img)
+                await channel.send(embed=embed)
+            except Exception as e:
+                log.exception(e)
+            log.warning('Caught exception in relay_submissions, continuing in 10 seconds.')
+            await asyncio.sleep(10)
 
 
 async def relay_comments(subreddit, channel):
     """Watch for new comments in the subreddit and relay them in embeds."""
     async for comment in subreddit.stream.comments(skip_existing=True):
-        try:
-            permalink = f'https://reddit.com{comment.permalink}'
-            description = f'**[New reply]({permalink}) on ' \
-                          f'[{comment.link_title}]({comment.link_permalink})**\n'
-            description += comment.body[:1500]
-            embed = Embed(description=description)
-            author = comment.author
-            await author.load()
-            embed.set_author(name=author.name,
-                             url=f'https://reddit.com/u/{author.name}',
-                             icon_url=author.icon_img)
-            await channel.send(embed=embed)
-        except Exception as e:
-            log.exception(e)
+        while True:
+            try:
+                permalink = f'https://reddit.com{comment.permalink}'
+                description = f'**[New reply]({permalink}) on ' \
+                              f'[{comment.link_title}]({comment.link_permalink})**\n'
+                description += comment.body[:1500]
+                embed = Embed(description=description)
+                author = comment.author
+                await author.load()
+                embed.set_author(name=author.name,
+                                 url=f'https://reddit.com/u/{author.name}',
+                                 icon_url=author.icon_img)
+                await channel.send(embed=embed)
+            except Exception as e:
+                log.exception(e)
+            log.warning('Caught exception in relay_comments, continuing in 10 seconds.')
+            await asyncio.sleep(10)
