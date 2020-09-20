@@ -57,8 +57,8 @@ async def relay_submissions(subreddit, channel):
                 await channel.send(embed=embed)
             except Exception as e:
                 log.exception(e)
-            log.warning('Caught exception in relay_submissions, continuing in 10 seconds.')
-            await asyncio.sleep(10)
+                log.warning('Caught exception in relay_submissions, continuing in 10 seconds.')
+                await asyncio.sleep(10)
 
 
 async def relay_comments(subreddit, channel):
@@ -79,5 +79,5 @@ async def relay_comments(subreddit, channel):
                 await channel.send(embed=embed)
             except Exception as e:
                 log.exception(e)
-            log.warning('Caught exception in relay_comments, continuing in 10 seconds.')
-            await asyncio.sleep(10)
+                log.warning('Caught exception in relay_comments, continuing in 10 seconds.')
+                await asyncio.sleep(10)
