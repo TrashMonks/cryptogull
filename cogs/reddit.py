@@ -37,8 +37,8 @@ class Reddit(Cog):
 
 async def relay_submissions(subreddit, channel):
     """Watch for new submissions in the subreddit and relay them in embeds."""
-    async for submission in subreddit.stream.submissions(skip_existing=True):
-        while True:
+    while True:
+        async for submission in subreddit.stream.submissions(skip_existing=True):
             try:
                 await submission.load()
                 embed = Embed(title=submission.title,
@@ -63,8 +63,8 @@ async def relay_submissions(subreddit, channel):
 
 async def relay_comments(subreddit, channel):
     """Watch for new comments in the subreddit and relay them in embeds."""
-    async for comment in subreddit.stream.comments(skip_existing=True):
-        while True:
+    while True:
+        async for comment in subreddit.stream.comments(skip_existing=True):
             try:
                 permalink = f'https://reddit.com{comment.permalink}'
                 description = f'**[New reply]({permalink}) on ' \
