@@ -11,7 +11,7 @@ pre-commit = "*"
 [packages]
 pyyaml = "*"
 discord-py = "*"
-hagadias = {git = "https://github.com/TrashMonks/hagadias.git",ref = "master"}
+hagadias = {git = "https://github.com/TrashMonks/hagadias.git",ref = "main"}
 fuzzywuzzy = "*"
 aiodns = "*"
 oauthlib = "*"
