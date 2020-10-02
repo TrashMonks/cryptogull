@@ -21,7 +21,7 @@ class MelindaProtocol(Cog):
             melinda_path.mkdir()
         textchannel: TextChannel = self.bot.get_channel(channel)
         await ctx.send(f'Melinda Protocol activated on channel {textchannel}.')
-        async for message in textchannel.history():
+        async for message in textchannel.history(limit=None):
             msgctx: Context = await self.bot.get_context(message)
             if len(message.attachments) > 0:
                 for attachment in message.attachments:
@@ -39,7 +39,7 @@ class MelindaProtocol(Cog):
             ivy_path.mkdir()
         textchannel: TextChannel = self.bot.get_channel(channel)
         await ctx.send(f'Ivy Protocol activated on channel {textchannel}.')
-        async for message in textchannel.history():
+        async for message in textchannel.history(limit=None):
             msgctx: Context = await self.bot.get_context(message)
             if len(message.embeds) > 0:
                 for embed in message.embeds:
