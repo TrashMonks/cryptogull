@@ -28,7 +28,7 @@ class MelindaProtocol(Cog):
                     await attachment.save(melinda_path / attachment.filename)
                     with open(melinda_path / 'credits.txt', 'a') as f:
                         f.write(f'{attachment.filename}: https://discordapp.com/channels/'
-                                f'{msgctx.guild.id}/{msgctx.channel.id}/{msgctx.message.id}')
+                                f'{msgctx.guild.id}/{msgctx.channel.id}/{msgctx.message.id}\n')
 
     @command()
     async def ivyprotocol(self, ctx: Context, channel: int):
@@ -50,6 +50,6 @@ class MelindaProtocol(Cog):
                                 f.write(await resp.read())
                         with open(ivy_path / 'credits.txt', 'a') as f:
                             f.write(f'{filename}: https://discordapp.com/channels/'
-                                    f'{msgctx.guild.id}/{msgctx.channel.id}/{msgctx.message.id}')
+                                    f'{msgctx.guild.id}/{msgctx.channel.id}/{msgctx.message.id}\n')
                     except Exception as e:
                         print(e)
