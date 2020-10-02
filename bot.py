@@ -11,6 +11,7 @@ from cogs.cryochamber import Cryochamber
 from cogs.decode import Decode
 from cogs.dice import Dice
 from cogs.hitdabricks import Hitdabricks
+from cogs.melindaprotocol import MelindaProtocol
 from cogs.reddit import Reddit
 from cogs.say import Say
 from cogs.tiles import Tiles
@@ -54,6 +55,7 @@ def main():
     bot.add_cog(Decode(bot))
     bot.add_cog(Dice(bot))
     bot.add_cog(Hitdabricks(bot))
+    bot.add_cog(MelindaProtocol(bot))
     bot.add_cog(Reddit(bot))
     bot.add_cog(Say(bot))
     bot.add_cog(Tiles(bot))
