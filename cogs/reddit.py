@@ -38,12 +38,12 @@ class Reddit(Cog):
 async def relay_submissions(subreddit, channel):
     """Watch for new submissions in the subreddit and relay them in embeds."""
     while True:
-        async for submission in subreddit.stream.submissions(skip_existing=True):
-            try:
+        try:
+            async for submission in subreddit.stream.submissions(skip_existing=True):
                 await submission.load()
-                embed = Embed(title=submission.title,
+                embed = Embed(title=submission.title[:200],
                               url=submission.url,
-                              description=submission.selftext)
+                              description=submission.selftext[:1000])
                 # need to check 'vars' because submission cannot be directly queried, see:
                 # https://asyncpraw.readthedocs.io/en/latest/getting_started/quick_start.html#determine-available-attributes-of-an-object
                 if 'thumbnail' in vars(submission) and submission.thumbnail != 'self':
@@ -55,17 +55,17 @@ async def relay_submissions(subreddit, channel):
                                  url=f'https://reddit.com/u/{author.name}',
                                  icon_url=author.icon_img)
                 await channel.send(embed=embed)
-            except Exception as e:
-                log.exception(e)
-                log.warning('Caught exception in relay_submissions, continuing in 10 seconds.')
-                await asyncio.sleep(10)
+        except Exception as e:
+            log.exception(e)
+            log.warning('Caught exception in relay_submissions, continuing in 10 seconds.')
+            await asyncio.sleep(10)
 
 
 async def relay_comments(subreddit, channel):
     """Watch for new comments in the subreddit and relay them in embeds."""
     while True:
-        async for comment in subreddit.stream.comments(skip_existing=True):
-            try:
+        try:
+            async for comment in subreddit.stream.comments(skip_existing=True):
                 permalink = f'https://reddit.com{comment.permalink}'
                 description = f'**[New reply]({permalink}) on ' \
                               f'[{comment.link_title}]({comment.link_permalink})**\n'
@@ -77,7 +77,7 @@ async def relay_comments(subreddit, channel):
                                  url=f'https://reddit.com/u/{author.name}',
                                  icon_url=author.icon_img)
                 await channel.send(embed=embed)
-            except Exception as e:
-                log.exception(e)
-                log.warning('Caught exception in relay_comments, continuing in 10 seconds.')
-                await asyncio.sleep(10)
+        except Exception as e:
+            log.exception(e)
+            log.warning('Caught exception in relay_comments, continuing in 10 seconds.')
+            await asyncio.sleep(10)
