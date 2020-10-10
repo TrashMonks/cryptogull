@@ -42,37 +42,39 @@ class Wiki(Cog):
     @command()
     async def wiki(self, ctx: Context, *args):
         """Search the titles of articles on the official Caves of Qud wiki.
+        Since title search was removed with the Unified Community Platform upgrade, this is
+        the same as a generic search.
         """
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
-        srquery = ' '.join(args)
-        if srquery == '' or str.isspace(srquery):  # If no search term specified, return basic help
+        query = ' '.join(args)
+        if query == '' or str.isspace(query):  # If no search term specified, return basic help
             return await ctx.send_help(ctx.command)
-        params = {'format': 'json',
-                  'action': 'query',
-                  'list': 'search',
-                  'srnamespace': '0|14|10000',
-                  'srwhat': 'text',
-                  'srlimit': self.title_limit,
-                  'srsearch': 'intitle:' + srquery}
+        params = {'action': 'opensearch',
+                  'search': query,
+                  'namespace': '0|14|10000',
+                  'limit': self.title_limit,
+                  'profile': 'fuzzy',
+                  'redirects': 'resolve',
+                  'format': 'json'}
         async with http_session.get(url=self.url, params=params) as reply:
             response = await reply.json()
         if 'error' in response:
-            try:
-                info = ''.join(response['error']['info'])
-                return await ctx.send(f'Sorry, that query resulted in a search error: {info}')
-            except ValueError as e:
-                log.exception(e)
-                return await ctx.send('Sorry, that query resulted in a search error with no'
-                                      ' error message. Exception logged.')
-        results = response['query']['search']
-        if len(results) == 0:
-            await ctx.send('Sorry, that query didn\'t find any article titles.'
-                           ' Performing fulltext search:')
-            return await(self.wikisearch(ctx, *args))
-        urls = await self.pageids_to_urls([item['pageid'] for item in results])
+            if response['error']['code'] == 'internal_api_error_TypeError':
+                await ctx.send('Sorry, that query didn\'t find any article titles.'
+                               ' Performing fulltext search:')
+                return await(self.wikisearch(ctx, *args))
+            else:
+                try:
+                    info = ''.join(response['error']['info'])
+                    return await ctx.send(f'Sorry, that query caused a search error: "{info}"')
+                except ValueError as e:
+                    log.exception(e)
+                    return await ctx.send('Sorry, that query caused a search error with no'
+                                          ' error message. Exception logged.')
+        titles = response[1]
+        urls = response[3]
         reply = ''
-        for match, url in zip(results, urls):
-            title = match['title']
+        for title, url in zip(titles, urls):
             reply += f'\n[{title}]({url})'
         embed = Embed(colour=Colour(0xc3c9b1),
                       description=reply)
