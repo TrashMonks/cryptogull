@@ -18,20 +18,8 @@ log = logging.getLogger('bot.' + __name__)
 class Tiles(Cog):
     """Send game tiles to Discord."""
 
-    @command()
-    async def tile(self, ctx: Context, *args, smalltile=False, hologram=False):
-        """Send the tile for the named Qud blueprint.
-
-        Supported command formats:
-          ?tile <object>
-          ?tile <object> recolor <color1> <color2>
-          ?tile <object> recolor random
-
-        recolor => repaints the tile using <color1> as TileColor and <color2> as DetailColor
-        recolor random => repaints the tile using random colors
-
-        Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
-        """
+    @staticmethod
+    async def _tile_internal(ctx: Context, *args, smalltile=False, animated=False, hologram=False):
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         query = ' '.join(args)
         if 'recolor' in query:
@@ -72,14 +60,16 @@ class Tiles(Cog):
         if obj.tile is not None:
             tile = obj.tile
             gif = None
-            if hologram:
+            if hologram or animated:
                 animator = TileAnimator(obj, tile)
-                animator.apply_hologram_material_random()
+                if hologram:
+                    animator.apply_hologram_material_random()
                 gif = animator.gif
             elif recolor != '':
                 if recolor == 'random':
                     def random_color():
                         return random.choice(list(QUD_COLORS.keys()))
+
                     colors = [random_color(), random_color()]
                 else:
                     colors = recolor.split()
@@ -101,6 +91,8 @@ class Tiles(Cog):
                 data = tile.get_big_bytesio()
             data.seek(0)
             msg = f"`{obj.name}` (display name: '{obj.displayname}'):"
+            if not smalltile and not gif and TileAnimator(obj).has_gif:
+                msg += f"\nThis tile can be animated (`?animate {obj.name}`)"
             ext = '.png' if gif is None else '.gif'
             return await ctx.send(msg, file=File(fp=data, filename=f'{obj.displayname}{ext}'))
         else:
@@ -109,26 +101,73 @@ class Tiles(Cog):
             await ctx.send(msg)
 
     @command()
+    async def tile(self, ctx: Context, *args):
+        """Send the tile for the named Qud blueprint.
+
+        Supported command formats:
+          ?tile <object>
+          ?tile <object> recolor <color1> <color2>
+          ?tile <object> recolor random
+
+        recolor => repaints the tile using <color1> as TileColor and <color2> as DetailColor
+        recolor random => repaints the tile using random colors
+
+        Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
+        """
+        return await Tiles._tile_internal(ctx, *args)
+
+    @command()
     async def smalltile(self, ctx: Context, *args):
         """Send the small (game size) tile for the named Qud blueprint.
 
-        Optional arguments from the 'tile' command are allowed."""
-        return await self.tile(ctx, *args, smalltile=True)
+        Supported command formats:
+          ?smalltile <object>
+          ?smalltile <object> recolor <color1> <color2>
+          ?smalltile <object> recolor random
+
+        recolor => repaints the tile using <color1> as TileColor and <color2> as DetailColor
+        recolor random => repaints the tile using random colors
+
+        Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
+        """
+        return await Tiles._tile_internal(ctx, *args, smalltile=True)
 
     @command()
     async def randomtile(self, ctx: Context, *args):
         """Send a random game tile to the channel.
 
-        Optional arguments from the 'tile' command are allowed."""
+        Supported command formats:
+          ?randomtile <object>
+          ?randomtile <object> recolor <color1> <color2>
+          ?randomtile <object> recolor random
+
+        recolor => repaints the tile using <color1> as TileColor and <color2> as DetailColor
+        recolor random => repaints the tile using random colors
+
+        Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
+        """
         names = list(qindex)
         name = 'Object'
         obj = qindex['Object']
         while obj.tile is None:
             name = random.choice(names)
             obj = qindex[name]
-        return await(self.tile(ctx, name, *args))
+        return await(Tiles._tile_internal(ctx, name, *args))
 
     @command()
     async def hologram(self, ctx: Context, *args):
-        """Sends a hologram of the specified Qud object."""
-        return await self.tile(ctx, *args, hologram=True)
+        """Sends a hologram of the named Qud object.
+
+        Supported command formats:
+          ?hologram <object>
+        """
+        return await Tiles._tile_internal(ctx, *args, hologram=True)
+
+    @command()
+    async def animate(self, ctx: Context, *args):
+        """Sends an animated tile for the named Qud object, if it has one.
+
+        Supported command formats:
+          ?animate <object>
+        """
+        return await Tiles._tile_internal(ctx, *args, animated=True)
