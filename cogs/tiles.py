@@ -8,6 +8,7 @@ from discord import File
 from discord.ext.commands import Cog, Context, command
 from fuzzywuzzy import process
 from hagadias.qudtile import QUD_COLORS, QudTile
+from hagadias.tileanimator import TileAnimator, GifHelper
 
 from shared import qindex
 
@@ -18,12 +19,19 @@ class Tiles(Cog):
     """Send game tiles to Discord."""
 
     @command()
-    async def tile(self, ctx: Context, *args, smalltile=False):
+    async def tile(self, ctx: Context, *args, smalltile=False, hologram=False):
         """Send the tile for the named Qud blueprint.
 
-        Optional postfix: recolor color1 color2
-        Append this to the command to recolor the tile with color1 as the tile color and color2
-        as the detailcolor.  color1 and color2 should be Qud color codes like 'w' and 'c'."""
+        Supported command formats:
+          ?tile <object>
+          ?tile <object> recolor <color1> <color2>
+          ?tile <object> recolor random
+
+        recolor => repaints the tile using <color1> as TileColor and <color2> as DetailColor
+        recolor random => repaints the tile using random colors
+
+        Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
+        """
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         query = ' '.join(args)
         if 'recolor' in query:
@@ -63,7 +71,12 @@ class Tiles(Cog):
             obj = qindex[nearest[0]]
         if obj.tile is not None:
             tile = obj.tile
-            if recolor != '':
+            gif = None
+            if hologram:
+                animator = TileAnimator(obj, tile)
+                animator.apply_hologram_material_random()
+                gif = animator.gif
+            elif recolor != '':
                 if recolor == 'random':
                     def random_color():
                         return random.choice(list(QUD_COLORS.keys()))
@@ -80,13 +93,16 @@ class Tiles(Cog):
                 raw_transparent = obj.tile.raw_transparent
                 tile = QudTile(filename, colorstring, colors[0], colors[1], qudname,
                                raw_transparent)
-            if smalltile:
+            if gif is not None:
+                data = GifHelper.get_bytesio(gif)
+            elif smalltile:
                 data = tile.get_bytesio()
             else:
                 data = tile.get_big_bytesio()
             data.seek(0)
             msg = f"`{obj.name}` (display name: '{obj.displayname}'):"
-            return await ctx.send(msg, file=File(fp=data, filename=f'{obj.displayname}.png'))
+            ext = '.png' if gif is None else '.gif'
+            return await ctx.send(msg, file=File(fp=data, filename=f'{obj.displayname}{ext}'))
         else:
             msg = f"Sorry, the Qud blueprint `{obj.name}` (display name: '{obj.displayname}')" \
                   " doesn't have a tile."
@@ -101,7 +117,9 @@ class Tiles(Cog):
 
     @command()
     async def randomtile(self, ctx: Context, *args):
-        """Send a random game tile to the channel."""
+        """Send a random game tile to the channel.
+
+        Optional arguments from the 'tile' command are allowed."""
         names = list(qindex)
         name = 'Object'
         obj = qindex['Object']
@@ -109,3 +127,8 @@ class Tiles(Cog):
             name = random.choice(names)
             obj = qindex[name]
         return await(self.tile(ctx, name, *args))
+
+    @command()
+    async def hologram(self, ctx: Context, *args):
+        """Sends a hologram of the specified Qud object."""
+        return await self.tile(ctx, *args, hologram=True)
