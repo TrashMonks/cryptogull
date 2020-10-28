@@ -60,11 +60,19 @@ class Tiles(Cog):
         if obj.tile is not None:
             tile = obj.tile
             gif = None
-            if hologram or animated:
+            msg = ''
+            if hologram:
                 animator = TileAnimator(obj, tile)
-                if hologram:
-                    animator.apply_hologram_material_random()
+                animator.apply_hologram_material_random()
                 gif = animator.gif
+                msg += 'Hologram of '
+            elif animated:
+                if TileAnimator(obj).has_gif:
+                    animator = TileAnimator(obj, tile)
+                    gif = animator.gif
+                    msg += 'Animated '
+                else:
+                    msg += f"Sorry, `{obj.name}` does not have an animated tile.\n"
             elif recolor != '':
                 if recolor == 'random':
                     def random_color():
@@ -90,7 +98,7 @@ class Tiles(Cog):
             else:
                 data = tile.get_big_bytesio()
             data.seek(0)
-            msg = f"`{obj.name}` (display name: '{obj.displayname}'):"
+            msg += f"`{obj.name}` (display name: '{obj.displayname}'):"
             if not smalltile and not gif and TileAnimator(obj).has_gif:
                 msg += f"\nThis tile can be animated (`?animate {obj.name}`)"
             ext = '.png' if gif is None else '.gif'
