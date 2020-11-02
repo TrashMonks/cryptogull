@@ -95,7 +95,8 @@ class Tiles(Cog):
 class TilesHelper:
 
     @staticmethod
-    async def process_tile_request(ctx: Context, *args, smalltile=False, animated=False, hologram=False):
+    async def process_tile_request(ctx: Context, *args, smalltile=False,
+                                   animated=False, hologram=False):
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         query = ' '.join(args)
         if 'recolor' in query:
@@ -189,12 +190,14 @@ class TilesHelper:
 
     @staticmethod
     def get_bytesio_for_object(qud_object, qud_tile: QudTile, hologram=False):
-        """Provided a QudObject and a QudTile, creates a GIF and retrieves the associated BytesIO directly.
+        """Provided a QudObject and a QudTile, creates a GIF and retrieves the associated BytesIO
+        directly.
 
         Args:
             qud_object: The QudObject for which to create a GIF
             qud_tile: The tile variant to use for GIF creation
-            hologram: If True, create a holographic version of this tile instead of using it's default animation
+            hologram: If True, create a holographic version of this tile instead of using its
+                      default animation
         """
         animator = TileAnimator(qud_object, qud_tile)
         if hologram:
