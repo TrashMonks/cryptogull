@@ -10,7 +10,7 @@ from shared import config
 
 log = logging.getLogger('bot.' + __name__)
 
-valid_charcode = re.compile(r"(?:^|\s)[AB][A-L][A-Z]{6}(?:[0-9A-Z][0-9A-Z])*")
+valid_charcode = re.compile(r"(?:^|\s)[AB][A-L][A-Z]{6}(?:[0-9A-Z][0-9A-Z](?:#\d)?)*")
 
 
 class Decode(Cog):
@@ -39,22 +39,13 @@ class Decode(Cog):
             char = Character.from_charcode(code)
             sheet = char.make_sheet()
             response = f"```less\nCode:      {code}\n" + sheet + "\n```"
-            if char.origin == 'post200':
-                response += 'Game version: >= 2.0.200'
-            elif char.origin == 'pre200':
-                response += 'Game version: < 2.0.200\n'
-                response += 'This code is from a version of the game lower than 2.0.200. '
-                response += 'To play that character on higher versions, you need to use '
-                response += char.upgrade() + ' instead.'
-            else:
-                response += 'Game version: 🧐'
             await message.channel.send(response)
         except:  # noqa E722
             log.exception(f"Exception while decoding and sending character code {code}.")
 
     @command()
     async def upgrade(self, ctx: Context, code=None):
-        """Upgrade a character build code from pre-2.0.200.0 to post-2.0.200.0.
+        """Upgrades a build code from pre-2.0.200.0 to post-2.0.200.0.
 
         Takes the old (pre-2020 'beta' branch) build code and gives the new one."""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
