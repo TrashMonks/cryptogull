@@ -27,8 +27,6 @@ class Decode(Cog):
             return  # only do interpretations in DMs or configured channels
         if message.author.id in self.config['ignore'] or message.author == self.bot.user:
             return  # ignore ignored users and bots
-        if message.content[1:8].lower() == 'upgrade':
-            return  # don't try to interpret the code in an upgrade command
         match = valid_charcode.search(message.content)
         if not match:
             return  # no code found
@@ -42,19 +40,3 @@ class Decode(Cog):
             await message.channel.send(response)
         except:  # noqa E722
             log.exception(f"Exception while decoding and sending character code {code}.")
-
-    @command()
-    async def upgrade(self, ctx: Context, code=None):
-        """Upgrades a build code from pre-2.0.200.0 to post-2.0.200.0.
-
-        Takes the old (pre-2020 'beta' branch) build code and gives the new one."""
-        log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
-        if code is None:
-            return await ctx.send_help(ctx.command)
-        match = valid_charcode.search(code)
-        if not match:
-            return await ctx.send(f"Sorry, but `{code}` doesn't seem to contain a"
-                                  f" valid character build code.")
-        code = match[0].strip()
-        char = Character.from_charcode(code)
-        return await ctx.send(char.upgrade())

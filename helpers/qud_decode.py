@@ -13,10 +13,9 @@ gamecodes = gameroot.get_character_codes()
 class Character:
     """Represents a Caves of Qud player character.
 
-    Note regarding the transitional period from pre-2.0.200.0 character build codes:
-    All Characters are considered to be created with the new, post-2.0.200.0 build codes.
-    The upgrade command has been preserved to allow players to upgrade a pre-2.0.200.0 build
-    code to a modern format buildcode if desired.
+    Will not work for old format build codes, such as bbuild codes from pre-2.0.200.0 (which
+    handle stats differently) or some build codes from before the mutation overhaul (which may
+    contain deprecated mutations).
     """
     def __init__(self,
                  attrs: List[int],       # one integer per stat, in game order
@@ -107,13 +106,10 @@ class Character:
         char.extensions_codes = extensions_codes
         return char
 
-    def to_charcode(self, upgrade=False) -> str:
+    def to_charcode(self) -> str:
         """Return a character build code for the Character.
-        Assumes by default that all attributes are "correct", so if the Character was
-        created using a build code, assume it was post200 unless overridden.
-
-        Check origin then call if an 'auto upgrade' is desired.
-        Parameters: incode and outcode can be 'pre200' or 'post200'.
+        Assumes by default that all attributes are "correct". Cryptogull will accept more build
+        codes than are technically valid/supported in game.
         """
         code = ''
         if self.genotype == 'True Kin':
@@ -126,23 +122,10 @@ class Character:
         elif self.genotype == 'Mutated Human':
             class_codes_flip = {v: k for k, v in gamecodes['calling_codes'].items()}
         code += class_codes_flip[self.class_name]
-        # if we are temporarily assuming we were created using a pre-2.0.200.0 build code,
-        # create a temporary "true" version of our attributes with bonuses subtracted
-        if upgrade:
-            true_attrs = []
-            for attr, bonus in zip(self.attrs, self.bonuses):
-                true_attrs.append(attr - bonus)
-        else:
-            true_attrs = self.attrs
-        for attr in true_attrs:
+        for attr in self.attrs:
             code += chr(attr + 59)
         code += self.extensions_codes
         return code
-
-    def upgrade(self) -> str:
-        """Return an upgraded (post-2.0.200.0) character build code as if this character
-        were created with a pre-2.0.200.0 build code."""
-        return self.to_charcode(upgrade=True)
 
     def make_sheet(self) -> str:
         """Build a printable character sheet for the Character."""
