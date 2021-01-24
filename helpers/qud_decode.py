@@ -91,6 +91,8 @@ class Character:
                 if subtypecode in 'IJKL':
                     extensions.append(gamecodes['mod_codes']['16'][2])
             else:
+                if charcode[:2] not in gamecodes['mod_codes']:
+                    raise ValueError(f'Invalid mutation or cybernetics code: "{charcode[:2]}"')
                 extensions.append(gamecodes['mod_codes'][charcode[:2]])
                 if charcode[:2] in gamecodes['mod_bonuses']:
                     bonuses = list(map(add, bonuses, gamecodes['mod_bonuses'][charcode[:2]]))
