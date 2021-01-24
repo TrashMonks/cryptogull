@@ -11,16 +11,17 @@ from helpers.qud_decode import Character
 build_codes = ('AAPMNNJL16',
                'BARFIGHTBABE',
                'BJQMMOEIBNBOBPBRDPED',
-               'BAIIMLLRB5CHDADCDDDX',
+               'BAIIMLLRB5CMDADCDDDX',
                'BCCGDEHEBKB2CDDB',
                'BAMMMMLLU5EB',
                'BINKMMKKBPBSB1B2CADP',
                )
 
-# Stress test with every mutation and implant:
-all_mods = 'BAEEEEEGAAABBABBBCB6BDBEBFBGBHBIBJBKBLBMBNBOBPBQBRBSBTBUBVBWBXBYBZB1B2B3B4B5CACBC'\
-           'CCDCECFCGCHCICJCLDADBDCDDDEDFDGDHDIDJDKDLDMDNDODPDQDRDSDTDUDVDWDXDYDZD1EAEBECEDEE'\
-           'EFEG0001040506070809111213141516U1U2U3U4'
+# Stress test with every mutation and implant. Note that this results in a character sheet that
+# exceeds discord's character limit, so it won't actually work in Cryptogull itself.
+all_mods = 'BAEEEEEGAAABBACDBBBCBDBEBFBGBHBIBJBKBLBMBNBOBPBQBRBSBTBUBVBWBXBYBZB1B2B3B4B5CACB'\
+           'CFCCB6CECGCICNCJCLCMDADBDCDDDEDFDGDHDIDJDKDLDMDNDODPDQDRDSDTDUDVDWDXDYDZD1EAEBEI'\
+           'ECEDEHEF0001040506070809111213141516U1U2U3U4'
 
 
 def test_qud_decode():
