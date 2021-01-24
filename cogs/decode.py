@@ -2,7 +2,7 @@ import logging
 import re
 
 from discord.channel import DMChannel
-from discord.ext.commands import Bot, Cog, Context, command
+from discord.ext.commands import Bot, Cog
 from discord.message import Message
 
 from helpers.qud_decode import Character
