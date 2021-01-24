@@ -37,6 +37,9 @@ class Decode(Cog):
             char = Character.from_charcode(code)
             sheet = char.make_sheet()
             response = f"```less\nCode:      {code}\n" + sheet + "\n```"
+            if len(response) > 2000:
+                response = "The character sheet for that build code is too large to fit into" \
+                           " a discord message."
             await message.channel.send(response)
         except:  # noqa E722
             log.exception(f"Exception while decoding and sending character code {code}.")
