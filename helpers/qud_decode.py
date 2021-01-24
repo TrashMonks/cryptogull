@@ -10,16 +10,6 @@ from shared import gameroot
 gamecodes = gameroot.get_character_codes()
 
 
-def point_spend(attr: int, base: int) -> int:
-    """Return the number of stat points required to raise a stat from base to given value."""
-    spent = 0
-    if attr > 18:
-        spent += (attr - 18) * 2
-        attr = 18
-    spent += attr - base
-    return spent
-
-
 class Character:
     """Represents a Caves of Qud player character.
 
