@@ -7,6 +7,7 @@ https://cavesofqud.gamepedia.com/api.php?action=help&modules=query%2Bsearch
 """
 
 import logging
+from typing import Optional
 
 from discord import Colour, Embed
 from discord.ext.commands import Bot, Cog, Context, command
@@ -39,8 +40,7 @@ class Wiki(Cog):
         urls = [response['query']['pages'][str(pageid)]['fullurl'] for pageid in pageids]
         return urls
 
-    @command()
-    async def wiki(self, ctx: Context, *args):
+    async def wiki_helper(self, limit: Optional[int], ctx: Context, *args):
         """Search the titles of articles on the official Caves of Qud wiki.
         Since title search was removed with the Unified Community Platform upgrade, this is
         the same as a generic search.
@@ -52,7 +52,7 @@ class Wiki(Cog):
         params = {'action': 'opensearch',
                   'search': query,
                   'namespace': '0|14|10000',
-                  'limit': self.title_limit,
+                  'limit': self.title_limit if limit is None else limit,
                   'profile': 'fuzzy',
                   'redirects': 'resolve',
                   'format': 'json'}
@@ -79,6 +79,14 @@ class Wiki(Cog):
         embed = Embed(colour=Colour(0xc3c9b1),
                       description=reply)
         await ctx.send(embed=embed)
+
+    @command()
+    async def wiki(self, ctx: Context, *args):
+        return await self.wiki_helper(None, ctx, *args)
+
+    @command()
+    async def wikipage(self, ctx: Context, *args):
+        return await self.wiki_helper(1, ctx, *args)
 
     @command()
     async def wikisearch(self, ctx: Context, *args):
