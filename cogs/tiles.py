@@ -7,10 +7,10 @@ from functools import partial
 
 from discord import File
 from discord.ext.commands import Cog, Context, command
-from fuzzywuzzy import process
 from hagadias.qudtile import QUD_COLORS, QudTile
 from hagadias.tileanimator import TileAnimator, GifHelper
 
+from helpers.find_blueprints import find_name_or_displayname, fuzzy_find_nearest
 from shared import qindex
 
 log = logging.getLogger('bot.' + __name__)
@@ -100,37 +100,18 @@ async def process_tile_request(ctx: Context, *args, smalltile=False,
         query, recolor = [q.strip() for q in query.split('recolor')]
     else:
         recolor = ''
-    # search for exact matches first
-    obj = None
-    for key, val in qindex.items():
-        if query.lower() == key.lower():
-            obj = val
-            break
-    if obj is None:
-        # no matching blueprint name
-        # but, is there a blueprint with a matching displayname?
-        for blueprint, qobject in qindex.items():
-            if qobject.displayname.lower() == query.lower():
-                obj = qobject
-    if obj is None:
+    try:
+        obj = find_name_or_displayname(query, qindex)
+    except LookupError:
         if len(query) < 3:
             msg = "Sorry, that specific blueprint name wasn't found, and it's too" \
                   " short to search."
             return await ctx.send(msg)
         # there was no exact match, and the query wasn't too short, so offer an alternative
-        loop = asyncio.get_running_loop()
-        # doing a fuzzy match on the qindex keys can take about 2 seconds, so
-        # run in an executor so we can keep processing other commands in the meantime
-        with concurrent.futures.ThreadPoolExecutor() as pool:
-            nearest = await loop.run_in_executor(pool,
-                                                 process.extractOne,
-                                                 query,
-                                                 list(qindex))
+        obj = await fuzzy_find_nearest(query, qindex)
         msg = "Sorry, nothing matching that name was found. The closest blueprint name is" \
-              f" `{nearest[0]}`."
+              f" `{obj.name}`."
         await ctx.send(msg)
-        # send the tile for the nearest match
-        obj = qindex[nearest[0]]
     if obj.tile is not None:
         tile = obj.tile
         gif_bytesio = None
