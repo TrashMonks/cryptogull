@@ -31,3 +31,4 @@ http_session = asyncio.get_event_loop().run_until_complete(create_http_session()
 
 gameroot = GameRoot(config['Qud install folder'])
 qud_root_object, qindex = gameroot.get_object_tree()
+genders = gameroot.get_genders()
