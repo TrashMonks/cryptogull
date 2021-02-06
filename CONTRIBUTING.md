@@ -6,7 +6,11 @@ Contributions from the community in the form of issues or pull requests are welc
 This project uses the Code of Conduct available from that Discord server, in the `#code-of-conduct` channel.
 
 # Environment setup
-To develop on this project, have Python 3.7 installed on your system, then `git clone` the repo to your hard drive and set up a virtual environment by running `pipenv` in the repo directory:
+To develop on this project, you first need to have Python 3.8 installed on your system. For Windows users, install the latest 3.8 installer from [here](https://www.python.org/downloads/windows/). Choose the option to add Python to your PATH environment variable. For Debian-derived Linux distributions, `sudo apt install python3.8 python3-pip`.
+ 
+The second requirement is Git. For Windows users, install [Git for Windows](https://git-scm.com/download/win) and use the default options. For Debian-derived Linux distributions, `sudo apt install git`.
+
+To obtain the source code, run `git clone` the repo to your hard drive and set up a virtual environment by running `pipenv` in the repo directory. For Windows:
 ```bash
 python -m pip install --user pipenv  # install pipenv on your system
 cd repo-folder                       # insert your repo directory
@@ -29,7 +33,7 @@ In order to send changes to the Cryptogull bot, it's best if you test them first
 6. Create a private Discord server for yourself through the Discord client. The button is on the left under the list of servers you're in.
 7. Grab the 'Client ID' from the 'General Information' tab of the Discord application you created (different from your bot token!)
 8. Grab the permissions number you need from the 'Bot' tab of the Discord application you created. This should be 100352, which is the number created by checking the 'Send Messages', 'Attach Files', and 'Read Message History' checkboxes. If you're developing features that use higher permissions, check those permission boxes as well and use the permissions number created by doing that.
-9. Craft a URL to join the bot to the server. The format is `https://discordapp.com/api/oauth2/authorize?client_id=xxxxxxxxxxxxxxxxxx&scope=bot&permissions=y` where the `x`s are the number from **step 4**, and `y` is the number from **step 5**.
+9. Craft a URL to join the bot to the server. The format is `https://discordapp.com/api/oauth2/authorize?client_id=xxxxxxxxxxxxxxxxxx&scope=bot&permissions=y` where the `x`s are the number from **step 7**, and `y` is the number from **step 8**.
 10. Go to the URL to join your bot user to the new server. Accept any prompts.
 11. Run `bot.py`. It will load the bot token from `config.yml` and connect to Discord, appearing in the server you added it to.
 
