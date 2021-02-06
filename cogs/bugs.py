@@ -33,7 +33,8 @@ class Bugs(Cog):
         ctx: Context = await self.bot.get_context(message)
         reacter = ctx.guild.get_member(payload.user_id)
         log.info(f'Issue requested by {reacter} ({payload.user_id})'
-                 f' by reacting to the following message by {message.author} ({message.author.id}:')
+                 f' by reacting to the following message by {message.author}'
+                 f' ({message.author.id}):')
         log.info(f'({message.channel}) <{message.author}> {message.content}')
         # have we already reacted to this message with a checkmark?
         reactions = message.reactions
