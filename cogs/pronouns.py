@@ -27,7 +27,8 @@ class Pronouns(Cog):
                       " short to search."
                 return await ctx.send(msg)
             # there was no exact match, and the query wasn't too short, so offer an alternative
-            obj = await fuzzy_find_nearest(query, qindex)
+            async with ctx.typing():
+                obj = await fuzzy_find_nearest(query, qindex)
         if obj.pronouns is not None:
             result = obj.pronouns
         elif obj.gender is not None:

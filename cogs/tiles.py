@@ -108,7 +108,8 @@ async def process_tile_request(ctx: Context, *args, smalltile=False,
                   " short to search."
             return await ctx.send(msg)
         # there was no exact match, and the query wasn't too short, so offer an alternative
-        obj = await fuzzy_find_nearest(query, qindex)
+        async with ctx.typing():
+            obj = await fuzzy_find_nearest(query, qindex)
         msg = "Sorry, nothing matching that name was found. The closest blueprint name is" \
               f" `{obj.name}`."
         await ctx.send(msg)
