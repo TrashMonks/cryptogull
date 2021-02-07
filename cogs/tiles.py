@@ -11,6 +11,7 @@ from hagadias.qudtile import QUD_COLORS, QudTile
 from hagadias.tileanimator import TileAnimator, GifHelper
 
 from helpers.find_blueprints import find_name_or_displayname, fuzzy_find_nearest
+from helpers.tile_variations import parse_variation_parameters, get_tile_variation_details
 from shared import qindex
 
 log = logging.getLogger('bot.' + __name__)
@@ -27,9 +28,13 @@ class Tiles(Cog):
           ?tile <object>
           ?tile <object> recolor <color1> <color2>
           ?tile <object> recolor random
+          ?tile <object> variation [# or keyword or 'random'] [recolor...]
+          ?tile <object> unidentified
 
         recolor => repaints the tile using <color1> as TileColor and <color2> as DetailColor
         recolor random => repaints the tile using random colors
+        variation => sends a variation of the tile, if one exists
+        unidentified => sends the 'unidentified' variation of the tile
 
         Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
         """
@@ -43,9 +48,13 @@ class Tiles(Cog):
           ?smalltile <object>
           ?smalltile <object> recolor <color1> <color2>
           ?smalltile <object> recolor random
+          ?smalltile <object> variation [# or keyword or 'random'] [recolor...]
+          ?smalltile <object> unidentified
 
         recolor => repaints the tile using <color1> as TileColor and <color2> as DetailColor
         recolor random => repaints the tile using random colors
+        variation => sends a variation of the tile, if one exists
+        unidentified => sends the 'unidentified' variation of the tile
 
         Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
         """
@@ -56,9 +65,9 @@ class Tiles(Cog):
         """Send a random game tile to the channel.
 
         Supported command formats:
-          ?randomtile <object>
-          ?randomtile <object> recolor <color1> <color2>
-          ?randomtile <object> recolor random
+          ?randomtile
+          ?randomtile recolor <color1> <color2>
+          ?randomtile recolor random
 
         recolor => repaints the tile using <color1> as TileColor and <color2> as DetailColor
         recolor random => repaints the tile using random colors
@@ -71,6 +80,9 @@ class Tiles(Cog):
         while obj.tile is None:
             name = random.choice(names)
             obj = qindex[name]
+        if obj.number_of_tiles() > 1:
+            if 'variation' not in args:
+                args = ('variation',) + args
         return await(process_tile_request(ctx, name, *args))
 
     @command()
@@ -79,6 +91,7 @@ class Tiles(Cog):
 
         Supported command formats:
           ?hologram <object>
+          ?hologram <object> [variation...]
         """
         return await process_tile_request(ctx, *args, hologram=True)
 
@@ -88,6 +101,7 @@ class Tiles(Cog):
 
         Supported command formats:
           ?animate <object>
+          ?animate <object> [variation...]
         """
         return await process_tile_request(ctx, *args, animated=True)
 
@@ -96,10 +110,14 @@ async def process_tile_request(ctx: Context, *args, smalltile=False,
                                animated=False, hologram=False):
     log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
     query = ' '.join(args)
+    # parse recolor parameters, if present
     if 'recolor' in query:
         query, recolor = [q.strip() for q in query.split('recolor')]
     else:
         recolor = ''
+    # parse variation parameters, if present
+    query, variation = parse_variation_parameters(query)
+    # search for exact matches first
     try:
         obj = find_name_or_displayname(query, qindex)
     except LookupError:
@@ -117,6 +135,15 @@ async def process_tile_request(ctx: Context, *args, smalltile=False,
         tile = obj.tile
         gif_bytesio = None
         msg = ''
+        use_variation = False
+        has_variations = obj.number_of_tiles() > 1
+        if variation != '':
+            variation_result = get_tile_variation_details(obj, variation)
+            if variation_result['err']:
+                msg += variation_result['err'] + '\n'
+            else:
+                tile = variation_result['tile']
+                use_variation = True
         if hologram:
             loop = asyncio.get_running_loop()
             with concurrent.futures.ThreadPoolExecutor() as pool:
@@ -133,7 +160,7 @@ async def process_tile_request(ctx: Context, *args, smalltile=False,
                         gif_bytesio = await loop.run_in_executor(pool, call)
                 msg += 'Animated '
             else:
-                msg += f"Sorry, `{obj.name}` does not have an animated tile.\n"
+                msg += f'Sorry, `{obj.name}` does not have an animated tile.\n'
         elif recolor != '':
             if recolor == 'random':
                 def random_color():
@@ -146,10 +173,10 @@ async def process_tile_request(ctx: Context, *args, smalltile=False,
                 return await ctx.send('Syntax error with optional `recolor` argument.'
                                       ' See `?help tile` for details.')
             # user requested a recolor of the tile, use the old tile to make a new one
-            filename = obj.tile.filename
-            colorstring = obj.tile.colorstring
-            qudname = obj.tile.qudname
-            raw_transparent = obj.tile.raw_transparent
+            filename = tile.filename
+            colorstring = tile.colorstring
+            qudname = tile.qudname
+            raw_transparent = tile.raw_transparent
             tile = QudTile(filename, colorstring, colors[0], colors[1], qudname,
                            raw_transparent)
         if gif_bytesio is not None:
@@ -160,8 +187,17 @@ async def process_tile_request(ctx: Context, *args, smalltile=False,
             data = tile.get_big_bytesio()
         data.seek(0)
         msg += f"`{obj.name}` (display name: '{obj.displayname}'):"
-        if not smalltile and not gif_bytesio and TileAnimator(obj).has_gif:
-            msg += f"\nThis tile can be animated (`?animate {obj.name}`)"
+        if use_variation:
+            msg += f'\n*variation {variation_result["idx"]} - {variation_result["name"]}*'
+        elif not smalltile and not gif_bytesio:
+            notices = []
+            if TileAnimator(obj).has_gif:
+                notices.append(f"can be animated (`?animate {obj.name}`)")
+            if has_variations and variation == '':
+                notices.append(f'has {obj.number_of_tiles()} variations '
+                               f'(`?tile {obj.name} variation #`)')
+            if len(notices) > 0:
+                msg += f'\nThis tile {" and ".join(notices)}'
         ext = '.png' if gif_bytesio is None else '.gif'
         return await ctx.send(msg, file=File(fp=data, filename=f'{obj.displayname}{ext}'))
     else:
