@@ -121,14 +121,16 @@ async def process_tile_request(ctx: Context, *args, smalltile=False,
             loop = asyncio.get_running_loop()
             with concurrent.futures.ThreadPoolExecutor() as pool:
                 call = partial(get_bytesio_for_object, obj, tile, hologram=True)
-                gif_bytesio = await loop.run_in_executor(pool, call)
+                async with ctx.typing():
+                    gif_bytesio = await loop.run_in_executor(pool, call)
             msg += 'Hologram of '
         elif animated:
             if TileAnimator(obj).has_gif:
                 loop = asyncio.get_running_loop()
                 with concurrent.futures.ThreadPoolExecutor() as pool:
                     call = partial(get_bytesio_for_object, obj, tile)
-                    gif_bytesio = await loop.run_in_executor(pool, call)
+                    async with ctx.typing():
+                        gif_bytesio = await loop.run_in_executor(pool, call)
                 msg += 'Animated '
             else:
                 msg += f"Sorry, `{obj.name}` does not have an animated tile.\n"
