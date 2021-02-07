@@ -131,9 +131,10 @@ class Character:
         """Build a printable character sheet for the Character."""
         charsheet = f"""Genotype:  {self.genotype}
 {self.class_called:11}{self.class_name}"""
+        attr_widths = (11, 11, 11, 14, 14, 14)
         attributes = ('Strength:', 'Agility:', 'Toughness:', 'Intelligence:', 'Willpower:', 'Ego:')
         attr_strings = []
-        for attr_text, attr, bonus in zip(attributes, self.attrs, self.bonuses):
+        for width, attr_text, attr, bonus in zip(attr_widths, attributes, self.attrs, self.bonuses):
             # print a +/- in front of any existing bonus
             if bonus > 0:
                 bonus_text = f'+{bonus}'
@@ -141,11 +142,11 @@ class Character:
                 bonus_text = f'{bonus}'  # already has a minus sign
             else:
                 bonus_text = ''
-            attr_strings.append(f'{attr_text:14}{attr:2}{bonus_text}')
+            attr_strings.append(f'{attr_text:{width}}{attr:2}{bonus_text}')
         charsheet += f"""
-{attr_strings[0]:21}    {attr_strings[3]}
-{attr_strings[1]:21}    {attr_strings[4]}
-{attr_strings[2]:21}    {attr_strings[5]}"""
+{attr_strings[0]:18}{attr_strings[3]}
+{attr_strings[1]:18}{attr_strings[4]}
+{attr_strings[2]:18}{attr_strings[5]}"""
         charsheet += f"\n{self.extname}{', '.join(self.extensions)}"
         charsheet += f"\nSkills:    {', '.join(self.skills)}"
         return charsheet
