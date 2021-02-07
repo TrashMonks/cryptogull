@@ -44,9 +44,10 @@ class Decode(Cog):
             else:
                 thumbnail = char.tile.get_big_bytesio()
                 thumbnail.seek(0)
-                embedfile = File(fp=thumbnail, filename=f'{char.class_name}.png')
+                img_filename = ''.join(ch for ch in char.class_name if ch.isalnum()) + '.png'
+                embedfile = File(fp=thumbnail, filename=f'{img_filename}')
                 embed = Embed(description=response, color=0x2AA18B)
-                embed.set_thumbnail(url=f'attachment://{char.class_name}.png')
+                embed.set_thumbnail(url=f'attachment://{img_filename}')
                 await message.channel.send(embed=embed, file=embedfile)
         except:  # noqa E722
             log.exception(f"Exception while decoding and sending character code {code}.")
