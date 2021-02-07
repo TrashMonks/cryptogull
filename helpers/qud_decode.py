@@ -6,6 +6,8 @@ and for building a printable character sheet based on the attributes.
 from operator import add
 from typing import List
 
+from hagadias.qudtile import QudTile
+
 from shared import gameroot
 gamecodes = gameroot.get_character_codes()
 
@@ -25,7 +27,8 @@ class Character:
                  extensions: List[str],  # the list of mutations or implants as strings
                  extname: str,           # "mutations" or "implants"
                  genotype: str,          # "Mutated Human" or "True Kin"
-                 skills: List[str]       # the list of skills as strings
+                 skills: List[str],      # the list of skills as strings
+                 qud_tile: QudTile       # sprite for this calling or caste
                  ):
 
         self.attrs = attrs
@@ -36,6 +39,7 @@ class Character:
         self.extname = extname
         self.genotype = genotype
         self.skills = skills
+        self.tile = qud_tile
 
         self.extensions_codes = ""
 
@@ -101,8 +105,13 @@ class Character:
         # skills are not in the build code, they're determined solely by class
         skills = [skill for skill in gamecodes['class_skills'][class_name]]
 
+        tile = QudTile(filename=gamecodes['class_tiles'][class_name][0],
+                       colorstring='y', raw_tilecolor='y',
+                       raw_detailcolor=gamecodes['class_tiles'][class_name][1],
+                       qudname=class_name)
+
         char = Character(attrs, bonuses, class_name, class_called,
-                         extensions, extname, genotype, skills)
+                         extensions, extname, genotype, skills, tile)
         char.extensions_codes = extensions_codes
         return char
 
