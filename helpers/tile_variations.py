@@ -54,7 +54,7 @@ def get_tile_variation_details(obj, variation: str) -> dict:
         if variation.isdigit():
             i = int(variation)
             if i == 0:
-                err = f'You must specify a variation number greater than 0.'
+                err = 'You must specify a variation number greater than 0.'
             elif i <= len(obj_tiles):
                 tile = obj_tiles[i - 1]
                 idx = i
