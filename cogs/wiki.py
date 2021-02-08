@@ -12,6 +12,7 @@ from typing import Optional, Tuple
 from discord import Colour, Embed
 from discord.ext.commands import Bot, Cog, Context, command
 
+from helpers.wiki_page import get_wiki_page_summary, WikiPageSummary, WIKI_FAVICON
 from shared import config, http_session
 
 log = logging.getLogger('bot.' + __name__)
@@ -85,10 +86,27 @@ class Wiki(Cog):
         titles = response[1]
         urls = response[3]
         reply = ''
-        for title, url in zip(titles, urls):
-            reply += f'\n[{title}]({url})'
-        embed = Embed(colour=Colour(0xc3c9b1),
-                      description=reply)
+        if len(titles) == 1:
+            # use full embed for single wiki page result:
+            async with ctx.typing():
+                page_info: WikiPageSummary = await get_wiki_page_summary(self.url, titles[0], True)
+            if page_info.look_description:
+                reply += f'*{page_info.look_description}*'
+            if page_info.wiki_description:
+                reply += ('\n' if len(reply) > 0 else '') + page_info.wiki_description
+            embed = Embed(colour=Colour(0xc3c9b1), description=reply)
+            if page_info.wiki_image_url:
+                embed.set_thumbnail(url=page_info.wiki_image_url)
+            embed.set_author(name=titles[0], url=urls[0], icon_url=WIKI_FAVICON)
+        elif len(titles) > 1:
+            # list pages if more than one result
+            for title, url in zip(titles, urls):
+                reply += f'\n[{title}]({url})'
+            embed = Embed(colour=Colour(0xc3c9b1),
+                          description=reply)
+        else:
+            reply = f'*No results found for "{query}"*'
+            embed = Embed(colour=Colour(0xc3c9b1), description=reply)
         await ctx.send(embed=embed)
 
     @command()
