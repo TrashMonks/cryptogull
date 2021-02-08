@@ -74,7 +74,7 @@ class Wiki(Cog):
             if response['error']['code'] == 'internal_api_error_TypeError':
                 await ctx.send('Sorry, that query didn\'t find any article titles.'
                                ' Performing fulltext search:')
-                return await(self.wikisearch(ctx, *args))
+                return await(self.wikisearch_helper(ctx, *args))
             else:
                 try:
                     info = ''.join(response['error']['info'])
@@ -88,8 +88,7 @@ class Wiki(Cog):
         reply = ''
         if len(titles) == 1:
             # use full embed for single wiki page result:
-            async with ctx.typing():
-                page_info: WikiPageSummary = await get_wiki_page_summary(self.url, titles[0], True)
+            page_info: WikiPageSummary = await get_wiki_page_summary(self.url, titles[0], True)
             if page_info.look_description:
                 reply += f'*{page_info.look_description}*'
             if page_info.wiki_description:
@@ -107,19 +106,25 @@ class Wiki(Cog):
         else:
             reply = f'*No results found for "{query}"*'
             embed = Embed(colour=Colour(0xc3c9b1), description=reply)
-        await ctx.send(embed=embed)
+        return await ctx.send(embed=embed)
 
     @command()
     async def wiki(self, ctx: Context, *args):
-        return await self.wiki_helper(None, ctx, *args)
+        async with ctx.typing():
+            return await self.wiki_helper(None, ctx, *args)
 
     @command()
     async def wikipage(self, ctx: Context, *args):
-        return await self.wiki_helper(1, ctx, *args)
+        async with ctx.typing():
+            return await self.wiki_helper(1, ctx, *args)
 
     @command()
     async def wikisearch(self, ctx: Context, *args):
         """Search the text of articles on the official Caves of Qud wiki."""
+        async with ctx.typing():
+            return await self.wikisearch_helper(ctx, *args)
+
+    async def wikisearch_helper(self, ctx: Context, *args):
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         srsearch = ' '.join(args)
         if srsearch == '' or str.isspace(srsearch):  # no search term specified, return basic help
@@ -156,4 +161,4 @@ class Wiki(Cog):
             reply += '\n'
         embed = Embed(colour=Colour(0xc3c9b1),
                       description=reply)
-        await ctx.send(embed=embed)
+        return await ctx.send(embed=embed)
