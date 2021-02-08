@@ -75,6 +75,7 @@ class WikiPageSummary:
             desc_match = wiki_desc_pattern.search(template_content)
             if desc_match is not None:
                 self._look_description = '> ' + self.strip_templates(desc_match.group(1))
+                self._look_description = self._look_description.replace('\n', '\n> ')
             # try to grab the image from the QBE template (much more reliable than above)
             wiki_image_pattern = re.compile(API_WIKI_TEMPLATE_IMAGE_REGEX, re.MULTILINE)
             image_match = wiki_image_pattern.search(template_content)
