@@ -11,12 +11,12 @@ def parse_variation_parameters(query: str) -> Tuple[str, str]:
     """
     # main 'variation' use case (ex: ?tile flowers variation 3)
     if 'variation' in query:
-        query, variation = [q.strip() for q in query.split('variation')]
+        query, variation = [q.strip() for q in query.split('variation', maxsplit=1)]
         if variation == '':
             variation = 'random'
     # support a simplified 'unidentified' query (ex: ?tile hypertractor unidentified)
-    elif query.endswith('unidentified'):
-        query = query.removesuffix('unidentified')
+    elif query.endswith(' unidentified'):
+        query = query[:-13]
         variation = 'unidentified'
     else:
         variation = ''
