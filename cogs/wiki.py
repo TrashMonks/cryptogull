@@ -7,7 +7,7 @@ https://cavesofqud.gamepedia.com/api.php?action=help&modules=query%2Bsearch
 """
 
 import logging
-from typing import Optional
+from typing import Optional, Tuple
 
 from discord import Colour, Embed
 from discord.ext.commands import Bot, Cog, Context, command
@@ -27,18 +27,29 @@ class Wiki(Cog):
         self.fulltext_limit = self.config['fulltext search limit']
         self.url = 'https://' + self.config['site'] + '/api.php'
 
-    async def pageids_to_urls(self, pageids: list) -> list:
-        """Return a list of the full URLs for a list of existing page IDs."""
+    async def pageids_to_urls_and_snippets(self, pageids: list) -> Tuple[list, list]:
+        """Return a list of the full URLs for a list of existing page IDs.
+
+        While the query list=search API does return snippets, in our case the snippets are always
+        just QBE template HTML with no useful text. So here, we pull a better snippet using the
+        TextExtracts API (prop=extracts) in addition to pulling the page URLs with prop=info
+        """
         str_pageids = [str(pageid) for pageid in pageids]
         params = {'format': 'json',
                   'action': 'query',
-                  'prop': 'info',
+                  'prop': 'info|extracts',
                   'inprop': 'url',
+                  'exlimit': len(str_pageids),
+                  'exintro': 1,
+                  'explaintext': 1,
+                  'exchars': 120,
                   'pageids': '|'.join(str_pageids)}
         async with http_session.get(url=self.url, params=params) as reply:
             response = await reply.json()
         urls = [response['query']['pages'][str(pageid)]['fullurl'] for pageid in pageids]
-        return urls
+        summaries = [response['query']['pages'][str(pageid)]['extract'] for pageid in pageids]
+        summaries = list(map(lambda s: s.replace('\n', ' '), summaries))
+        return urls, summaries
 
     async def wiki_helper(self, limit: Optional[int], ctx: Context, *args):
         """Search the titles of articles on the official Caves of Qud wiki.
@@ -113,18 +124,18 @@ class Wiki(Cog):
                 log.exception(e)
                 return await ctx.send('Sorry, that query resulted in a search error with no'
                                       ' error message. Exception logged.')
-        matches = response['query']['searchinfo']['totalhits']
+        matches = len(response['query']['search'])
         if matches == 0:
             return await ctx.send('Sorry, no matches were found for that query.')
         results = response['query']['search']
-        urls = await self.pageids_to_urls([item['pageid'] for item in results])
+        urls, snips = await self.pageids_to_urls_and_snippets([item['pageid'] for item in results])
         reply = ''
-        for num, (match, url) in enumerate(zip(results, urls), start=1):
+        for num, (match, url, snip) in enumerate(zip(results, urls, snips), start=1):
             title = match['title']
-            reply += f'[{title}]({url}): '
-            snippet = match['snippet'].replace('<span class="searchmatch">', '**')
-            snippet = snippet.replace('</span>', '**')
-            reply += snippet + '\n'
+            reply += f'[{title}]({url})'
+            if snip is not None and snip != '' and snip != '...':
+                reply += f': {snip}'
+            reply += '\n'
         embed = Embed(colour=Colour(0xc3c9b1),
                       description=reply)
         await ctx.send(embed=embed)
