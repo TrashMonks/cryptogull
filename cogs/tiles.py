@@ -97,7 +97,7 @@ async def process_tile_request(ctx: Context, *args, smalltile=False,
     log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
     query = ' '.join(args)
     if 'recolor' in query:
-        query, recolor = [q.strip() for q in query.split('recolor')]
+        query, recolor = [q.strip() for q in query.split('recolor', maxsplit=1)]
     else:
         recolor = ''
     try:
