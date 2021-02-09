@@ -74,8 +74,12 @@ class WikiPageSummary:
             wiki_desc_pattern = re.compile(API_WIKI_TEMPLATE_DESC_REGEX, re.MULTILINE | re.DOTALL)
             desc_match = wiki_desc_pattern.search(template_content)
             if desc_match is not None:
-                self._look_description = '> ' + self.strip_templates(desc_match.group(1))
-                self._look_description = self._look_description.replace('\n', '\n> ')
+                look_desc = self.strip_templates(desc_match.group(1))
+                look_desc_lines = [
+                    f'> *{li}*' if len(li.strip()) > 0 else '> '
+                    for li in look_desc.splitlines()
+                ]
+                self._look_description = '\n'.join(look_desc_lines)
             # try to grab the image from the QBE template (much more reliable than above)
             wiki_image_pattern = re.compile(API_WIKI_TEMPLATE_IMAGE_REGEX, re.MULTILINE)
             image_match = wiki_image_pattern.search(template_content)
