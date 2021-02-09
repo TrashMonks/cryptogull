@@ -90,7 +90,7 @@ class Wiki(Cog):
             # use full embed for single wiki page result:
             page_info: WikiPageSummary = await get_wiki_page_summary(self.url, titles[0], True)
             if page_info.look_description:
-                reply += f'*{page_info.look_description}*'
+                reply += f'{page_info.look_description}\n'
             if page_info.wiki_description:
                 reply += ('\n' if len(reply) > 0 else '') + page_info.wiki_description
             embed = Embed(colour=Colour(0xc3c9b1), description=reply)
