@@ -100,6 +100,7 @@ class WikiPageSummary:
             self.intro_only = False
 
         self._look_description = self._parse_look_description_from_templates(wiki_text)
+        self._look_description = await self._parse_grammar(self._look_description, wiki_text)
         template_image = self._parse_image_from_templates(wiki_text, response['parse']['images'])
         self._wiki_image = template_image if template_image is not None else self._wiki_image
 
@@ -171,13 +172,13 @@ class WikiPageSummary:
                         r'|[Mm]utation) *\n(?:(?!^}}).).*^\| *desc *= *((?:(?!^(?:\||}})).)+)')
         desc_match = re.search(desc_pattern, page_wikitext, re.MULTILINE | re.DOTALL)
         if desc_match is not None:
-            look_desc = desc_match.group(1)
+            look_desc: str = desc_match.group(1)
             look_desc = look_desc.replace('\\n', '\n')  # fix raw '\n' in some mutation descriptions
             look_desc = WikiPageSummary.strip_templates(look_desc)  # remove templates
             for common_color_str in ['&C', '&y', '&W', '&w']:  # remove color prefixes
                 look_desc = look_desc.replace(common_color_str, '')
             look_desc_lines = [
-                f'> *{li}*' if len(li.strip()) > 0 else '> '
+                f'> *{li.strip()}*' if len(li.strip()) > 0 else '> '
                 for li in look_desc.splitlines()
             ]
             return '\n'.join(look_desc_lines)
@@ -207,6 +208,34 @@ class WikiPageSummary:
                         img = page_image
                         break
             return img
+
+    async def _parse_grammar(self, text_to_parse: str, full_wikitext: str) -> Optional[str]:
+        """Parses grammar and pronouns in a 'look' description by using the expandtemplates API.
+        If we eventually move the logic for handling grammar into hagadias (instead of the wiki's
+        Module:Grammar), we can remove this function and the single call to it."""
+        if text_to_parse is None or '=' not in text_to_parse:
+            return text_to_parse
+        gender_pronouns_pattern = (r'^{{(?:Character) *\n'
+                                   r'(?:(?:(?!^}}).)*^\| *gender *= *([^\n]+))?'
+                                   r'(?:(?:(?!^}}).)*^\| *pronouns *= *([^\n]+))?')
+        gp_match = re.search(gender_pronouns_pattern, full_wikitext, re.MULTILINE | re.DOTALL)
+        gender = 'nonspecific' if (gp_match is None or gp_match.group(1) is None) \
+            else gp_match.group(1)
+        pronouns = '' if (gp_match is None or gp_match.group(2) is None) else gp_match.group(2)
+        grammar_template = ('{{grammar'
+                            f'|text={text_to_parse}|gender={gender}|pronouns={pronouns}'
+                            '}}')
+        params = {
+            'action': 'expandtemplates',
+            'format': 'json',
+            'text': grammar_template,
+            'prop': 'wikitext'
+        }
+        async with http_session.get(url=self.url, params=params) as reply:
+            response = await reply.json()
+        if 'error' in response:
+            return text_to_parse  # errors ignored; issues will be obvious in any non-parsed output
+        return response['expandtemplates']['wikitext']
 
     @staticmethod
     def strip_templates(text: str) -> str:
