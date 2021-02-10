@@ -7,12 +7,13 @@ https://cavesofqud.gamepedia.com/api.php?action=help&modules=query%2Bsearch
 """
 
 import logging
-from typing import Optional, Tuple
+from typing import Optional
 
-from discord import Colour, Embed
+from discord import Colour, Embed, Message
 from discord.ext.commands import Bot, Cog, Context, command
 
-from helpers.wiki_page import get_wiki_page_summary, WikiPageSummary, WIKI_FAVICON
+from helpers.wiki_page import send_single_wiki_page, send_wiki_page_list, send_wiki_error_message, \
+    pageids_to_urls_and_snippets, get_wiki_namespaces
 from shared import config, http_session
 
 log = logging.getLogger('bot.' + __name__)
@@ -26,36 +27,51 @@ class Wiki(Cog):
         self.config = config['Wiki']
         self.title_limit = self.config['title search limit']
         self.fulltext_limit = self.config['fulltext search limit']
-        self.url = 'https://' + self.config['site'] + '/api.php'
+        self.url = self.make_wiki_url('api.php')
 
-    async def pageids_to_urls_and_snippets(self, pageids: list) -> Tuple[list, list]:
-        """Return a list of the full URLs for a list of existing page IDs.
+    @command()
+    async def wiki(self, ctx: Context, *args):
+        """Gets up to 10 matching wiki pages."""
+        async with ctx.typing():
+            await self.wiki_helper(None, ctx, *args)
 
-        While the query list=search API does return snippets, in our case the snippets are always
-        just QBE template HTML with no useful text. So here, we pull a better snippet using the
-        TextExtracts API (prop=extracts) in addition to pulling the page URLs with prop=info
+    @command()
+    async def wikipage(self, ctx: Context, *args):
+        """Gets a full summary and image for the closest wiki page match."""
+        async with ctx.typing():
+            await self.wiki_helper(1, ctx, *args)
+
+    @command()
+    async def wikirandom(self, ctx: Context, *args):
+        """Gets a random wiki page."""
+        async with ctx.typing():
+            await self.random_wikipage(ctx, *args)
+
+    @command()
+    async def wikisearch(self, ctx: Context, *args):
+        """Gets up to 5 matching wiki pages, with summaries if available."""
+        async with ctx.typing():
+            await self.wikisearch_helper(ctx, *args)
+
+    def make_wiki_url(self, sub_path: str) -> str:
+        """Forms a Qud Wiki URL with the provided subpath. For example, when one passes 'Waterskin'
+        to this method, the following url is returned: 'https://cavesofqud.gamepedia.com/Waterskin'.
+
+        Args:
+            sub_path: The wiki page name or sub-path, not including an initial forward slash.
         """
-        str_pageids = [str(pageid) for pageid in pageids]
-        params = {'format': 'json',
-                  'action': 'query',
-                  'prop': 'info|extracts',
-                  'inprop': 'url',
-                  'exlimit': len(str_pageids),
-                  'exintro': 1,
-                  'explaintext': 1,
-                  'exchars': 120,
-                  'pageids': '|'.join(str_pageids)}
-        async with http_session.get(url=self.url, params=params) as reply:
-            response = await reply.json()
-        urls = [response['query']['pages'][str(pageid)]['fullurl'] for pageid in pageids]
-        summaries = [response['query']['pages'][str(pageid)]['extract'] for pageid in pageids]
-        summaries = list(map(lambda s: s.replace('\n', ' '), summaries))
-        return urls, summaries
+        log.info(f'https://{self.config["site"]}/{sub_path.replace(" ", "_")}')
+        return f'https://{self.config["site"]}/{sub_path.replace(" ", "_")}'
 
     async def wiki_helper(self, limit: Optional[int], ctx: Context, *args):
-        """Search the titles of articles on the official Caves of Qud wiki.
-        Since title search was removed with the Unified Community Platform upgrade, this is
-        the same as a generic search.
+        """Searches the official Caves of Qud wiki, and sends an embed to the channel that includes
+        either a simple list of the top matching page results (if there are multiple results) or
+        a single, full-featured embed for the single matching page result.
+
+        Args:
+            limit: Maximum number of pages to return
+            ctx: Discord messaging context
+            *args: Additional query parameters
         """
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         query = ' '.join(args)
@@ -63,7 +79,7 @@ class Wiki(Cog):
             return await ctx.send_help(ctx.command)
         params = {'action': 'opensearch',
                   'search': query,
-                  'namespace': '0|14|10000',
+                  'namespace': get_wiki_namespaces('Main,Category,Modding'),
                   'limit': self.title_limit if limit is None else limit,
                   'profile': 'fuzzy',
                   'redirects': 'resolve',
@@ -85,46 +101,21 @@ class Wiki(Cog):
                                           ' error message. Exception logged.')
         titles = response[1]
         urls = response[3]
-        reply = ''
         if len(titles) == 1:
-            # use full embed for single wiki page result:
-            page_info: WikiPageSummary = await get_wiki_page_summary(self.url, titles[0], True)
-            if page_info.look_description:
-                reply += f'{page_info.look_description}\n'
-            if page_info.wiki_description:
-                reply += ('\n' if len(reply) > 0 else '') + page_info.wiki_description
-            embed = Embed(colour=Colour(0xc3c9b1), description=reply)
-            if page_info.wiki_image_url:
-                embed.set_thumbnail(url=page_info.wiki_image_url)
-            embed.set_author(name=titles[0], url=urls[0], icon_url=WIKI_FAVICON)
+            return await send_single_wiki_page(ctx, self.url,
+                                               titles[0], urls[0], intro_only=True, max_len=1200)
         elif len(titles) > 1:
-            # list pages if more than one result
-            for title, url in zip(titles, urls):
-                reply += f'\n[{title}]({url})'
-            embed = Embed(colour=Colour(0xc3c9b1),
-                          description=reply)
-        else:
-            reply = f'*No results found for "{query}"*'
-            embed = Embed(colour=Colour(0xc3c9b1), description=reply)
-        return await ctx.send(embed=embed)
-
-    @command()
-    async def wiki(self, ctx: Context, *args):
-        async with ctx.typing():
-            return await self.wiki_helper(None, ctx, *args)
-
-    @command()
-    async def wikipage(self, ctx: Context, *args):
-        async with ctx.typing():
-            return await self.wiki_helper(1, ctx, *args)
-
-    @command()
-    async def wikisearch(self, ctx: Context, *args):
-        """Search the text of articles on the official Caves of Qud wiki."""
-        async with ctx.typing():
-            return await self.wikisearch_helper(ctx, *args)
+            return await send_wiki_page_list(ctx, titles, urls)
+        return await send_wiki_error_message(ctx, f'*No results found for "{query}"*')
 
     async def wikisearch_helper(self, ctx: Context, *args):
+        """Searches the official Caves of Qud wiki, and sends an embed to the channel that includes
+        a list of matching wiki pages, along with a short page summary for each result.
+
+        Args:
+            ctx: Discord messaging context
+            *args: Additional query parameters
+        """
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         srsearch = ' '.join(args)
         if srsearch == '' or str.isspace(srsearch):  # no search term specified, return basic help
@@ -151,7 +142,8 @@ class Wiki(Cog):
         if matches == 0:
             return await ctx.send('Sorry, no matches were found for that query.')
         results = response['query']['search']
-        urls, snips = await self.pageids_to_urls_and_snippets([item['pageid'] for item in results])
+        urls, snips = await pageids_to_urls_and_snippets(self.url,
+                                                         [item['pageid'] for item in results])
         reply = ''
         for num, (match, url, snip) in enumerate(zip(results, urls, snips), start=1):
             title = match['title']
@@ -162,3 +154,45 @@ class Wiki(Cog):
         embed = Embed(colour=Colour(0xc3c9b1),
                       description=reply)
         return await ctx.send(embed=embed)
+
+    async def random_wikipage(self, ctx: Context, *args) -> Message:
+        """Sends a random wiki page to the channel.
+
+        Args:
+            ctx: Discord messaging context
+            *args: Additional query parameters
+        """
+        log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
+        query = ' '.join(args)
+        if len(query) > 0 and not str.isspace(query):
+            namespaces = get_wiki_namespaces(query)
+            if namespaces == '':
+                return await ctx.send(f'I don\'t recognize "{query}" as a wiki namespace. Try'
+                                      ' another namespace or use the `?wikirandom` command by'
+                                      ' itself with no arguments.')
+        else:
+            namespaces = get_wiki_namespaces('Main,Category,Modding')
+        params = {
+            'action': 'query',
+            'format': 'json',
+            'list': 'random',
+            'rnnamespace': namespaces,
+            'rnfilterredir': 'nonredirects',
+            'rnlimit': 1
+        }
+        async with http_session.get(url=self.url, params=params) as reply:
+            response = await reply.json()
+        if 'error' in response:
+            try:
+                info = ''.join(response['error']['info'])
+                return await ctx.send(f'Sorry, that query resulted in a search error: {info}')
+            except ValueError as e:
+                log.exception(e)
+                return await ctx.send('Sorry, that query resulted in a search error with no'
+                                      ' error message. Exception logged.')
+        elif len(response['query']['random']) < 1:
+            return await ctx.send('Sorry, that random page query unexpectedly failed to return'
+                                  ' any result.')
+        page_name = response['query']['random'][0]['title']
+        return await send_single_wiki_page(ctx, self.url, page_name, self.make_wiki_url(page_name),
+                                           intro_only=True, max_len=1200)
