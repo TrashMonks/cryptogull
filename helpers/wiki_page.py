@@ -203,7 +203,7 @@ class WikiPageSummary:
             img = img.strip()
             # find the correct caps/format from the page's image list, if we can
             if len(page_images) > 0:
-                val = img.lower().replace(' ', '_')
+                val = img.lower().replace('  ', ' ').replace(' ', '_')
                 for page_image in page_images:
                     if page_image.lower() == val:
                         img = page_image
