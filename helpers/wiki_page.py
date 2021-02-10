@@ -38,13 +38,10 @@ IGNORED_WIKI_IMAGES = [  # images to always ignore and not display in wikipage e
     'AmboxStatue.png',
     'AmboxStela.png',
     'AmboxVisage.png',
-    'Water.png'  # Intentional, otherwise shows up on every faction page because it's the water
-                 # ritual liquid. "Water" page has alt images and still works fine without this.
+    'Water.png',  # Intentional, otherwise liquids show up on every faction page because they're
+    'Blood.png',  # listed as water ritual liquids. Liquid wiki pages continue to work fine despite
+    'Oil.png',    # these exlusions due to the presense of alternate tiles, so this is okay.
 ]
-
-API_WIKI_TEMPLATE_REGEX = r"(.*?)(?:<!--.*?START QBE.*?-->)\n*(?:{{As Of Patch\|[0-9.]+}})?\n*({{(?:Item|Character|Food|Corpse).*^}})\n*(?:\[\[Category:.+?\]\])?\n?(?:<!--.*?END QBE.*?-->)(.*)"  # noqa E501
-API_WIKI_TEMPLATE_DESC_REGEX = r"^\| *desc *= *(.+?)\n(?:\||})"
-API_WIKI_TEMPLATE_IMAGE_REGEX = r"^\| *image *= *(.+)$(?:\n\| *overrideimages *= *.*?\{\{altimage *\| *([^\|]+\S) *\|)?"  # noqa E501
 
 
 class WikiPageSummary:
@@ -61,7 +58,6 @@ class WikiPageSummary:
         self.url: str = api_url
         self.intro_only: bool = intro_only
         self.max_len: int = max_len if 1200 >= max_len > 0 else 1200
-        self.wiki_pattern = re.compile(API_WIKI_TEMPLATE_REGEX, re.MULTILINE | re.DOTALL)
         self.pagename: str = page_name
         self.error: Optional[str] = None
         self._look_description: Optional[str] = None
@@ -102,33 +98,10 @@ class WikiPageSummary:
             # workaround when {{tocright}} is present - if we try to retrieve only the intro when
             # this is the case, we get nothing (because TOC counts as a heading before the intro
             self.intro_only = False
-        template_match = self.wiki_pattern.match(wiki_text)
-        if template_match is not None:  # true if this is a QBE-templated page
-            template_content = template_match.group(2)
-            wiki_desc_pattern = re.compile(API_WIKI_TEMPLATE_DESC_REGEX, re.MULTILINE | re.DOTALL)
-            desc_match = wiki_desc_pattern.search(template_content)
-            if desc_match is not None:
-                look_desc = self.strip_templates(desc_match.group(1))
-                look_desc_lines = [
-                    f'> *{li}*' if len(li.strip()) > 0 else '> '
-                    for li in look_desc.splitlines()
-                ]
-                self._look_description = '\n'.join(look_desc_lines)
-            # try to grab the image from the QBE template (much more reliable than above)
-            wiki_image_pattern = re.compile(API_WIKI_TEMPLATE_IMAGE_REGEX, re.MULTILINE)
-            image_match = wiki_image_pattern.search(template_content)
-            if image_match is not None:
-                if image_match.group(2) is not None:
-                    self._wiki_image = image_match.group(2)
-                else:
-                    self._wiki_image = image_match.group(1)
-                # get the image name in the correct caps/format from the image collection, if we can
-                if len(response['parse']['images']) > 0:
-                    val = self._wiki_image.lower().replace(' ', '_')
-                    for page_image in response['parse']['images']:
-                        if page_image.lower() == val:
-                            self._wiki_image = page_image
-                            break
+
+        self._look_description = self._parse_look_description_from_templates(wiki_text)
+        template_image = self._parse_image_from_templates(wiki_text, response['parse']['images'])
+        self._wiki_image = template_image if template_image is not None else self._wiki_image
 
         # We follow up our 'parse' API call with a 'query' call to obtain these additional details:
         #
@@ -184,6 +157,56 @@ class WikiPageSummary:
             # Trim excess from image path (ex: <imageurl>.png/revision/latest?cb=20201231000000)
             if encoded_wiki_image_url in uri:
                 self._wiki_image_url = uri.split(encoded_wiki_image_url)[0] + encoded_wiki_image_url
+
+    @staticmethod
+    def _parse_look_description_from_templates(page_wikitext: str) -> Optional[str]:
+        """Parses the 'desc' parameter of various wiki templates that appear in wikitext markup.
+        This includes both QBE-generated templates as well as some manually-maintained templates
+        with a 'desc' parameter
+
+        Args:
+            page_wikitext: The full wikitext of the wiki page
+        """
+        desc_pattern = (r'^{{(?:Item|Character|Food|Corpse|[Aa]bility|[Ss]kill|[Mm]od|[Ll]ocation'
+                        r'|[Mm]utation) *\n(?:(?!^}}).).*^\| *desc *= *((?:(?!^(?:\||}})).)+)')
+        desc_match = re.search(desc_pattern, page_wikitext, re.MULTILINE | re.DOTALL)
+        if desc_match is not None:
+            look_desc = desc_match.group(1)
+            look_desc = look_desc.replace('\\n', '\n')  # fix raw '\n' in some mutation descriptions
+            look_desc = WikiPageSummary.strip_templates(look_desc)  # remove templates
+            for common_color_str in ['&C', '&y', '&W', '&w']:  # remove color prefixes
+                look_desc = look_desc.replace(common_color_str, '')
+            look_desc_lines = [
+                f'> *{li}*' if len(li.strip()) > 0 else '> '
+                for li in look_desc.splitlines()
+            ]
+            return '\n'.join(look_desc_lines)
+
+    @staticmethod
+    def _parse_image_from_templates(page_wikitext: str, page_images: List[str]) -> Optional[str]:
+        """Parses the 'overrideimages' parameter of a page's wikitext, if present. Falls back to
+        parsing the 'image' parameter if 'overrideimages' is not found. Designed to parse both
+        QBE-generated templates and some manually-maintained templates with these parameters
+
+        Args:
+            page_wikitext: The full wikitext of the wiki page
+            page_images: API-retrieved list of page images with proper capitalization/underscoring
+        """
+        image_pattern = (r'^{{(?:Item|Character|Food|Corpse|[Ll]ocation|[Mm]utation) *\n'
+                         r'(?:(?!^}}).).*^\| *image *= *((?:(?!^(?:\||}})).)+)'
+                         r'(?:\| *overrideimages *= *.*?\{\{altimage *\| *([^\|]+\S) *\|)?')
+        image_match = re.search(image_pattern, page_wikitext, re.MULTILINE | re.DOTALL)
+        if image_match is not None:
+            img = image_match.group(1) if image_match.group(2) is None else image_match.group(2)
+            img = img.strip()
+            # find the correct caps/format from the page's image list, if we can
+            if len(page_images) > 0:
+                val = img.lower().replace(' ', '_')
+                for page_image in page_images:
+                    if page_image.lower() == val:
+                        img = page_image
+                        break
+            return img
 
     @staticmethod
     def strip_templates(text: str) -> str:
