@@ -173,9 +173,10 @@ class WikiPageSummary:
         desc_match = re.search(desc_pattern, page_wikitext, re.MULTILINE | re.DOTALL)
         if desc_match is not None:
             look_desc: str = desc_match.group(1)
+            look_desc = look_desc.replace('*', '\\*')  # escape asterisks for Discord markdown
             look_desc = look_desc.replace('\\n', '\n')  # fix raw '\n' in some mutation descriptions
             look_desc = WikiPageSummary.strip_templates(look_desc)  # remove templates
-            for common_color_str in ['&C', '&y', '&W', '&w']:  # remove color prefixes
+            for common_color_str in ['&amp;C', '&C', '&y', '&W', '&w']:  # remove color prefixes
                 look_desc = look_desc.replace(common_color_str, '')
             look_desc_lines = [
                 f'> *{li.strip()}*' if len(li.strip()) > 0 else '> '
