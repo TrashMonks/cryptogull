@@ -1,10 +1,46 @@
 import re
-from typing import Optional
+from typing import Optional, List, Tuple
 from urllib.request import pathname2url
+
+from discord import Message, Embed, Colour
+from discord.ext.commands import Context
 
 from shared import http_session
 
 WIKI_FAVICON = "https://static.wikia.nocookie.net/cavesofqud_gamepedia_en/images/2/26/Favicon.png"
+WIKI_SINGLE_PAGE_EMBED_COLOR = Colour(0xc3c9b1)
+WIKI_PAGE_LIST_EMBED_COLOR = Colour(0xc3c9b1)
+WIKI_PAGE_ERROR_EMBED_COLOR = Colour(0xc3c9b1)
+WIKI_NAMESPACES = {
+    'main': '0',
+    'talk': '1',
+    'file': '6',
+    'template': '10',
+    'category': '14',
+    'module': '828',
+    'modding': '10000',
+    'data': '10002'
+}
+IGNORED_WIKI_IMAGES = [  # images to always ignore and not display in wikipage embeds
+    'Hp_symbol.png',
+    'Av_symbol.png',
+    'Dv_symbol.png',
+    'AmboxAlchTable.png',
+    'AmboxBaetyl.png',
+    'AmboxCleanup.svg',
+    'AmboxCrow.png',
+    'AmboxDaughter.png',
+    'AmboxFarmer.png',
+    'AmboxMerchant.png',
+    'AmboxRadio.png',
+    'AmboxRejuvTank.png',
+    'AmboxScroll.png',
+    'AmboxStatue.png',
+    'AmboxStela.png',
+    'AmboxVisage.png',
+    'Water.png'  # Intentional, otherwise shows up on every faction page because it's the water
+                 # ritual liquid. "Water" page has alt images and still works fine without this.
+]
 
 API_WIKI_TEMPLATE_REGEX = r"(.*?)(?:<!--.*?START QBE.*?-->)\n*(?:{{As Of Patch\|[0-9.]+}})?\n*({{(?:Item|Character|Food|Corpse).*^}})\n*(?:\[\[Category:.+?\]\])?\n?(?:<!--.*?END QBE.*?-->)(.*)"  # noqa E501
 API_WIKI_TEMPLATE_DESC_REGEX = r"^\| *desc *= *(.+?)\n(?:\||})"
@@ -20,7 +56,7 @@ class WikiPageSummary:
             api_url: The wiki API endpoint URL
             page_name: The wiki page name for which we are retrieving a summary (ex: 'Glowfish')
             intro_only: True to return only the content before the first section header on the page.
-            max_len: Maximum content excerpt length (capped at 1200 characters at most)
+            max_len: The maximum number of characters to return in the page extract; capped at 1200
         """
         self.url: str = api_url
         self.intro_only: bool = intro_only
@@ -58,11 +94,9 @@ class WikiPageSummary:
         if 'error' in response:
             self.error = response['error']  # error object includes 'code' and 'info' sub-elements
             return
-        for img in response['parse']['images']:
-            # first grab the image from the full list of page images (less reliable - see below)
-            if 'Ambox' not in img:  # ignore Ambox images
-                self._wiki_image = img
-                break
+        # first grab the image from the full list of page images (less reliable - see below)
+        self._wiki_image = next((im for im in response['parse']['images']
+                                 if im not in IGNORED_WIKI_IMAGES), None)
         wiki_text = response['parse']['wikitext']['*']
         if '{{tocright}}' in wiki_text:
             # workaround when {{tocright}} is present - if we try to retrieve only the intro when
@@ -235,10 +269,105 @@ class WikiPageSummary:
         return self._wiki_image_url
 
 
-async def get_wiki_page_summary(api_url: str,
-                                page_name: str,
-                                intro_only: bool,
-                                max_len: int = 1200) -> WikiPageSummary:
+def get_wiki_namespaces(namespaces: str) -> str:
+    """Returns a pipe-delimited string of wiki namespace IDs, or an empty string if no matching
+    namespace was found.
+
+    Args:
+        namespaces: Comma-delimited list of namespaces to include in the return value.
+    """
+    ids = []
+    for namespace in namespaces.lower().split(','):
+        n = namespace.strip()
+        if n in WIKI_NAMESPACES:
+            ids.append(WIKI_NAMESPACES[n])
+    return '|'.join(ids)
+
+
+async def get_wiki_page_summary(api_url: str, page_name: str,
+                                intro_only: bool = True, max_len: int = 1200) -> WikiPageSummary:
+    """Asynchronously creates and returns a WikiPageSummary object for the specified page, ensuring
+    that the WikiPageSummary object is properly initialized.
+
+    Args:
+        api_url: The wiki's API endpoint
+        page_name: The name of the wiki page, such as "Barathrumite token"
+        intro_only: True if the WikiPageSummary should include -only- the introductory section of
+                    the wiki page up until the first section header, ignoring everything after that
+        max_len: The maximum number of characters to allow in the page extract; capped at 1200
+    """
     wikipage_summary = WikiPageSummary(api_url, page_name, intro_only, max_len)
     await wikipage_summary.load()
     return wikipage_summary
+
+
+async def send_single_wiki_page(ctx: Context, api_url: str, page_name: str, page_url: str,
+                                intro_only: bool = True, max_len: int = 1200) -> Message:
+    """Sends a single wiki page to the Discord client as a full-featured embed.
+
+    Args:
+        ctx: Discord messaging context
+        api_url: The wiki's API endpoint
+        page_name: The name of the wiki page, such as "Barathrumite token"
+        page_url: The full URL to the wiki page
+        intro_only: True if this method should embed -only- the introductory section of the
+                    wiki page up until the first section header, ignoring everything after that
+        max_len: The maximum number of characters to return in the page extract; capped at 1200
+    """
+    reply = ''
+    page_info: WikiPageSummary = await get_wiki_page_summary(api_url, page_name,
+                                                             intro_only, max_len)
+    if page_info.look_description:
+        reply += f'{page_info.look_description}\n'
+    if page_info.wiki_description:
+        reply += ('\n' if len(reply) > 0 else '') + page_info.wiki_description
+    embed = Embed(colour=WIKI_SINGLE_PAGE_EMBED_COLOR, description=reply)
+    if page_info.wiki_image_url:
+        embed.set_thumbnail(url=page_info.wiki_image_url)
+    embed.set_author(name=page_name, url=page_url, icon_url=WIKI_FAVICON)
+    return await ctx.send(embed=embed)
+
+
+async def send_wiki_page_list(ctx: Context, titles: List[str], urls: List[str]) -> Message:
+    """Sends a list of wiki pages to the Discord client as a simple embed.
+
+    Args:
+        ctx: Discord messaging context
+        titles: The list of wiki page titles
+        urls: The corresponding list of wiki page URLs
+    """
+    reply = ''
+    for title, url in zip(titles, urls):
+        reply += f'\n[{title}]({url})'
+    embed = Embed(colour=WIKI_PAGE_LIST_EMBED_COLOR, description=reply)
+    return await ctx.send(embed=embed)
+
+
+async def send_wiki_error_message(ctx: Context, message: str) -> Message:
+    """Sends an error message to the Discord client as a simple embed."""
+    return await ctx.send(embed=Embed(colour=WIKI_PAGE_ERROR_EMBED_COLOR, description=message))
+
+
+async def pageids_to_urls_and_snippets(api_url: str, pageids: list) -> Tuple[list, list]:
+    """Return a list of the full URLs for a list of existing page IDs.
+
+    While the query list=search API does return snippets, in our case the snippets are always
+    just QBE template HTML with no useful text. So here, we pull a better snippet using the
+    TextExtracts API (prop=extracts) in addition to pulling the page URLs with prop=info
+    """
+    str_pageids = [str(pageid) for pageid in pageids]
+    params = {'format': 'json',
+              'action': 'query',
+              'prop': 'info|extracts',
+              'inprop': 'url',
+              'exlimit': len(str_pageids),
+              'exintro': 1,
+              'explaintext': 1,
+              'exchars': 120,
+              'pageids': '|'.join(str_pageids)}
+    async with http_session.get(url=api_url, params=params) as reply:
+        response = await reply.json()
+    urls = [response['query']['pages'][str(pageid)]['fullurl'] for pageid in pageids]
+    summaries = [response['query']['pages'][str(pageid)]['extract'] for pageid in pageids]
+    summaries = list(map(lambda s: s.replace('\n', ' '), summaries))
+    return urls, summaries
