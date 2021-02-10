@@ -79,7 +79,6 @@ class Wiki(Cog):
         Args:
             sub_path: The wiki page name or sub-path, not including an initial forward slash.
         """
-        log.info(f'https://{self.config["site"]}/{sub_path.replace(" ", "_")}')
         return f'https://{self.config["site"]}/{sub_path.replace(" ", "_")}'
 
     async def wiki_helper(self, limit: Optional[int], ctx: Context, *args):
