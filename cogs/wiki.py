@@ -31,25 +31,44 @@ class Wiki(Cog):
 
     @command()
     async def wiki(self, ctx: Context, *args):
-        """Gets up to 10 matching wiki pages."""
+        """Gets up to 10 matching wiki pages.
+
+        Supported command formats:
+          ?wiki <search query>
+        """
         async with ctx.typing():
             await self.wiki_helper(None, ctx, *args)
 
     @command()
     async def wikipage(self, ctx: Context, *args):
-        """Gets a full summary and image for the closest wiki page match."""
+        """Gets a full summary and image for the closest wiki page match.
+
+        Supported command formats:
+          ?wikipage <title or search query>
+        """
         async with ctx.typing():
             await self.wiki_helper(1, ctx, *args)
 
     @command()
     async def wikirandom(self, ctx: Context, *args):
-        """Gets a random wiki page."""
+        """Gets a random wiki page.
+
+        Supported command formats:
+          ?wikirandom
+          ?wikirandom <namespace>
+
+        Supported namespaces include: main, modding, category, data, talk, file, template, module
+        """
         async with ctx.typing():
             await self.random_wikipage(ctx, *args)
 
     @command()
     async def wikisearch(self, ctx: Context, *args):
-        """Gets up to 5 matching wiki pages, with summaries if available."""
+        """Gets up to 5 matching wiki pages, with summaries if available.
+
+        Supported command formats:
+          ?wikisearch <search query>
+        """
         async with ctx.typing():
             await self.wikisearch_helper(ctx, *args)
 
