@@ -99,6 +99,7 @@ class Wiki(Cog):
                   'search': query,
                   'namespace': get_wiki_namespaces('Main,Category,Modding'),
                   'limit': self.title_limit if limit is None else limit,
+                  'profile': 'fuzzy',
                   'redirects': 'resolve',
                   'format': 'json'}
         async with http_session.get(url=self.url, params=params) as reply:
