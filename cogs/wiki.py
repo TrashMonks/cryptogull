@@ -212,5 +212,6 @@ class Wiki(Cog):
             return await ctx.send('Sorry, that random page query unexpectedly failed to return'
                                   ' any result.')
         page_name = response['query']['random'][0]['title']
+        log.info(f'Selected page "{page_name}" for ?wikirandom command')
         return await send_single_wiki_page(ctx, self.url, page_name, self.make_wiki_url(page_name),
                                            intro_only=True, max_len=1200)
