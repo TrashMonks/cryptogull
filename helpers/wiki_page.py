@@ -390,17 +390,22 @@ async def send_single_wiki_page(ctx: Context, api_url: str, page_name: str, page
     return await ctx.send(embed=embed)
 
 
-async def send_wiki_page_list(ctx: Context, titles: List[str], urls: List[str]) -> Message:
+async def send_wiki_page_list(ctx: Context, titles: List[str],
+                              urls: List[str], snippets: Optional[List[str]] = None) -> Message:
     """Sends a list of wiki pages to the Discord client as a simple embed.
 
     Args:
         ctx: Discord messaging context
         titles: The list of wiki page titles
         urls: The corresponding list of wiki page URLs
+        snippets: (Optional) short description snippets to include with each link
     """
     reply = ''
-    for title, url in zip(titles, urls):
-        reply += f'\n[{title}]({url})'
+    snippets = snippets if snippets is not None else [None] * len(titles)
+    for title, url, snip in zip(titles, urls, snippets):
+        reply += f'\n[{title}]({encode_wiki_url_parens(url)})'
+        if snip is not None and snip != '' and snip != '...':
+            reply += f': {snip}'
     embed = Embed(colour=WIKI_PAGE_LIST_EMBED_COLOR, description=reply)
     return await ctx.send(embed=embed)
 
@@ -433,3 +438,16 @@ async def pageids_to_urls_and_snippets(api_url: str, pageids: list) -> Tuple[lis
     summaries = [response['query']['pages'][str(pageid)]['extract'] for pageid in pageids]
     summaries = list(map(lambda s: s.replace('\n', ' '), summaries))
     return urls, summaries
+
+
+def encode_wiki_url_parens(wiki_url: str) -> str:
+    """Wiki pages that end in a parenthesis aren't rendered correctly in Discord mobile. This fixes
+    that issue by encoding parentheses and braces in the final part of the url path."""
+    paren_chars = {'(': '%28', ')': '%29', '[': '%5B', ']': '%5D'}
+    if any(paren in wiki_url for paren in paren_chars.keys()) and '/' in wiki_url:
+        url_parts = wiki_url.rsplit('/', 1)
+        for paren, repl in paren_chars.items():
+            url_parts[1] = url_parts[1].replace(paren, repl)
+        wiki_url = url_parts[0] + '/' + url_parts[1]
+    return wiki_url
+
