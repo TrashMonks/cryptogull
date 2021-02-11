@@ -94,7 +94,7 @@ class WikiPageSummary:
         self._wiki_image = next((im for im in response['parse']['images']
                                  if im not in IGNORED_WIKI_IMAGES), None)
         wiki_text = response['parse']['wikitext']['*']
-        if '{{tocright}}' in wiki_text:
+        if any(tocright in wiki_text for tocright in ['{{tocright}}', '{{Tocright}}']):
             # workaround when {{tocright}} is present - if we try to retrieve only the intro when
             # this is the case, we get nothing (because TOC counts as a heading before the intro
             self.intro_only = False
