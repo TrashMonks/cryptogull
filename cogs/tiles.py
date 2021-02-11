@@ -245,7 +245,7 @@ async def process_tile_by_file_request(ctx: Context, *args):
         return await ctx.send(f'Error generating tile. "{filename}" may not be a valid file path.')
     data = tile.get_big_bytesio()
     data.seek(0)
-    msg = f'*Tile made from "{filename}":*'
+    msg = f'*Tile created from "{filename}":*'
     fname = datetime.now().strftime("%Y%m%d-%H%M%S")
     return await ctx.send(msg, file=File(fp=data, filename=f'{fname}.png'))
 
