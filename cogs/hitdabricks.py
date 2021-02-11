@@ -12,7 +12,12 @@ class Hitdabricks(Cog):
 
     @command()
     async def hitdabricks(self, ctx: Context, *args):
-        """Send golden advice."""
+        """Send golden advice.
+
+        Supported command formats:
+          ?hitdabricks
+          ?hitdabricks but qud
+        """
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> hit da bricks!')
         if ctx.message.content[12:].strip() == "but qud":
             embed = Embed(colour=Colour(0xf403f),
