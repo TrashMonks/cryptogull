@@ -1,9 +1,11 @@
 import re
 from typing import Optional, List, Tuple
+from urllib.parse import urlencode
 from urllib.request import pathname2url
 
 from discord import Message, Embed, Colour
 from discord.ext.commands import Context
+from yarl import URL
 
 from shared import http_session
 
@@ -140,7 +142,14 @@ class WikiPageSummary:
                 'aito': self._wiki_image,
             }
             extract_params = {**extract_params, **allimages_params}
-        async with http_session.get(url=self.url, params=extract_params) as reply:
+
+        # for some reason, question marks get malformed in the request URL (converted to %3E) if
+        # we use the following call. This seems to affect only the TextExtracts API:
+        #     async with http_session.get(url=self.url, params=extract_params) as reply
+        # To fix it, we have to encode the URL ourselves for this particular API request. I took the
+        # workaround instructions from here: https://github.com/aio-libs/aiohttp/issues/3424
+        encoded_url = self.url + '?' + urlencode(extract_params)
+        async with http_session.get(url=URL(encoded_url, encoded=True)) as reply:
             response = await reply.json()
         if 'error' in response:
             self.error = response['error']  # error object includes 'code' and 'info' sub-elements
