@@ -49,7 +49,7 @@ class Wiki(Cog):
         async with ctx.typing():
             await self.wiki_helper(1, ctx, *args)
 
-    @command()
+    @command(aliases=['randomwiki'])
     async def wikirandom(self, ctx: Context, *args):
         """Gets a random wiki page.
 
