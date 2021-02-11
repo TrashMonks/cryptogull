@@ -9,7 +9,7 @@ from yarl import URL
 
 from shared import http_session
 
-WIKI_FAVICON = "https://static.wikia.nocookie.net/cavesofqud_gamepedia_en/images/2/26/Favicon.png"
+WIKI_FAVICON = 'https://static.wikia.nocookie.net/cavesofqud_gamepedia_en/images/0/05/Wiki-icon-used-by-CoQ-Discord-bot.png'  # noqa E501
 WIKI_SINGLE_PAGE_EMBED_COLOR = Colour(0xc3c9b1)
 WIKI_PAGE_LIST_EMBED_COLOR = Colour(0xc3c9b1)
 WIKI_PAGE_ERROR_EMBED_COLOR = Colour(0xc3c9b1)
@@ -386,7 +386,9 @@ async def send_single_wiki_page(ctx: Context, api_url: str, page_name: str, page
     embed = Embed(colour=WIKI_SINGLE_PAGE_EMBED_COLOR, description=reply)
     if page_info.wiki_image_url:
         embed.set_thumbnail(url=page_info.wiki_image_url)
-    embed.set_author(name=page_name, url=page_url, icon_url=WIKI_FAVICON)
+    embed.title = page_name
+    embed.url = page_url
+    embed.set_footer(text='Official Caves of Qud Wiki', icon_url=WIKI_FAVICON)
     return await ctx.send(embed=embed)
 
 
@@ -450,4 +452,3 @@ def encode_wiki_url_parens(wiki_url: str) -> str:
             url_parts[1] = url_parts[1].replace(paren, repl)
         wiki_url = url_parts[0] + '/' + url_parts[1]
     return wiki_url
-
