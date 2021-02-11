@@ -9,7 +9,7 @@ https://cavesofqud.gamepedia.com/api.php?action=help&modules=query%2Bsearch
 import logging
 from typing import Optional
 
-from discord import Colour, Embed, Message
+from discord import Message
 from discord.ext.commands import Bot, Cog, Context, command
 
 from helpers.wiki_page import send_single_wiki_page, send_wiki_page_list, send_wiki_error_message, \
@@ -49,7 +49,7 @@ class Wiki(Cog):
         async with ctx.typing():
             await self.wiki_helper(1, ctx, *args)
 
-    @command()
+    @command(aliases=['randomwiki'])
     async def wikirandom(self, ctx: Context, *args):
         """Gets a random wiki page.
 
@@ -162,16 +162,8 @@ class Wiki(Cog):
         results = response['query']['search']
         urls, snips = await pageids_to_urls_and_snippets(self.url,
                                                          [item['pageid'] for item in results])
-        reply = ''
-        for num, (match, url, snip) in enumerate(zip(results, urls, snips), start=1):
-            title = match['title']
-            reply += f'[{title}]({url})'
-            if snip is not None and snip != '' and snip != '...':
-                reply += f': {snip}'
-            reply += '\n'
-        embed = Embed(colour=Colour(0xc3c9b1),
-                      description=reply)
-        return await ctx.send(embed=embed)
+        return await send_wiki_page_list(ctx, titles=[match['title'] for match in results],
+                                         urls=urls, snippets=snips)
 
     async def random_wikipage(self, ctx: Context, *args) -> Message:
         """Sends a random wiki page to the channel.
@@ -212,5 +204,6 @@ class Wiki(Cog):
             return await ctx.send('Sorry, that random page query unexpectedly failed to return'
                                   ' any result.')
         page_name = response['query']['random'][0]['title']
+        log.info(f'Selected page "{page_name}" for ?wikirandom command')
         return await send_single_wiki_page(ctx, self.url, page_name, self.make_wiki_url(page_name),
                                            intro_only=True, max_len=1200)

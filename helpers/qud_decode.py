@@ -106,7 +106,8 @@ class Character:
         skills = [skill for skill in gamecodes['class_skills'][class_name]]
 
         tile = QudTile(filename=gamecodes['class_tiles'][class_name][0],
-                       colorstring='y', raw_tilecolor='y',
+                       colorstring=get_character_primary_color(extensions),
+                       raw_tilecolor=get_character_primary_color(extensions),
                        raw_detailcolor=gamecodes['class_tiles'][class_name][1],
                        qudname=class_name)
 
@@ -163,3 +164,12 @@ class Character:
     def __str__(self):
         """Return a string representation of the Character."""
         return f'Character {self.to_charcode()}'
+
+
+def get_character_primary_color(extensions: List[str]) -> str:
+    """Obtains a character's primary color.
+
+    Args:
+        extensions: List of character's mutations and cybernetics
+    """
+    return 'y' if 'Photosynthetic Skin' not in extensions else 'g'
