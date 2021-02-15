@@ -47,7 +47,8 @@ IGNORED_WIKI_IMAGES = [  # images to always ignore and not display in wikipage e
 
 
 class WikiPageSummary:
-    def __init__(self, api_url: str, page_name: str, intro_only: bool, max_len: int = 1200):
+    def __init__(self, api_url: str, page_name: str,
+                 intro_only: bool, max_len: int = 620, max_paragraphs: int = 2):
         """Creates a new WikiPageSummary object. WikiPageSummary.load() should be called
         immediatley after instantiating a new WikiPageSummary object.
 
@@ -59,6 +60,8 @@ class WikiPageSummary:
         """
         self.url: str = api_url
         self.intro_only: bool = intro_only
+        self.max_paragraphs = max_paragraphs
+        self.exintro_param: bool = intro_only
         self.max_len: int = max_len if 1200 >= max_len > 0 else 1200
         self.pagename: str = page_name
         self.error: Optional[str] = None
@@ -99,7 +102,7 @@ class WikiPageSummary:
         if any(tocright in wiki_text for tocright in ['{{tocright}}', '{{Tocright}}']):
             # workaround when {{tocright}} is present - if we try to retrieve only the intro when
             # this is the case, we get nothing (because TOC counts as a heading before the intro
-            self.intro_only = False
+            self.exintro_param = False
 
         self._look_description = self._parse_look_description_from_templates(wiki_text)
         self._look_description = await self._parse_grammar(self._look_description, wiki_text)
@@ -132,7 +135,7 @@ class WikiPageSummary:
             'exlimit': 1,
             'explaintext': 1
         }
-        if self.intro_only:
+        if self.exintro_param:
             extract_params['exintro'] = 1
         if self._wiki_image is not None:
             # merge allimages params into query call
@@ -160,7 +163,9 @@ class WikiPageSummary:
         page_id = list(response['query']['pages'])[0]
         extract_text = response['query']['pages'][page_id]['extract']
         if extract_text is not None and extract_text != '' and extract_text != '...':
-            self._wiki_description = self.cleanup_extract_formatting(extract_text)
+            self._wiki_description = self.cleanup_extract_formatting(extract_text, self.intro_only,
+                                                                     self.max_paragraphs,
+                                                                     self.max_len)
         if 'allimages' in response['query'] and len(response['query']['allimages']) > 0:
             uri = response['query']['allimages'][0]['url']
             encoded_wiki_image_url = pathname2url(self._wiki_image)
@@ -266,48 +271,82 @@ class WikiPageSummary:
             i += 1
         return ret.strip()
 
-    @staticmethod
-    def cleanup_extract_formatting(text: str) -> str:
+    def cleanup_extract_formatting(self, text: str, intro_only: bool = False,
+                                   max_paragraphs: int = 9999, max_len: int = 620,
+                                   look_desc_counts_toward_len: bool = True) -> Optional[str]:
         """Cleans up the format of the wiki text extract, making it suitable for a Discord embed.
         Makes the following changes:
           - If a "References" section exists, removes that section and all subsequent content.
           - Reformats page headers (ex: ==Header Two==) to use Discord markdown (ex: **Title**).
           - Standardizes newline spacing
+          - Includes only the intro or the specified number of "paragraphs".
+
+        Args:
+            text: text to clean up
+            intro_only: whether to include only the intro content up until the first section header.
+            max_paragraphs: The maximum number of lines with textual content to include.
+            max_len: Approximate maximum character length limit
+            look_desc_counts_toward_len: If True, considers self._look_description to be part of the
+                                         total length for purposes of clamping 'text'
         """
         if '=' in text:
-            # strip ==References== section and anything subsequent from end of extract, if present:
-            references_patt = r'\n*^ *=+ *References *(?:\.\.\.)? *=+.*'
-            text = re.sub(references_patt, '', text, flags=re.MULTILINE | re.DOTALL)
+            if intro_only:
+                sections_after_intro_patt = r'\n*^ *(=+) *[^=\n]+ *\1 *$.*'
+                text = re.sub(sections_after_intro_patt, '', text, flags=re.MULTILINE | re.DOTALL)
+            else:
+                # strip References section and subsequent content from end of extract, if present:
+                references_patt = r'\n*^ *=+ *References *(?:\.\.\.)? *=+.*'
+                text = re.sub(references_patt, '', text, flags=re.MULTILINE | re.DOTALL)
 
-            # convert all headers from wikitext to Discord markdown
-            patterns = [
-                r'^ *= *([^=\n]+\S) *= *$\n*',  # h1
-                r'^ *== *([^=\n]+\S) *== *$\n*',  # h2
-                r'^ *=== *([^=\n]+\S) *=== *$\n*',  # h3
-                r'^ *====+ *([^=\n]+\S) *====+ *$\n*'  # h4 or beyond
-            ]
-            replacements = [
-                r'__**\1**__\n',  # h1
-                r'**\1**\n',  # h2
-                r'__*\1*__\n',  # h3
-                r'*\1*\n'  # h4 or beyond
-            ]
-            for patt, repl in zip(patterns, replacements):
-                text = re.sub(patt, repl, text, flags=re.MULTILINE)
-
-        # when ascending heading levels (ex: h3 -> h2), add an extra linebreak between.
-        ascending_h_patts = [
-            r'^(\*[^\*\n]+\*)\n(__\*[^\*\n]+\*__)$',
-            r'^(__\*[^\*\n]+\*__)\n(\*\*[^\*\n]+\*\*)$',
-            r'^(\*\*[^\*\n]+\*\*)\n(__\*\*[^\*\n]+\*\*__)$'
-        ]
-        for patt in ascending_h_patts:
-            text = re.sub(patt, r'\1\n\n\2', text, flags=re.MULTILINE)
+                # convert all headers from wikitext to Discord markdown
+                patterns = [
+                    r'^ *= *([^=\n]+\S) *= *$\n*',  # h1
+                    r'^ *== *([^=\n]+\S) *== *$\n*',  # h2
+                    r'^ *=== *([^=\n]+\S) *=== *$\n*',  # h3
+                    r'^ *====+ *([^=\n]+\S) *====+ *$\n*'  # h4 or beyond
+                ]
+                replacements = [
+                    r'__**\1**__\n',  # h1
+                    r'**\1**\n',  # h2
+                    r'__*\1*__\n',  # h3
+                    r'*\1*\n'  # h4 or beyond
+                ]
+                for patt, repl in zip(patterns, replacements):
+                    text = re.sub(patt, repl, text, flags=re.MULTILINE)
+                # when ascending heading levels (ex: h3 -> h2), add an extra linebreak between.
+                ascending_h_patts = [
+                    r'^(\*[^\*\n]+\*)\n(__\*[^\*\n]+\*__)$',
+                    r'^(__\*[^\*\n]+\*__)\n(\*\*[^\*\n]+\*\*)$',
+                    r'^(\*\*[^\*\n]+\*\*)\n(__\*\*[^\*\n]+\*\*__)$'
+                ]
+                for patt in ascending_h_patts:
+                    text = re.sub(patt, r'\1\n\n\2', text, flags=re.MULTILINE)
 
         # clean up any excessive (3+) linebreaks on the page:
         linebreaks_patt = r'\n *\n *(?:\n *)+'
         text = re.sub(linebreaks_patt, '\n\n', text, flags=re.MULTILINE)
-        return text
+
+        # enforce paragraph limit
+        line_ct = 0
+        result = ''
+        for para in text.splitlines():
+            result += f'{para.strip()}\n'
+            line_ct += 0 if len(para.strip()) == 0 else 1
+            if line_ct >= max_paragraphs:
+                break
+
+        # clamp length and add ellipses
+        length = 0 if not look_desc_counts_toward_len or self._look_description is None \
+            else len(self._look_description)
+        max_len = max_len - length
+        if max_len <= 0:
+            return None
+        if max_len < len(result) + 10:  # We won't enforce length restriction to exact char count
+            result = result[:max_len + 10].rsplit(' ', maxsplit=1)[0]
+            if not result.endswith('...'):
+                result += '...'
+
+        return result
 
     @property
     def look_description(self) -> Optional[str]:
@@ -347,7 +386,8 @@ def get_wiki_namespaces(namespaces: str) -> str:
 
 
 async def get_wiki_page_summary(api_url: str, page_name: str,
-                                intro_only: bool = True, max_len: int = 1200) -> WikiPageSummary:
+                                intro_only: bool = True, max_len: int = 620,
+                                max_paragraphs: int = 2) -> WikiPageSummary:
     """Asynchronously creates and returns a WikiPageSummary object for the specified page, ensuring
     that the WikiPageSummary object is properly initialized.
 
@@ -357,14 +397,16 @@ async def get_wiki_page_summary(api_url: str, page_name: str,
         intro_only: True if the WikiPageSummary should include -only- the introductory section of
                     the wiki page up until the first section header, ignoring everything after that
         max_len: The maximum number of characters to allow in the page extract; capped at 1200
+        max_paragraphs: The maximum number of lines with textual content.
     """
-    wikipage_summary = WikiPageSummary(api_url, page_name, intro_only, max_len)
+    wikipage_summary = WikiPageSummary(api_url, page_name, intro_only, max_len, max_paragraphs)
     await wikipage_summary.load()
     return wikipage_summary
 
 
 async def send_single_wiki_page(ctx: Context, api_url: str, page_name: str, page_url: str,
-                                intro_only: bool = True, max_len: int = 1200) -> Message:
+                                intro_only: bool = True, max_len: int = 620,
+                                max_paragraphs: int = 2) -> Message:
     """Sends a single wiki page to the Discord client as a full-featured embed.
 
     Args:
@@ -375,10 +417,11 @@ async def send_single_wiki_page(ctx: Context, api_url: str, page_name: str, page
         intro_only: True if this method should embed -only- the introductory section of the
                     wiki page up until the first section header, ignoring everything after that
         max_len: The maximum number of characters to return in the page extract; capped at 1200
+        max_paragraphs: The maximum number of lines with textual content.
     """
     reply = ''
     page_info: WikiPageSummary = await get_wiki_page_summary(api_url, page_name,
-                                                             intro_only, max_len)
+                                                             intro_only, max_len, max_paragraphs)
     if page_info.look_description:
         reply += f'{page_info.look_description}\n'
     if page_info.wiki_description:
