@@ -117,6 +117,9 @@ class Tiles(Cog):
           ?tilebyfile <filepath> <color1> <color2>
           ?tilebyfile <filepath> random
 
+        File names are relative to the Textures directory.
+        Example: ?tilebyfile creatures/sw_glowfish.bmp o O
+
         color1/color2 => paints the tile using <color1> as TileColor and <color2> as DetailColor
         random => paints the tile using random colors
 
