@@ -38,6 +38,7 @@ class Tiles(Cog):
         unidentified => sends the 'unidentified' variation of the tile
 
         Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
+        Colors reference: https://cavesofqud.gamepedia.com/Visual_Style#Palette
         """
         return await process_tile_request(ctx, *args)
 
@@ -58,6 +59,7 @@ class Tiles(Cog):
         unidentified => sends the 'unidentified' variation of the tile
 
         Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
+        Colors reference: https://cavesofqud.gamepedia.com/Visual_Style#Palette
         """
         return await process_tile_request(ctx, *args, smalltile=True)
 
@@ -74,6 +76,7 @@ class Tiles(Cog):
         recolor random => repaints the tile using random colors
 
         Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
+        Colors reference: https://cavesofqud.gamepedia.com/Visual_Style#Palette
         """
         names = list(qindex)
         name = 'Object'
@@ -118,6 +121,7 @@ class Tiles(Cog):
         random => paints the tile using random colors
 
         Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
+        Colors reference: https://cavesofqud.gamepedia.com/Visual_Style#Palette
         """
         return await process_tile_by_file_request(ctx, *args)
 
@@ -183,7 +187,7 @@ async def process_tile_request(ctx: Context, *args, smalltile=False,
             else:
                 colors = recolor.split()
             if len(colors) != 2 or not all(color in QUD_COLORS for color in colors):
-                return await ctx.send('Syntax error with optional `recolor` argument.'
+                return await ctx.send('Couldn\'t understand optional `recolor` argument.'
                                       ' See `?help tile` for details.')
             # user requested a recolor of the tile, use the old tile to make a new one
             filename = tile.filename
@@ -233,16 +237,21 @@ async def process_tile_by_file_request(ctx: Context, *args):
     else:
         params = query.split()
         if len(params) < 3:
-            return await ctx.send('Syntax error. See `?help tilebyfile` for details.')
+            return await ctx.send('Need more arguments. See `?help tilebyfile` for details.')
         colors = params[-2:]
         query = ' '.join(params[:-2])
         if not all(color in QUD_COLORS for color in colors):
-            return await ctx.send('Syntax error - invalid colors. '
+            return await ctx.send('Couldn\'t find all those colors. '
                                   'See `?help tilebyfile` for details.')
     filename = query.strip()
-    tile = QudTile(filename, colors[0], colors[0], colors[1], filename)
+    try:
+        tile = QudTile(filename, colors[0], colors[0], colors[1], filename)
+    except FileNotFoundError:
+        return await ctx.send(f'Could not find {filename} in the tiles set.')
+    except PermissionError:
+        return await ctx.send(f'The file {filename} is not allowed.')
     if tile.hasproblems:
-        return await ctx.send(f'Error generating tile. "{filename}" may not be a valid file path.')
+        return await ctx.send('Was not able to generate that tile.')
     data = tile.get_big_bytesio()
     data.seek(0)
     msg = f'*Tile created from "{filename}":*'
