@@ -153,7 +153,7 @@
         },
         "hagadias": {
             "git": "https://github.com/TrashMonks/hagadias.git",
-            "ref": "1d3bb53c85b09fed6b09c89328a609377b1e09a8"
+            "ref": "ab0ba943116c0c0be922eb90db5e6b7f8dd77d6c"
         },
         "idna": {
             "hashes": [
