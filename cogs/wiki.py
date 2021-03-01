@@ -120,8 +120,8 @@ class Wiki(Cog):
         titles = response[1]
         urls = response[3]
         if len(titles) == 1:
-            return await send_single_wiki_page(ctx, self.url,
-                                               titles[0], urls[0], intro_only=True, max_len=1200)
+            return await send_single_wiki_page(ctx, self.url, titles[0], urls[0],
+                                               intro_only=True, max_len=620, max_paragraphs=2)
         elif len(titles) > 1:
             return await send_wiki_page_list(ctx, titles, urls)
         return await send_wiki_error_message(ctx, f'*No results found for "{query}"*')
@@ -206,4 +206,4 @@ class Wiki(Cog):
         page_name = response['query']['random'][0]['title']
         log.info(f'Selected page "{page_name}" for ?wikirandom command')
         return await send_single_wiki_page(ctx, self.url, page_name, self.make_wiki_url(page_name),
-                                           intro_only=True, max_len=1200)
+                                           intro_only=True, max_len=620, max_paragraphs=2)

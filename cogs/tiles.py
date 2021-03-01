@@ -3,6 +3,7 @@ import asyncio
 import concurrent.futures
 import logging
 import random
+from datetime import datetime
 from functools import partial
 
 from discord import File
@@ -37,6 +38,7 @@ class Tiles(Cog):
         unidentified => sends the 'unidentified' variation of the tile
 
         Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
+        Colors reference: https://cavesofqud.gamepedia.com/Visual_Style#Palette
         """
         return await process_tile_request(ctx, *args)
 
@@ -57,6 +59,7 @@ class Tiles(Cog):
         unidentified => sends the 'unidentified' variation of the tile
 
         Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
+        Colors reference: https://cavesofqud.gamepedia.com/Visual_Style#Palette
         """
         return await process_tile_request(ctx, *args, smalltile=True)
 
@@ -73,6 +76,7 @@ class Tiles(Cog):
         recolor random => repaints the tile using random colors
 
         Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
+        Colors reference: https://cavesofqud.gamepedia.com/Visual_Style#Palette
         """
         names = list(qindex)
         name = 'Object'
@@ -104,6 +108,25 @@ class Tiles(Cog):
           ?animate <object> [variation...]
         """
         return await process_tile_request(ctx, *args, animated=True)
+
+    @command()
+    async def tilebyfile(self, ctx: Context, *args):
+        """Sends a tile based on the specified file path and colors.
+
+        Supported command formats:
+          ?tilebyfile <filepath> <color1> <color2>
+          ?tilebyfile <filepath> random
+
+        File names are relative to the Textures directory.
+        Example: ?tilebyfile creatures/sw_glowfish.bmp o O
+
+        color1/color2 => paints the tile using <color1> as TileColor and <color2> as DetailColor
+        random => paints the tile using random colors
+
+        Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
+        Colors reference: https://cavesofqud.gamepedia.com/Visual_Style#Palette
+        """
+        return await process_tile_by_file_request(ctx, *args)
 
 
 async def process_tile_request(ctx: Context, *args, smalltile=False,
@@ -163,14 +186,11 @@ async def process_tile_request(ctx: Context, *args, smalltile=False,
                 msg += f'Sorry, `{obj.name}` does not have an animated tile.\n'
         elif recolor != '':
             if recolor == 'random':
-                def random_color():
-                    return random.choice(list(QUD_COLORS.keys()))
-
-                colors = [random_color(), random_color()]
+                colors = [random_qud_color(), random_qud_color()]
             else:
                 colors = recolor.split()
             if len(colors) != 2 or not all(color in QUD_COLORS for color in colors):
-                return await ctx.send('Syntax error with optional `recolor` argument.'
+                return await ctx.send('Couldn\'t understand optional `recolor` argument.'
                                       ' See `?help tile` for details.')
             # user requested a recolor of the tile, use the old tile to make a new one
             filename = tile.filename
@@ -206,6 +226,42 @@ async def process_tile_request(ctx: Context, *args, smalltile=False,
         await ctx.send(msg)
 
 
+async def process_tile_by_file_request(ctx: Context, *args):
+    log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
+    query = ' '.join(args)
+    if len(args) <= 0:
+        return await ctx.send('Not enough arguments. See `?help tilebyfile` for details.')
+    if len(args) == 1:
+        return await ctx.send('Not enough arguments. Specify *random* or *<color1> <color2>*. '
+                              'See `?help tilebyfile` for details.')
+    if query.endswith(' random'):
+        query = query[:-7]
+        colors = [random_qud_color(), random_qud_color()]
+    else:
+        params = query.split()
+        if len(params) < 3:
+            return await ctx.send('Need more arguments. See `?help tilebyfile` for details.')
+        colors = params[-2:]
+        query = ' '.join(params[:-2])
+        if not all(color in QUD_COLORS for color in colors):
+            return await ctx.send('Couldn\'t find all those colors. '
+                                  'See `?help tilebyfile` for details.')
+    filename = query.strip()
+    try:
+        tile = QudTile(filename, colors[0], colors[0], colors[1], filename)
+    except FileNotFoundError:
+        return await ctx.send(f'Could not find {filename} in the tiles set.')
+    except PermissionError:
+        return await ctx.send(f'The file {filename} is not allowed.')
+    if tile.hasproblems:
+        return await ctx.send('Was not able to generate that tile.')
+    data = tile.get_big_bytesio()
+    data.seek(0)
+    msg = f'*Tile created from "{filename}":*'
+    fname = datetime.now().strftime("%Y%m%d-%H%M%S")
+    return await ctx.send(msg, file=File(fp=data, filename=f'{fname}.png'))
+
+
 def get_bytesio_for_object(qud_object, qud_tile: QudTile, hologram=False):
     """Provided a QudObject and a QudTile, creates a GIF and retrieves the associated BytesIO
     directly.
@@ -223,3 +279,7 @@ def get_bytesio_for_object(qud_object, qud_tile: QudTile, hologram=False):
     if gif is not None:
         return GifHelper.get_bytesio(gif)
     return None
+
+
+def random_qud_color():
+    return random.choice(list(QUD_COLORS.keys()))

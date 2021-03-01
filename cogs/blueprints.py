@@ -30,14 +30,15 @@ class BlueprintQuery(Cog):
         if query == '' or str.isspace(query) or len(query) < 2:
             return await ctx.send_help(ctx.command)
         loop = asyncio.get_running_loop()
-        with concurrent.futures.ThreadPoolExecutor() as pool:
-            call = partial(process.extract, query, self.ids, limit=5)
-            id_matches_raw = await loop.run_in_executor(pool, call)
-        id_matches = [match[0] for match in id_matches_raw]
-        id_indices = [self.ids.index(match) for match in id_matches]
-        with concurrent.futures.ThreadPoolExecutor() as pool:
-            call = partial(process.extract, query, self.displaynames, limit=5)
-            displayname_matches_raw = await loop.run_in_executor(pool, call)
+        async with ctx.typing():
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                call = partial(process.extract, query, self.ids, limit=5)
+                id_matches_raw = await loop.run_in_executor(pool, call)
+            id_matches = [match[0] for match in id_matches_raw]
+            id_indices = [self.ids.index(match) for match in id_matches]
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                call = partial(process.extract, query, self.displaynames, limit=5)
+                displayname_matches_raw = await loop.run_in_executor(pool, call)
         displayname_matches = [match[0] for match in displayname_matches_raw]
         displayname_indices = [self.displaynames.index(match) for match in displayname_matches]
         embed = Embed(description="Matches:")
