@@ -10,12 +10,12 @@ pre-commit = "*"
 
 [packages]
 pyyaml = "*"
-discord-py = "*"
 hagadias = {git = "https://github.com/TrashMonks/hagadias.git",ref = "main"}
 fuzzywuzzy = "*"
 aiodns = "*"
 oauthlib = "*"
 asyncpraw = "*"
+"discord.py" = "*"
 
 [requires]
 python_version = "3.8"

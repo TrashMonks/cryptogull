@@ -2,7 +2,7 @@ import datetime
 import logging
 from pathlib import Path
 
-from discord import Game
+import discord
 from discord.ext.commands import Bot
 
 from cogs.blueprints import BlueprintQuery
@@ -17,6 +17,9 @@ from cogs.say import Say
 from cogs.tiles import Tiles
 from cogs.wiki import Wiki
 from shared import config
+
+intents = discord.Intents.default()
+intents.members = True
 
 LOGDIR = Path(config['Log folder'])
 
@@ -42,8 +45,8 @@ def setup_logger() -> logging.Logger:
 
 def main():
     log = setup_logger()
-    activity = Game("?help in #bot-spam")
-    bot = Bot(command_prefix=config['Prefix'], activity=activity)
+    activity = discord.Game("?help in #bot-spam")
+    bot = Bot(command_prefix=config['Prefix'], activity=activity, intents=intents)
 
     @bot.event
     async def on_ready():
