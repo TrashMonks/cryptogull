@@ -3,7 +3,7 @@ A Discord bot for the [Caves of Qud discord](https://discordapp.com/invite/caves
 
 Features:
  * Decode Caves of Qud character build codes into formatted character sheets
- * Perform title and fulltext searches on the [official Caves of Qud wiki](https://cavesofqud.gamepedia.com/)
+ * Perform title and fulltext searches on the [official Caves of Qud wiki](https://wiki.cavesofqud.com/)
  * Render tiles from the game and send them to Discord as attachments, with optional recoloring previews for modders
 
 Cryptogull depends on another Trash Monks project, the [hagadias](https://github.com/TrashMonks/hagadias) library, to
