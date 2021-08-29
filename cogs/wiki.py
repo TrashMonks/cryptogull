@@ -1,9 +1,9 @@
-"""Commands for operating on the wiki API at https://cavesofqud.gamepedia.com/api.php
+"""Commands for operating on the wiki API at https://wiki.cavesofqud.com/api.php
 
 API request builder:
-https://cavesofqud.gamepedia.com/Special:ApiSandbox#action=query&format=json&list=search&srsearch=intitle%3Amod&srwhat=title
+https://wiki.cavesofqud.com/Special:ApiSandbox#action=query&format=json&list=search&srsearch=intitle%3Amod&srwhat=title
 API help:
-https://cavesofqud.gamepedia.com/api.php?action=help&modules=query%2Bsearch
+https://wiki.cavesofqud.com/api.php?action=help&modules=query%2Bsearch
 """
 
 import logging
@@ -74,7 +74,7 @@ class Wiki(Cog):
 
     def make_wiki_url(self, sub_path: str) -> str:
         """Forms a Qud Wiki URL with the provided subpath. For example, when one passes 'Waterskin'
-        to this method, the following url is returned: 'https://cavesofqud.gamepedia.com/Waterskin'.
+        to this method, the following url is returned: 'https://wiki.cavesofqud.com/Waterskin'.
 
         Args:
             sub_path: The wiki page name or sub-path, not including an initial forward slash.

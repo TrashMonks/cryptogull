@@ -38,7 +38,7 @@ class Tiles(Cog):
         unidentified => sends the 'unidentified' variation of the tile
 
         Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
-        Colors reference: https://cavesofqud.gamepedia.com/Visual_Style#Palette
+        Colors reference: https://wiki.cavesofqud.com/Visual_Style#Palette
         """
         return await process_tile_request(ctx, *args)
 
@@ -59,7 +59,7 @@ class Tiles(Cog):
         unidentified => sends the 'unidentified' variation of the tile
 
         Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
-        Colors reference: https://cavesofqud.gamepedia.com/Visual_Style#Palette
+        Colors reference: https://wiki.cavesofqud.com/Visual_Style#Palette
         """
         return await process_tile_request(ctx, *args, smalltile=True)
 
@@ -76,7 +76,7 @@ class Tiles(Cog):
         recolor random => repaints the tile using random colors
 
         Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
-        Colors reference: https://cavesofqud.gamepedia.com/Visual_Style#Palette
+        Colors reference: https://wiki.cavesofqud.com/Visual_Style#Palette
         """
         names = list(qindex)
         name = 'Object'
@@ -124,7 +124,7 @@ class Tiles(Cog):
         random => paints the tile using random colors
 
         Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
-        Colors reference: https://cavesofqud.gamepedia.com/Visual_Style#Palette
+        Colors reference: https://wiki.cavesofqud.com/Visual_Style#Palette
         """
         return await process_tile_by_file_request(ctx, *args)
 
