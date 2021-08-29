@@ -9,7 +9,7 @@ from yarl import URL
 
 from shared import http_session
 
-WIKI_FAVICON = 'https://static.wikia.nocookie.net/cavesofqud_gamepedia_en/images/0/05/Wiki-icon-used-by-CoQ-Discord-bot.png'  # noqa E501
+WIKI_FAVICON = 'https://wiki.cavesofqud.com/images/0/05/Wiki-icon-used-by-CoQ-Discord-bot.png'  # noqa E501
 WIKI_SINGLE_PAGE_EMBED_COLOR = Colour(0xc3c9b1)
 WIKI_PAGE_LIST_EMBED_COLOR = Colour(0xc3c9b1)
 WIKI_PAGE_ERROR_EMBED_COLOR = Colour(0xc3c9b1)
