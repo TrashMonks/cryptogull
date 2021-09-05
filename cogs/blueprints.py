@@ -1,10 +1,11 @@
 """Commands for querying the Caves of Qud object tree."""
 import asyncio
 import concurrent.futures
+import io
 import logging
 from functools import partial
 
-from discord import Embed
+from discord import Embed, File
 from discord.ext import commands
 from fuzzywuzzy import process
 
@@ -72,9 +73,11 @@ class BlueprintQuery(commands.Cog):
         except LookupError:
             response = f'Sorry, could not find any blueprint called `{query}`. Try using ' \
                        'the "blueprint" command to find the blueprint you are looking for.'
-        else:
-            response = f'```xml\n  {obj.source}```'
-            if len(response) > 2000:
-                response = f'Sorry, the XML source for that blueprint is longer than the Discord '\
-                            'message length limit.'
-        await ctx.send(response)
+            return await ctx.send(response)
+        if len(obj.source) > 2000:
+            response = f'Sorry, the XML source for that blueprint is longer than the Discord '\
+                        'message length limit.'
+            return await ctx.send(response)
+        str_as_file = io.StringIO('  ' + obj.source)  # indent first <object> tag
+        return await ctx.send('', file=File(fp=str_as_file, filename=obj.name + '.xml',
+                                            spoiler=True))
