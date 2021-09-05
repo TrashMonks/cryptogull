@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 
 import discord
-from discord.ext.commands import Bot
+from discord.ext.commands import Bot, CommandOnCooldown
 
 from cogs.blueprints import BlueprintQuery
 from cogs.bugs import Bugs
@@ -51,6 +51,12 @@ def main():
     @bot.event
     async def on_ready():
         log.info(f'Logged in as {bot.user}.')
+
+    @bot.event
+    async def on_command_error(ctx, error):
+        if isinstance(error, CommandOnCooldown):
+            await ctx.send(f'Please wait {error.retry_after:.0f} seconds.')
+        raise error  # re-raise the error so all the errors will still show up in console
 
     bot.add_cog(BlueprintQuery(bot))
     bot.add_cog(Bugs(bot))

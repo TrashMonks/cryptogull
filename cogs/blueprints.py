@@ -5,7 +5,7 @@ import logging
 from functools import partial
 
 from discord import Embed
-from discord.ext.commands import Bot, Cog, Context, command
+from discord.ext import commands
 from fuzzywuzzy import process
 
 from shared import qindex
@@ -13,17 +13,17 @@ from shared import qindex
 log = logging.getLogger('bot.' + __name__)
 
 
-class BlueprintQuery(Cog):
+class BlueprintQuery(commands.Cog):
     """Query Caves of Qud game blueprints."""
 
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: commands.Bot):
         """Build a cache of object IDs and display names for faster searching."""
         self.bot = bot
         self.ids = [qid for qid in qindex]
         self.displaynames = [qobject.displayname for qobject in qindex.values()]
 
-    @command()
-    async def blueprint(self, ctx: Context, *args):
+    @commands.command()
+    async def blueprint(self, ctx: commands.Context, *args):
         """Search both blueprint names and display names with at least two characters."""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         query = ' '.join(args)
@@ -57,3 +57,21 @@ class BlueprintQuery(Cog):
                         value='\n'.join(field),
                         inline=True)
         await ctx.send(embed=embed)
+
+    @commands.command()
+    @commands.cooldown(1, 30, commands.BucketType.user)
+    async def xml(self, ctx: commands.Context, *args):
+        """Display the XMl source of a specific blueprint."""
+        log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
+        query = ' '.join(args)
+        if query == '' or str.isspace(query) or len(query) < 2:
+            return await ctx.send_help(ctx.command)
+        if query in qindex:
+            response = f'```xml\n  {qindex[query].source}```'
+            if len(response) > 2000:
+                response = f'Sorry, the XML source for that blueprint is longer than the Discord '\
+                            'message length limit.'
+        else:
+            response = f'Sorry, could not find an object blueprint called `{query}`. Try using '\
+                        'the "blueprint" command to find the blueprint you are looking for.'
+        await ctx.send(response)
