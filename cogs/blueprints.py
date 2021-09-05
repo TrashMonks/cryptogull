@@ -8,6 +8,7 @@ from discord import Embed
 from discord.ext import commands
 from fuzzywuzzy import process
 
+from helpers.find_blueprints import find_name_or_displayname
 from shared import qindex
 
 log = logging.getLogger('bot.' + __name__)
@@ -59,19 +60,21 @@ class BlueprintQuery(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    @commands.cooldown(1, 30, commands.BucketType.user)
+    @commands.cooldown(1, 20, commands.BucketType.user)
     async def xml(self, ctx: commands.Context, *args):
         """Display the XMl source of a specific blueprint."""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         query = ' '.join(args)
         if query == '' or str.isspace(query) or len(query) < 2:
             return await ctx.send_help(ctx.command)
-        if query in qindex:
-            response = f'```xml\n  {qindex[query].source}```'
+        try:
+            obj = find_name_or_displayname(query, qindex)
+        except LookupError:
+            response = f'Sorry, could not find any blueprint called `{query}`. Try using ' \
+                       'the "blueprint" command to find the blueprint you are looking for.'
+        else:
+            response = f'```xml\n  {obj.source}```'
             if len(response) > 2000:
                 response = f'Sorry, the XML source for that blueprint is longer than the Discord '\
                             'message length limit.'
-        else:
-            response = f'Sorry, could not find an object blueprint called `{query}`. Try using '\
-                        'the "blueprint" command to find the blueprint you are looking for.'
         await ctx.send(response)
