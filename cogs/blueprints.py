@@ -73,10 +73,6 @@ class BlueprintQuery(commands.Cog):
             response = f'Sorry, could not find any blueprint called `{query}`. Try using ' \
                        'the "blueprint" command to find the blueprint you are looking for.'
             return await ctx.send(response)
-        if len(obj.source) > 2000:
-            response = f'Sorry, the XML source for that blueprint is longer than the Discord '\
-                        'message length limit.'
-            return await ctx.send(response)
         str_as_file = io.StringIO('  ' + obj.source)  # indent first <object> tag
         return await ctx.send('', file=File(fp=str_as_file, filename=obj.name + '.xml',
                                             spoiler=True))
