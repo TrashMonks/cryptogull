@@ -61,7 +61,6 @@ class BlueprintQuery(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    @commands.cooldown(1, 20, commands.BucketType.user)
     async def xml(self, ctx: commands.Context, *args):
         """Display the XMl source of a specific blueprint."""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
