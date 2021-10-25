@@ -9,7 +9,7 @@ from discord.channel import DMChannel
 from discord.ext.commands import Bot, Cog
 from discord.message import Message
 
-from helpers.qud_decode import Character
+from helpers.qud_decode import Character, Pre202Character
 from shared import config
 
 log = logging.getLogger('bot.' + __name__)
@@ -53,7 +53,7 @@ class Decode(Cog):
             code = match[0].strip()
             log.info(f'({message.channel}) <{message.author}> {message.content}')
             try:
-                char = Character.from_charcode(code)
+                char = Pre202Character.from_charcode(code)
                 sheet = char.make_sheet()
                 response = f'```less\n{sheet}\n```\n**Build code:** {code}'
                 if len(response) > 2048:
@@ -82,4 +82,10 @@ class Decode(Cog):
                 except Exception:  # noqa
                     pass  # it probably wasn't a build code!
                 else:
-                    print(code)
+                    char = Character(code)
+                    sheet = char.make_sheet()
+                    response = f'```{sheet}```'
+                    if len(response) > 2048:
+                        await message.channel.send('The character sheet for that build code'
+                                                   ' is too large to fit into a Discord message.')
+                    await message.channel.send(response)

@@ -5,7 +5,7 @@ Run qud_decode through a variety of character build codes to detect deadlocks,
 exceptions, and other obvious regressions.
 """
 
-from helpers.qud_decode import Character
+from helpers.qud_decode import Pre202Character
 
 # Test a variety of codes for crashes:
 build_codes = ('AAPMNNJL16',
@@ -26,7 +26,7 @@ all_mods = 'BAEEEEEGAAABBACDBBBCBDBEBFBGBHBIBJBKBLBMBNBOBPBQBRBSBTBUBVBWBXBYBZB1
 
 def test_qud_decode():
     for code in build_codes:
-        char = Character.from_charcode(code)
+        char = Pre202Character.from_charcode(code)
         assert len(char.make_sheet()) > 200
-    char = Character.from_charcode(all_mods)
+    char = Pre202Character.from_charcode(all_mods)
     assert len(char.make_sheet()) > 600
