@@ -26,7 +26,7 @@ pre202_charcode = re.compile(r"(?:^|\s)[AB][A-L][A-Z]{6}(?:[0-9A-Z][0-9A-Z](?:#\
 # (?:[A-Za-z0-9+/]{4})* The same again, but an arbitrary number of times (to go beyond 80 chars)
 # (?:[A-Za-z0-9+/]{2}== An ending group: 2 base64 chars and 2 padding signs
 # |                     or,
-# [A-Za-z0-9+/]{3}=     the other ending group - 3 base64 chars and 3 padding signs
+# [A-Za-z0-9+/]{3}=     the other ending group - 3 base64 chars and 1 padding sign
 # These last 3 lines are combined with ()? meaning the end may not be padded at all, and the
 # base64 may end with a group of 4 characters instead
 _ = r"(?:[A-Za-z0-9+/]{4}){20}(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?"
