@@ -7,19 +7,25 @@ from datetime import datetime
 from functools import partial
 
 from discord import File
-from discord.ext.commands import Cog, Context, command
+from discord.ext.commands import Cog, Bot, Context, command
 from hagadias.qudtile import QUD_COLORS, QudTile
 from hagadias.tileanimator import TileAnimator, GifHelper
 
 from helpers.find_blueprints import find_name_or_displayname, fuzzy_find_nearest
 from helpers.tile_variations import parse_variation_parameters, get_tile_variation_details
+from helpers.corpus import Corpus
 from shared import qindex
+
 
 log = logging.getLogger('bot.' + __name__)
 
 
 class Tiles(Cog):
     """Send game tiles to Discord."""
+
+    def __init__(self, bot: Bot):
+        self.bot = bot
+        self.corpus = Corpus()
 
     @command()
     async def tile(self, ctx: Context, *args):
@@ -64,7 +70,7 @@ class Tiles(Cog):
         return await process_tile_request(ctx, *args, smalltile=True)
 
     @command()
-    async def randomtile(self, ctx: Context, *args):
+    async def randomtile(self, ctx: Context, *args, reading=""):
         """Send a random game tile to the channel.
 
         Supported command formats:
@@ -78,16 +84,8 @@ class Tiles(Cog):
         Colors include: b, B, c, C, g, G, k, K, m, M, o, O, r, R, w, W, y, Y, transparent
         Colors reference: https://wiki.cavesofqud.com/Visual_Style#Palette
         """
-        names = list(qindex)
-        name = 'Object'
-        obj = qindex['Object']
-        while obj.tile is None:
-            name = random.choice(names)
-            obj = qindex[name]
-        if obj.number_of_tiles() > 1:
-            if 'variation' not in args:
-                args = ('variation',) + args
-        return await(process_tile_request(ctx, name, *args))
+        name, args = get_random_tile_name(*args)
+        return await(process_tile_request(ctx, name, *args, reading=reading))
 
     @command()
     async def hologram(self, ctx: Context, *args):
@@ -128,9 +126,14 @@ class Tiles(Cog):
         """
         return await process_tile_by_file_request(ctx, *args)
 
+    @command()
+    async def horoscope(self, ctx: Context, *args):
+        msg = self.corpus.generate_sentence()
+        return await self.randomtile(ctx, "recolor", "random", reading=msg)
+
 
 async def process_tile_request(ctx: Context, *args, smalltile=False,
-                               animated=False, hologram=False):
+                               animated=False, hologram=False, reading=""):
     log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
     query = ' '.join(args)
     # parse recolor parameters, if present
@@ -206,18 +209,21 @@ async def process_tile_request(ctx: Context, *args, smalltile=False,
         else:
             data = tile.get_big_bytesio()
         data.seek(0)
-        msg += f"`{obj.name}` (display name: '{obj.displayname}'):"
-        if use_variation:
-            msg += f'\n*variation {variation_result["idx"]} - {variation_result["name"]}*'
-        elif not smalltile and not gif_bytesio:
-            notices = []
-            if TileAnimator(obj).has_gif:
-                notices.append(f"can be animated (`?animate {obj.name}`)")
-            if has_variations and variation == '':
-                notices.append(f'has {obj.number_of_tiles()} variations '
-                               f'(`?tile {obj.name} variation #`)')
-            if len(notices) > 0:
-                msg += f'\nThis tile {" and ".join(notices)}'
+        if reading.isspace() or len(reading) == 0:
+            msg += f"`{obj.name}` (display name: '{obj.displayname}'):"
+            if use_variation:
+                msg += f'\n*variation {variation_result["idx"]} - {variation_result["name"]}*'
+            elif not smalltile and not gif_bytesio:
+                notices = []
+                if TileAnimator(obj).has_gif:
+                    notices.append(f"can be animated (`?animate {obj.name}`)")
+                if has_variations and variation == '':
+                    notices.append(f'has {obj.number_of_tiles()} variations '
+                                   f'(`?tile {obj.name} variation #`)')
+                if len(notices) > 0:
+                    msg += f'\nThis tile {" and ".join(notices)}'
+        else:
+            msg += f"**{obj.displayname}** ({colors[0]}, {colors[1]})\n{reading}"
         ext = '.png' if gif_bytesio is None else '.gif'
         return await ctx.send(msg, file=File(fp=data, filename=f'{obj.displayname}{ext}'))
     else:
@@ -279,6 +285,19 @@ def get_bytesio_for_object(qud_object, qud_tile: QudTile, hologram=False):
     if gif is not None:
         return GifHelper.get_bytesio(gif)
     return None
+
+
+def get_random_tile_name(*args):
+    names = list(qindex)
+    name = 'Object'
+    obj = qindex['Object']
+    while obj.tile is None:
+        name = random.choice(names)
+        obj = qindex[name]
+    if obj.number_of_tiles() > 1:
+        if 'variation' not in args:
+            args = ('variation',) + args
+    return name, args
 
 
 def random_qud_color():
