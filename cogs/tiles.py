@@ -128,6 +128,7 @@ class Tiles(Cog):
 
     @command()
     async def horoscope(self, ctx: Context, *args):
+        """Alias for ?randomtile recolor random, with a special reading from Cryptogull."""
         msg = self.corpus.generate_sentence()
         return await self.randomtile(ctx, "recolor", "random", reading=msg)
 
