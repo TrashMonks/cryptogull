@@ -10,7 +10,7 @@ class Corpus:
         self.openingwords = {}
 
         self.load_json(config['Qud install folder'] +
-                       "\CoQ_Data\StreamingAssets\Base\LibraryCorpus.json")
+                       "/CoQ_Data/StreamingAssets/Base/LibraryCorpus.json")
 
     def generate_sentence(self, seed="") -> str:
         if len(seed) == 0 or seed.isspace():
@@ -45,10 +45,17 @@ class Corpus:
 
     def make_secret(self):
         possiblelocations = ["Golgotha", "Grit Gate",
-                             "Joppa", "the ruins of Joppa", "Ezra", "the Spindle", "Kyakukya", "Omonporch", "Red Rock", "the Six Day Stilt", "the Yd Freehold", "the Tom of the Eaters", "Bethesda Susa"]
+                             "Joppa", "the ruins of Joppa",
+                             "Ezra", "the Spindle", "Kyakukya",
+                             "Omonporch", "Red Rock",
+                             "the Six Day Stilt", "the Yd Freehold",
+                             "the Tomb of the Eaters", "Bethesda Susa"]
         directions = ["north", "west", "east", "west"]
         secretpt1 = ["masterwork pistol ",
-                     "famous revolver ", "hiding place of the ", "chest containing the ", "chest holding the ", ""]
+                     "famous revolver ",
+                     "hiding place of the ",
+                     "chest containing the ",
+                     "chest holding the ", ""]
         secretpt2 = ["said to be", "rumored to be",
                      "located", "where I stored it"]
         location = possiblelocations[random.randint(
@@ -63,7 +70,8 @@ class Corpus:
         else:
             str1 = "lost masterwork pistol"
 
-        str2 = f"{secretpt2[random.randint(0, len(secretpt2)-1)]} stored somewhere {random.randint(1,20)} parasangs {direction} of {location}"
+        str2 = f"{secretpt2[random.randint(0, len(secretpt2)-1)]} stored \
+            somewhere {random.randint(1,20)} parasangs {direction} of {location}"
 
         return f"{str1}, {str2}."
 

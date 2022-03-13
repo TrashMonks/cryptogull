@@ -26,7 +26,7 @@ LOGDIR = Path(config['Log folder'])
 
 
 def setup_logger() -> logging.Logger:
-    """Create and return where the master Logger object."""
+    """Create and return the master Logger object."""
     LOGDIR.mkdir(exist_ok=True)
     timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
     logfile = LOGDIR / f'{timestamp}.log'
@@ -60,13 +60,13 @@ def main():
         raise error  # re-raise the error so all the errors will still show up in console
 
     bot.add_cog(BlueprintQuery(bot))
-   # bot.add_cog(Bugs(bot))
-   # bot.add_cog(Cryochamber(bot))
-   # bot.add_cog(Decode(bot))
+    bot.add_cog(Bugs(bot))
+    bot.add_cog(Cryochamber(bot))
+    bot.add_cog(Decode(bot))
     bot.add_cog(Dice(bot))
     bot.add_cog(Hitdabricks(bot))
     bot.add_cog(Pronouns(bot))
-   # bot.add_cog(Reddit(bot))
+    bot.add_cog(Reddit(bot))
     bot.add_cog(Say(bot))
     bot.add_cog(Tiles(bot))
     bot.add_cog(Wiki(bot))
