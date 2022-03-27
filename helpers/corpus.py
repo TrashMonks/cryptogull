@@ -20,7 +20,7 @@ class Corpus:
                        "/CoQ_Data/StreamingAssets/Base/LibraryCorpus.json")
 
     def generate_sentence(self, seed="") -> str:
-        # Generate a single sentence. First two words are seed/randomly.
+        # Generate a single sentence. First two words are seeded/randomly picked.
         if len(seed) == 0 or seed.isspace():
             seed = self.openingwords[random.randint(
                 0, len(self.openingwords))]
