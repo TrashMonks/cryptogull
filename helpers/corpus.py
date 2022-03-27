@@ -20,7 +20,7 @@ class Corpus:
                        "/CoQ_Data/StreamingAssets/Base/LibraryCorpus.json")
 
     def generate_sentence(self, seed="") -> str:
-        # Generate a single sentence. First two words are seed/randomly picked.
+        # Generate a single sentence. First two words are seed/randomly.
         if len(seed) == 0 or seed.isspace():
             seed = self.openingwords[random.randint(
                 0, len(self.openingwords))]
@@ -68,7 +68,7 @@ class Corpus:
                      "chest containing the ",
                      "chest holding the ", ""]
         secretpt2 = ["said to be", "rumored to be",
-                     "located", "where I stored it"]
+                     "located", "where I stored it", "stored somewhere"]
         location = possiblelocations[random.randint(
             0, len(possiblelocations)-1)]
 
@@ -81,8 +81,8 @@ class Corpus:
         else:
             str1 = "lost masterwork pistol"
 
-        str2 = f"{secretpt2[random.randint(0, len(secretpt2)-1)]} stored \
-            somewhere {random.randint(1,20)} parasangs {direction} of {location}"
+        str2 = f"{secretpt2[random.randint(0, len(secretpt2)-1)]} \
+            {random.randint(1,20)} parasangs {direction} of {location}"
 
         return f"{str1}, {str2}."
 
