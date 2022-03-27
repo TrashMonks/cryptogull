@@ -11,12 +11,13 @@ from cogs.cryochamber import Cryochamber
 from cogs.decode import Decode
 from cogs.dice import Dice
 from cogs.hitdabricks import Hitdabricks
+from cogs.markov import Markov
 from cogs.pronouns import Pronouns
 from cogs.reddit import Reddit
 from cogs.say import Say
 from cogs.tiles import Tiles
 from cogs.wiki import Wiki
-from cogs.markov import Markov
+
 from shared import config
 
 intents = discord.Intents.default()
@@ -65,12 +66,12 @@ def main():
     bot.add_cog(Decode(bot))
     bot.add_cog(Dice(bot))
     bot.add_cog(Hitdabricks(bot))
+    bot.add_cog(Markov(bot))
     bot.add_cog(Pronouns(bot))
     bot.add_cog(Reddit(bot))
     bot.add_cog(Say(bot))
     bot.add_cog(Tiles(bot))
     bot.add_cog(Wiki(bot))
-    bot.add_cog(Markov(bot))
     bot.run(config['Discord token'])
 
 
