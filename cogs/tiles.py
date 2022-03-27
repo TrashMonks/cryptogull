@@ -13,7 +13,7 @@ from hagadias.tileanimator import TileAnimator, GifHelper
 
 from helpers.find_blueprints import find_name_or_displayname, fuzzy_find_nearest
 from helpers.tile_variations import parse_variation_parameters, get_tile_variation_details
-from helpers.corpus import Corpus
+from helpers.corpus import corpus
 from shared import qindex
 
 
@@ -25,7 +25,7 @@ class Tiles(Cog):
 
     def __init__(self, bot: Bot):
         self.bot = bot
-        self.corpus = Corpus()
+        self.corpus = corpus
 
     @command()
     async def tile(self, ctx: Context, *args):

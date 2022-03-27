@@ -4,15 +4,23 @@ from shared import config
 
 
 class Corpus:
+    """
+    Uses LibraryCorpus.json from the game files in order to
+    procedurally generate sentences using a markov chain.
+    Has a chance of generating a "secret", just like in game.
+    """
+
     def __init__(self):
         self.chain = {}
         self.order = 2
         self.openingwords = {}
 
+        # Load corpus from game files
         self.load_json(config['Qud install folder'] +
                        "/CoQ_Data/StreamingAssets/Base/LibraryCorpus.json")
 
     def generate_sentence(self, seed="") -> str:
+        # Generate a single sentence. First two words are seed/randomly picked.
         if len(seed) == 0 or seed.isspace():
             seed = self.openingwords[random.randint(
                 0, len(self.openingwords))]
@@ -26,6 +34,8 @@ class Corpus:
                 text = f"{text} {list[i+j]}"
                 text2 = self.chain[text][random.randint(
                     0, len(self.chain[text])-1)]
+
+                # Inserts a randomly generated location hint for Isner.
                 if text2 == "#MAKESECRET#":
                     text2 = self.make_secret()
                 list.append(text2)
@@ -34,8 +44,9 @@ class Corpus:
         return text
 
     def append_secret(self):
-        # beep beep is the specific seed just to test isner
-        keys = ["of the", "to the", "in the", "with the", "beep beep"]
+        # Add additional keys to the corpus to add a chance for a secret
+        # try "?sleeptalk isner test" to guarantee secret generation.
+        keys = ["of the", "to the", "in the", "with the", "isner test"]
 
         for key in keys:
             if key in self.chain:
@@ -87,3 +98,6 @@ class Corpus:
         self.openingwords = data["OpeningWords"]
         self.append_secret()
         return data
+
+
+corpus = Corpus()

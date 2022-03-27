@@ -1,5 +1,5 @@
 """Commands for random text generation."""
-from helpers.corpus import Corpus
+from helpers.corpus import corpus
 import logging
 import re
 
@@ -13,7 +13,7 @@ class Markov(Cog):
 
     def __init__(self, bot: Bot):
         self.bot = bot
-        self.corpus = Corpus()
+        self.corpus = corpus
 
     @command()
     async def sleeptalk(self, ctx: Context, *args):
