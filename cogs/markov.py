@@ -17,11 +17,11 @@ class Markov(Cog):
 
     @command()
     async def sleeptalk(self, ctx: Context, *args):
-        """Generate a single sentence akin to one you would see using telepathy on a sleeping creature.
+        """Generate a sentence(s) akin to one you would see using telepathy on a sleeping creature.
 
         Does not require arguments, but can take a two word phrase to use
         as opening words. Due to how markov chains work, they must already
-        exist in the corpus."""
+        exist in the corpus (word bank)."""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
 
         seed = ""
@@ -40,7 +40,7 @@ class Markov(Cog):
             if query in self.corpus.chain:
                 seed = query
             else:
-                msg = f"\"{query}\" is not in the corpus.Try another word combination!"
+                msg = f"\"{query}\" is not in the corpus. Try another word combination!"
                 return await ctx.send(msg)
         if len(args) >= 3:
             return await ctx.send("You only need two words!")

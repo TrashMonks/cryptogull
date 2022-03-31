@@ -5,7 +5,7 @@ from shared import config
 
 class Corpus:
     """
-    Uses LibraryCorpus.json from the game files in order to
+    Uses the game's corpus in order to
     procedurally generate sentences using a markov chain.
     Has a chance of generating a "secret", just like in game.
     """
@@ -17,7 +17,7 @@ class Corpus:
 
         # Load corpus from game files
         self.load_json(config['Qud install folder'] +
-                       "/CoQ_Data/StreamingAssets/Base/LibraryCorpus.json")
+                       "/CoQ_Data/StreamingAssets/Base/QudCorpus.txt")
 
     def generate_sentence(self, seed="") -> str:
         # Generate a single sentence. First two words are seeded/randomly picked.
