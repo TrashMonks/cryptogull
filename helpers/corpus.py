@@ -5,13 +5,12 @@ from shared import config
 
 class Corpus:
     """
-    Uses the game's corpus in order to
-    procedurally generate sentences using a markov chain.
+    Uses the game's corpus in order to procedurally generate sentences using a Markov chain.
     Has a chance of generating a "secret", just like in game.
     """
 
     def __init__(self):
-        self.chain = {}
+        self.chain: dict[str: list[str]] = {}
         self.order = 2
         self.openingwords = {}
 
@@ -20,27 +19,24 @@ class Corpus:
                        "/CoQ_Data/StreamingAssets/Base/QudCorpus.txt")
 
     def generate_sentence(self, seed="") -> str:
-        # Generate a single sentence. First two words are seeded/randomly picked.
+        """Generate a single sentence. First two words are seeded/randomly picked."""
         if len(seed) == 0 or seed.isspace():
-            seed = self.openingwords[random.randint(
-                0, len(self.openingwords))]
-        list = []
+            seed = self.openingwords[random.randint(0, len(self.openingwords))]
+        words = []
 
-        for i in range(0, self.order):
-            list.append(seed.split(' ')[i])
+        # manual seeding: allow number of words up to self.order
+        words.extend(seed.split(' ')[:self.order])
         for i in range(0, 100):
-            text = list[i]
+            text = words[i]
             for j in range(1, self.order):
-                text = f"{text} {list[i+j]}"
-                text2 = self.chain[text][random.randint(
-                    0, len(self.chain[text])-1)]
-
+                text = f"{text} {words[i+j]}"
+                text2 = self.chain[text][random.randint(0, len(self.chain[text])-1)]
                 # Inserts a randomly generated location hint for Isner.
                 if text2 == "#MAKESECRET#":
                     text2 = self.make_secret()
-                list.append(text2)
+                words.append(text2)
                 if '.' in text2:
-                    return ' '.join(list)
+                    return ' '.join(words)
         return text
 
     def append_secret(self):
@@ -54,7 +50,7 @@ class Corpus:
             else:
                 self.chain[key] = ["#MAKESECRET#"]
 
-    def make_secret(self):
+    def make_secret(self) -> str:
         possiblelocations = ["Golgotha", "Grit Gate",
                              "Joppa", "the ruins of Joppa",
                              "Ezra", "the Spindle", "Kyakukya",
@@ -73,7 +69,6 @@ class Corpus:
             0, len(possiblelocations)-1)]
 
         direction = directions[random.randint(0, 3)]
-        # tried to do match/case but compiler complained
 
         switch = (random.randint(0, 1))
         if switch == 0:
@@ -87,17 +82,15 @@ class Corpus:
         return f"{str1}, {str2}."
 
     def load_json(self, path):
-        with open(path) as json_file:
+        with open(path, encoding='utf-8') as json_file:
             data = json.load(json_file)
-
-        self.chain = {}
-        for i in range(0, len(data["keys"])):
-            self.chain[data["keys"][i]
-                       ] = data["values"][i].split('\u0001')
+        for key, value in zip(data["keys"], data["values"]):
+            self.chain[key] = value.split('\u0001')
         self.order = data["order"]
         self.openingwords = data["OpeningWords"]
         self.append_secret()
         return data
 
 
+# Single instance for export
 corpus = Corpus()
