@@ -85,7 +85,8 @@ class Corpus:
         with open(path, encoding='utf-8') as json_file:
             data = json.load(json_file)
         for key, value in zip(data["keys"], data["values"]):
-            self.chain[key] = value.split('\u0001')
+            if len(value):  # guard against buggy key:value pairs with "" as the value
+                self.chain[key] = value.split('\u0001')
         self.order = data["order"]
         self.openingwords = data["OpeningWords"]
         self.append_secret()
