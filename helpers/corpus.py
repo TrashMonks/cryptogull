@@ -33,13 +33,13 @@ class Corpus:
                 text2 = self.chain[text][random.randint(0, len(self.chain[text])-1)]
                 # Inserts a randomly generated location hint for Isner.
                 if text2 == "#MAKESECRET#":
-                    text2 = self.make_secret()
+                    text2 = self._make_secret()
                 words.append(text2)
                 if '.' in text2:
                     return ' '.join(words)
         return text
 
-    def append_secret(self):
+    def _append_secret(self):
         # Add additional keys to the corpus to add a chance for a secret
         # try "?sleeptalk isner test" to guarantee secret generation.
         keys = ["of the", "to the", "in the", "with the", "isner test"]
@@ -50,7 +50,7 @@ class Corpus:
             else:
                 self.chain[key] = ["#MAKESECRET#"]
 
-    def make_secret(self) -> str:
+    def _make_secret(self) -> str:
         possiblelocations = ["Golgotha", "Grit Gate",
                              "Joppa", "the ruins of Joppa",
                              "Ezra", "the Spindle", "Kyakukya",
@@ -89,7 +89,7 @@ class Corpus:
                 self.chain[key] = value.split('\u0001')
         self.order = data["order"]
         self.openingwords = data["OpeningWords"]
-        self.append_secret()
+        self._append_secret()
         return data
 
 
