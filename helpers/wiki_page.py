@@ -46,11 +46,26 @@ IGNORED_WIKI_IMAGES = [  # images to always ignore and not display in wikipage e
 ]
 
 
+class WikiPageNotSpecifiedError(Exception):
+    """Exception for use when a wiki page should have been specified but was not."""
+    pass
+
+
+class WikiAPIError(Exception):
+    """Exception for use when the MediaWiki API returns a result containing a specific error."""
+    pass
+
+
+class WikiSearchNoResultsError(Exception):
+    """Exception for use when the MediaWiki API returns a result indicating no results for query."""
+    pass
+
+
 class WikiPageSummary:
     def __init__(self, api_url: str, page_name: str,
                  intro_only: bool, max_len: int = 620, max_paragraphs: int = 2):
         """Creates a new WikiPageSummary object. WikiPageSummary.load() should be called
-        immediatley after instantiating a new WikiPageSummary object.
+        immediately after instantiating a new WikiPageSummary object.
 
         Args:
             api_url: The wiki API endpoint URL
@@ -64,18 +79,16 @@ class WikiPageSummary:
         self.exintro_param: bool = intro_only
         self.max_len: int = max_len if 1200 >= max_len > 0 else 1200
         self.pagename: str = page_name
-        self.error: Optional[str] = None
-        self._look_description: Optional[str] = None
-        self._wiki_description: Optional[str] = None
-        self._wiki_image: Optional[str] = None
-        self._wiki_image_url: Optional[str] = None
+        self.look_description: Optional[str] = None
+        self.wiki_description: Optional[str] = None
+        self.wiki_image: Optional[str] = None
+        self.wiki_image_url: Optional[str] = None
 
     async def load(self):
         """Loads data into this WikiPageSummary. This method should be called after creating a new
         WikiPageSummary instance, and before accessing any other properties or methods."""
-        if self.pagename is None or self.pagename == '':
-            self.error = {'code': 'pageunknown', 'info': 'No wiki page was specified.'}
-            return
+        if not self.pagename:
+            raise WikiPageNotSpecifiedError
 
         # The 'parse' API pulls the wikitext/images/etc from the page. This allows us to get more
         # info from our QBE template and also to determine which image(s) are on the page.
@@ -93,21 +106,20 @@ class WikiPageSummary:
         async with http_session.get(url=self.url, params=parse_params) as reply:
             response = await reply.json()
         if 'error' in response:
-            self.error = response['error']  # error object includes 'code' and 'info' sub-elements
-            return
+            raise WikiAPIError(response['error'])
         # first grab the image from the full list of page images (less reliable - see below)
-        self._wiki_image = next((im for im in response['parse']['images']
-                                 if im not in IGNORED_WIKI_IMAGES), None)
+        self.wiki_image = next((im for im in response['parse']['images']
+                                if im not in IGNORED_WIKI_IMAGES), None)
         wiki_text = response['parse']['wikitext']['*']
         if any(tocright in wiki_text for tocright in ['{{tocright}}', '{{Tocright}}']):
             # workaround when {{tocright}} is present - if we try to retrieve only the intro when
             # this is the case, we get nothing (because TOC counts as a heading before the intro
             self.exintro_param = False
 
-        self._look_description = self._parse_look_description_from_templates(wiki_text)
-        self._look_description = await self._parse_grammar(self._look_description, wiki_text)
+        self.look_description = self._parse_look_description_from_templates(wiki_text)
+        self.look_description = await self._parse_grammar(self.look_description, wiki_text)
         template_image = self._parse_image_from_templates(wiki_text, response['parse']['images'])
-        self._wiki_image = template_image if template_image is not None else self._wiki_image
+        self.wiki_image = template_image if template_image is not None else self.wiki_image
 
         # We follow up our 'parse' API call with a 'query' call to obtain these additional details:
         #
@@ -137,12 +149,12 @@ class WikiPageSummary:
         }
         if self.exintro_param:
             extract_params['exintro'] = 1
-        if self._wiki_image is not None:
+        if self.wiki_image is not None:
             # merge allimages params into query call
             allimages_params = {
                 'list': 'allimages',
-                'aifrom': self._wiki_image,
-                'aito': self._wiki_image,
+                'aifrom': self.wiki_image,
+                'aito': self.wiki_image,
             }
             extract_params = {**extract_params, **allimages_params}
 
@@ -155,23 +167,21 @@ class WikiPageSummary:
         async with http_session.get(url=URL(encoded_url, encoded=True)) as reply:
             response = await reply.json()
         if 'error' in response:
-            self.error = response['error']  # error object includes 'code' and 'info' sub-elements
-            return
+            raise WikiAPIError(response['error'])
         elif '-1' in response['query']['pages']:  # alternate error indicator for TextExtracts API
-            self.error = {'code': 'notfound', 'info': 'No page matches the API query.'}
-            return
+            raise WikiSearchNoResultsError
         page_id = list(response['query']['pages'])[0]
         extract_text = response['query']['pages'][page_id]['extract']
         if extract_text is not None and extract_text != '' and extract_text != '...':
-            self._wiki_description = self.cleanup_extract_formatting(extract_text, self.intro_only,
-                                                                     self.max_paragraphs,
-                                                                     self.max_len)
+            self.wiki_description = self.cleanup_extract_formatting(extract_text, self.intro_only,
+                                                                    self.max_paragraphs,
+                                                                    self.max_len)
         if 'allimages' in response['query'] and len(response['query']['allimages']) > 0:
             uri = response['query']['allimages'][0]['url']
-            encoded_wiki_image_url = pathname2url(self._wiki_image)
+            encoded_wiki_image_url = pathname2url(self.wiki_image)
             # Trim excess from image path (ex: <imageurl>.png/revision/latest?cb=20201231000000)
             if encoded_wiki_image_url in uri:
-                self._wiki_image_url = uri.split(encoded_wiki_image_url)[0] + encoded_wiki_image_url
+                self.wiki_image_url = uri.split(encoded_wiki_image_url)[0] + encoded_wiki_image_url
 
     @staticmethod
     def _parse_look_description_from_templates(page_wikitext: str) -> Optional[str]:
@@ -336,8 +346,8 @@ class WikiPageSummary:
                 break
 
         # clamp length and add ellipses
-        length = 0 if not look_desc_counts_toward_len or self._look_description is None \
-            else len(self._look_description)
+        length = 0 if not look_desc_counts_toward_len or self.look_description is None \
+            else len(self.look_description)
         max_len = max_len - length
         if max_len <= 0:
             return None
@@ -347,27 +357,6 @@ class WikiPageSummary:
                 result += '...'
 
         return result
-
-    @property
-    def look_description(self) -> Optional[str]:
-        if self.error is not None:
-            raise RuntimeError('Attempted to access unresolved property of WikiPageSummary after '
-                               'WikiPageSummary.load() encountered an API error.')
-        return self._look_description
-
-    @property
-    def wiki_description(self) -> Optional[str]:
-        if self.error is not None:
-            raise RuntimeError('Attempted to access unresolved property of WikiPageSummary after '
-                               'WikiPageSummary.load() encountered an API error.')
-        return self._wiki_description
-
-    @property
-    def wiki_image_url(self) -> Optional[str]:
-        if self.error is not None:
-            raise RuntimeError('Attempted to access unresolved property of WikiPageSummary after '
-                               'WikiPageSummary.load() encountered an API error.')
-        return self._wiki_image_url
 
 
 def get_wiki_namespaces(namespaces: str) -> str:
