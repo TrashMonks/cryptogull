@@ -118,7 +118,8 @@ class WikiPageSummary:
 
         self.look_description = self._parse_look_description_from_templates(wiki_text)
         self.look_description = await self._parse_grammar(self.look_description, wiki_text)
-        template_image = self._parse_image_from_templates(wiki_text, response['parse']['images'])
+        template_image = await self._parse_image_from_templates(self.pagename, wiki_text,
+                                                                response['parse']['images'])
         self.wiki_image = template_image if template_image is not None else self.wiki_image
 
         # We follow up our 'parse' API call with a 'query' call to obtain these additional details:
@@ -208,8 +209,8 @@ class WikiPageSummary:
             ]
             return '\n'.join(look_desc_lines)
 
-    @staticmethod
-    def _parse_image_from_templates(page_wikitext: str, page_images: List[str]) -> Optional[str]:
+    async def _parse_image_from_templates(self, title: str, page_wikitext: str,
+                                          page_images: List[str]) -> Optional[str]:
         """Parses the 'overrideimages' parameter of a page's wikitext, if present. Falls back to
         parsing the 'image' parameter if 'overrideimages' is not found. Designed to parse both
         QBE-generated templates and some manually-maintained templates with these parameters
@@ -225,6 +226,22 @@ class WikiPageSummary:
         if image_match is not None:
             img = image_match.group(1) if image_match.group(2) is None else image_match.group(2)
             img = img.strip()
+            # first, check if the image is provided by a template; if so, expand that template
+            # this occurs for example on mutation pages
+            templated_image = re.match(r'{{.+}}$', img)
+            if templated_image is not None:
+                params = {
+                    'action': 'expandtemplates',
+                    'format': 'json',
+                    'title': title,
+                    'text': img,
+                    'prop': 'wikitext'
+                }
+                async with http_session.get(url=self.url, params=params) as reply:
+                    response = await reply.json()
+                if 'error' in response:
+                    return None  # TODO: consider logging an error here
+                img = response['expandtemplates']['wikitext']
             # find the correct caps/format from the page's image list, if we can
             if len(page_images) > 0:
                 val = img.lower().replace('  ', ' ').replace(' ', '_')
