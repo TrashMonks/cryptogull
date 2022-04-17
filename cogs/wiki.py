@@ -13,7 +13,7 @@ from discord import Message
 from discord.ext.commands import Bot, Cog, Context, command
 
 from helpers.wiki_page import send_single_wiki_page, send_wiki_page_list, send_wiki_error_message, \
-    get_wiki_namespaces, api_opensearch, api_query_list_search
+    get_wiki_namespaces, api_opensearch, api_query_list_search, merge_wikipage_results
 from shared import config, http_session
 
 log = logging.getLogger('bot.' + __name__)
@@ -25,7 +25,7 @@ class Wiki(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
         self.config = config['Wiki']
-        self.title_limit = self.config['title search limit']
+        self.basic_limit = self.config['basic search limit']
         self.fulltext_limit = self.config['fulltext search limit']
         self.url = self.make_wiki_url('api.php')
 
@@ -86,6 +86,9 @@ class Wiki(Cog):
         either a simple list of the top matching page results (if there are multiple results) or
         a single, full-featured embed for the single matching page result.
 
+        Uses a combination of the 'opensearch' API and the 'query&list=search' API to try and get
+        the best possible results that are likely to match the intent of the user.
+
         Args:
             limit: Maximum number of pages to return
             ctx: Discord messaging context
@@ -97,21 +100,28 @@ class Wiki(Cog):
             return await ctx.send_help(ctx.command)
 
         query_namespaces = 'Main,Category,Modding'
-        result_limit = self.title_limit if limit is None else limit
-        err, titles, urls = await api_opensearch(self.url, query, result_limit, query_namespaces)
+        result_limit = self.basic_limit if limit is None else limit
+
+        # opensearch (preserved due to better partial title matching - ex: yonder => yondercane)
+        o_limit = str(max(1, int(result_limit) // 4))  # one-fourth of result limit, rounded down
+        o_err, o_titles, o_urls = await api_opensearch(self.url, query, o_limit,
+                                                       query_namespaces)
+        # query&list=search
+        err, titles, urls, _, _ = await api_query_list_search(self.url, query, result_limit,
+                                                              query_namespaces,
+                                                              retrieve_snippets=False)
         if err is not None:
-            if err['code'] == 'internal_api_error_TypeError':
-                await ctx.send('Sorry, that query didn\'t find any article titles.'
-                               ' Performing fulltext search:')
-                return await(self.wikisearch_helper(ctx, *args))
-            else:
-                try:
-                    info = ''.join(err['info'])
-                    return await ctx.send(f'Sorry, that query caused a search error: "{info}"')
-                except ValueError as e:
-                    log.exception(e)
-                    return await ctx.send('Sorry, that query caused a search error with no'
-                                          ' error message. Exception logged.')
+            try:
+                info = ''.join(err['info'])
+                return await ctx.send(f'Sorry, that query caused a search error: "{info}"')
+            except ValueError as e:
+                log.exception(e)
+                return await ctx.send('Sorry, that query caused a search error with no'
+                                      ' error message. Exception logged.')
+
+        elif o_err is None:
+            titles, urls = merge_wikipage_results((o_titles, o_urls), (titles, urls), result_limit)
+
         if len(titles) == 1:
             return await send_single_wiki_page(ctx, self.url, titles[0], urls[0],
                                                intro_only=True, max_len=620, max_paragraphs=2)
@@ -134,8 +144,9 @@ class Wiki(Cog):
 
         query_namespaces = 'Main,Modding'
         result_limit = self.fulltext_limit
-        err, titles, urls, snips = await api_query_list_search(self.url, query,
-                                                               result_limit, query_namespaces)
+        err, titles, urls, snips, alt_query = await api_query_list_search(self.url, query,
+                                                                          result_limit,
+                                                                          query_namespaces)
         if err is not None:
             try:
                 info = ''.join(err['info'])
@@ -146,7 +157,8 @@ class Wiki(Cog):
                                       ' error message. Exception logged.')
         if len(titles) == 0:
             return await ctx.send('Sorry, no matches were found for that query.')
-        return await send_wiki_page_list(ctx, titles=titles, urls=urls, snippets=snips)
+        intro = None if alt_query is None else f'*Showing results for "{alt_query}":*'
+        return await send_wiki_page_list(ctx, titles=titles, urls=urls, snippets=snips, intro=intro)
 
     async def random_wikipage(self, ctx: Context, *args) -> Message:
         """Sends a random wiki page to the channel.
