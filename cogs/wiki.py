@@ -13,7 +13,7 @@ from discord import Message
 from discord.ext.commands import Bot, Cog, Context, command
 
 from helpers.wiki_page import send_single_wiki_page, send_wiki_page_list, send_wiki_error_message, \
-    pageids_to_urls_and_snippets, get_wiki_namespaces
+    get_wiki_namespaces, api_opensearch, api_query_list_search
 from shared import config, http_session
 
 log = logging.getLogger('bot.' + __name__)
@@ -95,30 +95,23 @@ class Wiki(Cog):
         query = ' '.join(args)
         if query == '' or str.isspace(query):  # If no search term specified, return basic help
             return await ctx.send_help(ctx.command)
-        params = {'action': 'opensearch',
-                  'search': query,
-                  'namespace': get_wiki_namespaces('Main,Category,Modding'),
-                  'limit': self.title_limit if limit is None else limit,
-                  'profile': 'fuzzy',
-                  'redirects': 'resolve',
-                  'format': 'json'}
-        async with http_session.get(url=self.url, params=params) as reply:
-            response = await reply.json()
-        if 'error' in response:
-            if response['error']['code'] == 'internal_api_error_TypeError':
+
+        query_namespaces = 'Main,Category,Modding'
+        result_limit = self.title_limit if limit is None else limit
+        err, titles, urls = await api_opensearch(self.url, query, result_limit, query_namespaces)
+        if err is not None:
+            if err['code'] == 'internal_api_error_TypeError':
                 await ctx.send('Sorry, that query didn\'t find any article titles.'
                                ' Performing fulltext search:')
                 return await(self.wikisearch_helper(ctx, *args))
             else:
                 try:
-                    info = ''.join(response['error']['info'])
+                    info = ''.join(err['info'])
                     return await ctx.send(f'Sorry, that query caused a search error: "{info}"')
                 except ValueError as e:
                     log.exception(e)
                     return await ctx.send('Sorry, that query caused a search error with no'
                                           ' error message. Exception logged.')
-        titles = response[1]
-        urls = response[3]
         if len(titles) == 1:
             return await send_single_wiki_page(ctx, self.url, titles[0], urls[0],
                                                intro_only=True, max_len=620, max_paragraphs=2)
@@ -135,35 +128,25 @@ class Wiki(Cog):
             *args: Additional query parameters
         """
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
-        srsearch = ' '.join(args)
-        if srsearch == '' or str.isspace(srsearch):  # no search term specified, return basic help
+        query = ' '.join(args)
+        if query == '' or str.isspace(query):  # no search term specified, return basic help
             return await ctx.send_help(ctx.command)
-        params = {'format': 'json',
-                  'action': 'query',
-                  'list': 'search',
-                  'srsearch': srsearch,
-                  'srnamespace': 0,
-                  'srwhat': 'text',
-                  'srlimit': self.fulltext_limit,
-                  'srprop': 'snippet'}
-        async with http_session.get(url=self.url, params=params) as reply:
-            response = await reply.json()
-        if 'error' in response:
+
+        query_namespaces = 'Main,Modding'
+        result_limit = self.fulltext_limit
+        err, titles, urls, snips = await api_query_list_search(self.url, query,
+                                                               result_limit, query_namespaces)
+        if err is not None:
             try:
-                info = ''.join(response['error']['info'])
+                info = ''.join(err['info'])
                 return await ctx.send(f'Sorry, that query resulted in a search error: {info}')
             except ValueError as e:
                 log.exception(e)
                 return await ctx.send('Sorry, that query resulted in a search error with no'
                                       ' error message. Exception logged.')
-        matches = len(response['query']['search'])
-        if matches == 0:
+        if len(titles) == 0:
             return await ctx.send('Sorry, no matches were found for that query.')
-        results = response['query']['search']
-        urls, snips = await pageids_to_urls_and_snippets(self.url,
-                                                         [item['pageid'] for item in results])
-        return await send_wiki_page_list(ctx, titles=[match['title'] for match in results],
-                                         urls=urls, snippets=snips)
+        return await send_wiki_page_list(ctx, titles=titles, urls=urls, snippets=snips)
 
     async def random_wikipage(self, ctx: Context, *args) -> Message:
         """Sends a random wiki page to the channel.
