@@ -548,6 +548,35 @@ async def send_wiki_error_message(ctx: Context, message: str) -> Message:
     return await ctx.send(embed=Embed(colour=WIKI_PAGE_ERROR_EMBED_COLOR, description=message))
 
 
+def merge_wikipage_results(page_list1: Tuple[list[str], list[str]],
+                           page_list2: Tuple[list[str], list[str]], limit: int) \
+                           -> Tuple[list[str], list[str]]:
+    """Merges two sets of wikipage results. Intended to merge opensearch and query&list=search API
+    results to get the best of both algorithms. There are certain features that each have that can't
+    be replicated in the other. Generally query&list=search is the better API, but it fails to
+    capture partial title matches (ex: search for 'Yonder' doesn't return the 'Yondercane' page).
+
+    The first set of results provided will be preferred & put at the top of the list. Duplicates
+    will be removed from the merged list.
+
+    Args:
+        page_list1: 1st set of results - tuple including page titles and page URLs as parallel lists
+        page_list2: 2nd set of results in the same format
+        limit: maximum number of (merged) results to return
+    """
+    unique_urls = set(page_list1[1].copy())
+    titles = page_list1[0].copy()
+    urls = page_list1[1].copy()
+    for title, url in zip(*page_list2):
+        if len(urls) >= limit:
+            break
+        if url not in unique_urls:
+            unique_urls.add(url)
+            titles.append(title)
+            urls.append(url)
+    return titles, urls
+
+
 async def pageids_to_urls(api_url: str, pageids: list) -> list:
     """Return a list of the full URLs for a list of existing page IDs."""
     str_pageids = [str(pageid) for pageid in pageids]
