@@ -42,7 +42,7 @@ IGNORED_WIKI_IMAGES = [  # images to always ignore and not display in wikipage e
     'AmboxVisage.png',
     'Water.png',  # Intentional, otherwise liquids show up on every faction page because they're
     'Blood.png',  # listed as water ritual liquids. Liquid wiki pages continue to work fine despite
-    'Oil.png',    # these exlusions due to the presense of alternate tiles, so this is okay.
+    'Oil.png',    # these exclusions due to the presense of alternate tiles, so this is okay.
 ]
 
 
@@ -75,7 +75,7 @@ class WikiPageSummary:
         """
         self.url: str = api_url
         self.intro_only: bool = intro_only
-        self.max_paragraphs = max_paragraphs
+        self.max_paragraphs: int = max_paragraphs
         self.exintro_param: bool = intro_only
         self.max_len: int = max_len if 1200 >= max_len > 0 else 1200
         self.pagename: str = page_name
