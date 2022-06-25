@@ -10,7 +10,7 @@ pre-commit = "*"
 
 [packages]
 pyyaml = "*"
-hagadias = {git = "https://github.com/TrashMonks/hagadias.git",ref = "main"}
+hagadias = {editable = true, ref = "main", git = "https://github.com/TrashMonks/hagadias.git"}
 fuzzywuzzy = "*"
 aiodns = "*"
 oauthlib = "*"
