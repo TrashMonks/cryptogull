@@ -16,7 +16,7 @@ class Corpus:
 
         # Load corpus from game files
         self.load_json(config['Qud install folder'] +
-                       "/CoQ_Data/StreamingAssets/Base/QudCorpus.txt")
+                       "/CoQ_Data/StreamingAssets/Base/LibraryCorpus.json")
 
     def generate_sentence(self, seed="") -> str:
         """Generate a single sentence. First two words are seeded/randomly picked."""
