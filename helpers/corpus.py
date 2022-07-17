@@ -1,5 +1,6 @@
 import json
 import random
+import re
 from shared import config
 
 
@@ -17,6 +18,47 @@ class Corpus:
         # Load corpus from game files
         self.load_json(config['Qud install folder'] +
                        "/CoQ_Data/StreamingAssets/Base/LibraryCorpus.json")
+        self.load_json(config['Qud install folder'] +
+                       "/CoQ_Data/StreamingAssets/Base/QudCorpus.txt")
+
+    def get_pair(self, seed):
+        # Finds a pair, but only one. Returns None if no pairs were found at all.
+        pair = self.get_pairs(seed)
+        if len(pair) == 0:
+            return None
+        return pair[random.randint(0, len(pair)-1)]
+
+    def get_pairs(self, seed, strictmatch=False):
+        # Returns a proper pair for corpus matching. If seed is only one word,
+        # #returns a list of pairs starting with the word, case insensitive.
+        # If two words, will attempt to match pairs, ignoring punctuation
+        # and capitalization.
+
+        text = ' '.join(seed)
+        flags = 0
+        regex = r""
+        if len(seed) >= 2:
+            if strictmatch:
+                return self.chain[text]
+            else:
+                possiblepairs = []
+                # remove punctuation from seed
+                cleanedseed = re.search(r"\b(\w+)\b.+\b(\w+)\b", text).groups()
+                flags = re.IGNORECASE
+                regex = fr"\b{cleanedseed[0]}\b.+\b{cleanedseed[1]}\b"
+            for pair in self.chain:
+                if re.search(regex, pair, flags=flags) is not None:
+                    possiblepairs.append(pair)
+            return possiblepairs
+        else:
+            possiblepairs = []
+            if not strictmatch:
+                flags = re.IGNORECASE
+            regex = fr"^\W*\b{text}\b"
+            for pair in self.chain:
+                if re.search(regex, pair, flags=flags) is not None:
+                    possiblepairs.append(pair)
+            return possiblepairs
 
     def generate_sentence(self, seed="") -> str:
         """Generate a single sentence. First two words are seeded/randomly picked."""
@@ -84,9 +126,15 @@ class Corpus:
     def load_json(self, path):
         with open(path, encoding='utf-8') as json_file:
             data = json.load(json_file)
-        for key, value in zip(data["keys"], data["values"]):
-            if len(value):  # guard against buggy key:value pairs with "" as the value
-                self.chain[key] = value.split('\u0001')
+        for key, values in zip(data["keys"], data["values"]):
+            if len(values):  # guard against buggy key:value pairs with "" as the value
+                splitvalues = values.split('\u0001')
+                if key in self.chain:
+                    for value in splitvalues:
+                        if value not in self.chain[key]:
+                            self.chain[key].append(value)
+                else:
+                    self.chain[key] = splitvalues
         self.order = data["order"]
         self.openingwords = data["OpeningWords"]
         self._append_secret()
