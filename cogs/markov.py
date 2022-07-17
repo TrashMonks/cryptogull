@@ -16,9 +16,8 @@ class Markov(Cog):
 
     @command()
     async def incorpus(self, ctx: Context, *args):
-        """ Return the next possible phrases for the given phrase.
-            If only one works, will return all 2 word phrases containing it.
-            Tries to ignore case and punctuation."""
+        """ Returns all corpus phrases that contain the arguments, ignoring
+            capitalization and punctuation."""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
 
         msg = self.corpus.get_pairs(args)
@@ -33,7 +32,7 @@ class Markov(Cog):
         msgstr = "\"" + '\", \"'.join(msg) + "\""
         if itemstruncated > 0:
             msgstr += f", *...{itemstruncated} additional pairs hidden*"
-        return await ctx.send(f"These words can be used for the corpus: {msgstr}")
+        return await ctx.send(f"These phrases are in the corpus: {msgstr}")
 
     @command()
     async def sleeptalk(self, ctx: Context, *args):
