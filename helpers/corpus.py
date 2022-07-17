@@ -30,16 +30,16 @@ class Corpus:
 
     def get_pairs(self, seed, strictmatch=False):
         # Returns a proper pair for corpus matching. If seed is only one word,
-        # #returns a list of pairs starting with the word, case insensitive.
-        # If two words, will attempt to match pairs, ignoring punctuation
-        # and capitalization.
+        # returns a list of pairs starting with the word, case insensitive.
 
         text = ' '.join(seed)
         flags = 0
         regex = r""
         if len(seed) >= 2:
-            if strictmatch:
-                return self.chain[text]
+            if strictmatch:  # TODO: have strictmatch actually togglable
+                if text in self.chain:
+                    return text
+                return []
             else:
                 possiblepairs = []
                 # remove punctuation from seed
