@@ -19,7 +19,12 @@ class Markov(Cog):
         """ Returns all corpus phrases that contain the arguments, ignoring
             capitalization and punctuation."""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
-
+        if len(args) == 0:
+            return await ctx.send("Usage: `?incorpus [1-2 word phrase]`\n"
+                                  + "If the words are found in the corpus, I will return the actual"
+                                  + " phrases found. Remove the brackets!")
+        if len(args) > 2:
+            return await ctx.send("That's too many words! You only need one or two.")
         msg = self.corpus.get_pairs(args)
         itemstruncated = 0
         if len(msg) == 0:
