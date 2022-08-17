@@ -1,4 +1,5 @@
--   repo: https://gitlab.com/pycqa/flake8
-    rev: '4.0.1'  # pick a git hash / tag to point to
+repos:
+-   repo: https://github.com/PyCQA/flake8
+    rev: 5.0.4
     hooks:
     -   id: flake8
