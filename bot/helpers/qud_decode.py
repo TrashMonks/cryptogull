@@ -33,11 +33,23 @@ class Character:
                     self.selection_noun = 'Mutation' if 'Mutation' in module['moduleType']\
                         else 'Cybernetic'
                     for selection in module['data']['selections']:
-                        if selection['Count'] == 1:
-                            self.selections.append(selection[self.selection_noun])
-                        else:
-                            self.selections.append(selection[self.selection_noun] +
-                                                   f' x{selection["Count"]}')
+                        mod = selection[self.selection_noun]
+                        if selection['Count'] > 1:
+                            # Unstable Genome stack
+                            self.selections.append(mod + f' x{selection["Count"]}')
+                            continue
+                        if self.selection_noun == "Cybernetic" and mod is None:
+                            # True Kin with no implant - +1 toughness
+                            self.bonuses[2] += 1
+                            self.selections.append("None")
+                            continue
+                        self.selections.append(mod)  # regular mutation or cybernetic
+                        if mod in gamecodes["mod_bonuses"]:
+                            # some mutations or implants confer stat bonuses
+                            self.bonuses = list(
+                                map(add, self.bonuses, gamecodes["mod_bonuses"][mod])
+                            )
+
                 case ['XRL.CharacterBuilds.Qud.QudAttributesModule', *_]:
                     pointspurchased = module['data']['PointsPurchased']
                     base = 10 if self.genotype == 'Mutated Human' else 12
