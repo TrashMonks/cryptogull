@@ -10,7 +10,7 @@ game_colors = gameroot.get_colors()
 
 QUD_WHITE = constants.QUD_COLORS['y']
 QUD_YELLOW = constants.QUD_COLORS['W']
-QUD_VIRIDIAN = constants.QUD_VIRIDIAN
+QUD_VIRIDIAN = constants.QUD_COLORS['k']
 FONT = ImageFont.truetype('helpers/SourceCodePro-Bold.ttf', 28)
 CHARSIZE = (17, 26)
 MAXW = 48
