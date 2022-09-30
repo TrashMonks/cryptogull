@@ -10,12 +10,12 @@ To develop on this project, you first need to have Python 3.8 installed on your 
  
 The second requirement is Git. For Windows users, install [Git for Windows](https://git-scm.com/download/win) and use the default options. For Debian-derived Linux distributions, `sudo apt install git`.
 
-To obtain the source code, run `git clone` the repo to your hard drive and set up a virtual environment by running `pipenv` in the repo directory. For Windows:
+To obtain the source code, run `git clone` the repo to your hard drive and set up a virtual environment by running `poetry` in the repo directory. For Windows:
 ```bash
-python -m pip install --user pipenv  # install pipenv on your system
+python -m pip install --user poetry  # install poetry on your system
 cd repo-folder                       # insert your repo directory
-python -m pipenv install --dev       # create a virtual environment for the current directory
-                                     # and install requirements from Pipfile,
+python -m poetry install             # create a virtual environment for the current directory
+                                     # and install requirements from poetry.lock,
                                      # including development dependencies
 ```
 
