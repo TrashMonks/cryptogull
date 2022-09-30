@@ -461,7 +461,7 @@ async def api_query_list_search(api_url: str, query: str, limit: str, namespaces
     if len(results) == 0:
         try:
             suggested_term = response['query']['searchinfo']['suggestion']
-        except (ValueError, KeyError) as e:
+        except (ValueError, KeyError):
             suggested_term = None
         if not follow_suggestions or suggested_term is None:
             return None, [], [], [], None
