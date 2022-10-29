@@ -9,8 +9,8 @@ from discord import Embed, File
 from discord.ext import commands
 from fuzzywuzzy import process
 
-from helpers.find_blueprints import find_name_or_displayname
-from shared import qindex
+from bot.helpers.find_blueprints import find_name_or_displayname
+from bot.shared import qindex
 
 log = logging.getLogger('bot.' + __name__)
 

@@ -11,10 +11,10 @@ from discord.ext.commands import Cog, Bot, Context, command
 from hagadias.qudtile import QUD_COLORS, QudTile
 from hagadias.tileanimator import TileAnimator, GifHelper
 
-from helpers.find_blueprints import find_name_or_displayname, fuzzy_find_nearest
-from helpers.tile_variations import parse_variation_parameters, get_tile_variation_details
-from helpers.corpus import corpus
-from shared import qindex
+from bot.helpers.find_blueprints import find_name_or_displayname, fuzzy_find_nearest
+from bot.helpers.tile_variations import parse_variation_parameters, get_tile_variation_details
+from bot.helpers.corpus import corpus
+from bot.shared import qindex
 
 
 log = logging.getLogger('bot.' + __name__)

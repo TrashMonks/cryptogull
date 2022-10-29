@@ -1,5 +1,5 @@
 """Commands for random text generation."""
-from helpers.corpus import corpus
+from bot.helpers.corpus import corpus
 import logging
 
 from discord.ext.commands import Cog, Bot, Context, command

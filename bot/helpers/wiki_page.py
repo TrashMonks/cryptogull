@@ -7,7 +7,7 @@ from discord import Message, Embed, Colour
 from discord.ext.commands import Context
 from yarl import URL
 
-from shared import http_session
+from bot.shared import http_session
 
 WIKI_FAVICON = 'https://wiki.cavesofqud.com/images/0/05/Wiki-icon-used-by-CoQ-Discord-bot.png'  # noqa E501
 WIKI_SINGLE_PAGE_EMBED_COLOR = Colour(0xc3c9b1)

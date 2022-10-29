@@ -5,7 +5,7 @@ from discord import Embed
 from discord.ext.commands import Cog, Bot
 import asyncpraw
 
-from shared import config
+from bot.shared import config
 
 log = logging.getLogger('bot.' + __name__)
 

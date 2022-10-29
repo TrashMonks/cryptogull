@@ -4,7 +4,7 @@ from pathlib import Path
 from discord import TextChannel
 from discord.ext.commands import Cog, Context, command
 
-from shared import http_session
+from bot.shared import http_session
 
 
 class MelindaProtocol(Cog):

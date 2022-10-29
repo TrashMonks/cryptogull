@@ -7,7 +7,7 @@ import discord
 from discord.ext.commands import Cog, Bot, Context
 from oauthlib.oauth2 import BackendApplicationClient
 
-from shared import config, http_session
+from bot.shared import config, http_session
 
 log = logging.getLogger('bot.' + __name__)
 

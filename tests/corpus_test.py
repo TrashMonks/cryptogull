@@ -2,7 +2,7 @@
 Pytest tests for the single instance of Corpus in corpus.py
 """
 
-from helpers.corpus import corpus
+from bot.helpers.corpus import corpus
 
 
 def test_corpus():

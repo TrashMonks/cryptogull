@@ -1,7 +1,7 @@
 import json
 import random
 import re
-from shared import config
+from bot.shared import config
 
 
 class Corpus:

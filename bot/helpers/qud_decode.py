@@ -8,7 +8,7 @@ from typing import List
 
 from hagadias.qudtile import QudTile
 
-from shared import gameroot
+from bot.shared import gameroot
 gamecodes = gameroot.get_character_codes()
 
 

@@ -4,7 +4,7 @@ from hagadias import constants
 from hagadias.helpers import iter_qud_colors, strip_newstyle_qud_colors
 from PIL import Image, ImageFont, ImageDraw
 
-from shared import gameroot
+from bot.shared import gameroot
 game_colors = gameroot.get_colors()
 
 

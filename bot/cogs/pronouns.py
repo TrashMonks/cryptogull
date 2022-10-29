@@ -3,8 +3,8 @@ import logging
 
 from discord.ext.commands import Bot, Cog, Context, command
 
-from helpers.find_blueprints import find_name_or_displayname, fuzzy_find_nearest
-from shared import genders, qindex
+from bot.helpers.find_blueprints import find_name_or_displayname, fuzzy_find_nearest
+from bot.shared import genders, qindex
 
 log = logging.getLogger('bot.' + __name__)
 

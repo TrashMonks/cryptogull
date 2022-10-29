@@ -9,8 +9,8 @@ from discord.channel import DMChannel
 from discord.ext.commands import Bot, Cog
 from discord.message import Message
 
-from helpers.qud_decode import Character, Pre202Character
-from shared import config
+from bot.helpers.qud_decode import Character, Pre202Character
+from bot.shared import config
 
 log = logging.getLogger('bot.' + __name__)
 

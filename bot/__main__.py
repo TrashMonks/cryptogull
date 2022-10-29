@@ -5,20 +5,20 @@ from pathlib import Path
 import discord
 from discord.ext.commands import Bot, CommandOnCooldown
 
-from cogs.blueprints import BlueprintQuery
-from cogs.bugs import Bugs
-from cogs.cryochamber import Cryochamber
-from cogs.decode import Decode
-from cogs.dice import Dice
-from cogs.hitdabricks import Hitdabricks
-from cogs.markov import Markov
-from cogs.pronouns import Pronouns
-from cogs.reddit import Reddit
-from cogs.say import Say
-from cogs.tiles import Tiles
-from cogs.wiki import Wiki
+from bot.cogs.blueprints import BlueprintQuery
+from bot.cogs.bugs import Bugs
+from bot.cogs.cryochamber import Cryochamber
+from bot.cogs.decode import Decode
+from bot.cogs.dice import Dice
+from bot.cogs.hitdabricks import Hitdabricks
+from bot.cogs.markov import Markov
+from bot.cogs.pronouns import Pronouns
+from bot.cogs.reddit import Reddit
+from bot.cogs.say import Say
+from bot.cogs.tiles import Tiles
+from bot.cogs.wiki import Wiki
 
-from shared import config
+from bot.shared import config
 
 intents = discord.Intents.default()
 intents.members = True
