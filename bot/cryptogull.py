@@ -1,3 +1,4 @@
+"""Custom Bot class."""
 from discord.ext.commands import Bot
 
 from bot.cogs.blueprints import BlueprintQuery
@@ -15,6 +16,7 @@ from bot.cogs.wiki import Wiki
 
 
 class CryptogullBot(Bot):
+    """Inherit from Bot to override setup_hook."""
     async def setup_hook(self):
         await self.add_cog(BlueprintQuery(self))
         await self.add_cog(Bugs(self))

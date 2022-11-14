@@ -1,3 +1,4 @@
+"""Main entry point into the bot."""
 import datetime
 import logging
 from pathlib import Path
@@ -16,7 +17,7 @@ LOGDIR = Path(config['Log folder'])
 
 
 def setup_logger() -> logging.Logger:
-    """Create and return the master Logger object."""
+    """Create and return our top level Logger object."""
     LOGDIR.mkdir(exist_ok=True)
     timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
     logfile = LOGDIR / f'{timestamp}.log'
@@ -35,6 +36,7 @@ def setup_logger() -> logging.Logger:
 
 
 def main():
+    """Set up and pass control to the bot."""
     log = setup_logger()
     activity = discord.Game("?help in #bot-spam")
     bot = CryptogullBot(command_prefix=config['Prefix'], activity=activity, intents=intents)
