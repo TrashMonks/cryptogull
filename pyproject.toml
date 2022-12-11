@@ -7,7 +7,7 @@ license = "AGPL-3.0"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-"discord.py" = "^2.0.1"
+"discord.py" = "^2.1.0"
 PyYAML = "^6.0"
 fuzzywuzzy = "^0.18.0"
 oauthlib = "^3.2.2"
