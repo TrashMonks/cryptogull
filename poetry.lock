@@ -274,7 +274,7 @@ speedup = ["python-levenshtein (>=0.12)"]
 
 [[package]]
 name = "hagadias"
-version = "1.1.3"
+version = "1.2.0"
 description = "Extract game data from the Caves of Qud roguelike"
 category = "main"
 optional = false
@@ -642,7 +642,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "3161482026a24220bd6115a62f4438b0f9005dabf5ac478181a41a15f42bbb10"
+content-hash = "9e7677acb53a4e26bd0a4241ba1a38a510a45861f078482c7b358eb39ace77a0"
 
 [metadata.files]
 aiofiles = [
@@ -879,8 +879,8 @@ fuzzywuzzy = [
     {file = "fuzzywuzzy-0.18.0.tar.gz", hash = "sha256:45016e92264780e58972dca1b3d939ac864b78437422beecebb3095f8efd00e8"},
 ]
 hagadias = [
-    {file = "hagadias-1.1.3-py3-none-any.whl", hash = "sha256:84f683b2c607cc861f90d2094e2c5eaf59a76df3466cf95f7c95b387756b48dd"},
-    {file = "hagadias-1.1.3.tar.gz", hash = "sha256:5cff54ee7fb6ba8b454ec0e0daa049deb846d8938578dc2bfa9ddf3d69940e75"},
+    {file = "hagadias-1.2.0-py3-none-any.whl", hash = "sha256:34d650a1f9cd160626e3764465716af285a95887b748210fbdc793a4e8d5b935"},
+    {file = "hagadias-1.2.0.tar.gz", hash = "sha256:4f73598484f0fb86d741196a8704e9ed6339afb2de1a65be965a101ee33d078e"},
 ]
 identify = [
     {file = "identify-2.5.5-py2.py3-none-any.whl", hash = "sha256:ef78c0d96098a3b5fe7720be4a97e73f439af7cf088ebf47b620aeaa10fadf97"},

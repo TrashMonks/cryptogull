@@ -1,4 +1,5 @@
-﻿from textwrap import TextWrapper
+﻿import importlib.resources
+from textwrap import TextWrapper
 
 from hagadias import constants
 from hagadias.helpers import iter_qud_colors, strip_newstyle_qud_colors
@@ -11,7 +12,9 @@ game_colors = gameroot.get_colors()
 QUD_WHITE = constants.QUD_COLORS['y']
 QUD_YELLOW = constants.QUD_COLORS['W']
 QUD_VIRIDIAN = constants.QUD_COLORS['k']
-FONT = ImageFont.truetype('bot/helpers/SourceCodePro-Bold.ttf', 28)
+# this font file is now used from hagadias' assets dir instead of being included
+font_path = importlib.resources.files("hagadias") / 'assets' / 'SourceCodePro-Bold.ttf'
+FONT = ImageFont.truetype(str(font_path), 28)
 CHARSIZE = (17, 26)
 MAXW = 48
 MINW = 13

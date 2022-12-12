@@ -14,5 +14,3 @@ See `CONTRIBUTING.md`.
 
 ## License
 Cryptogull is licensed under the terms of the GNU Affero General Public License Version 3. See the file LICENSE for details.
-
-The included font Source Code Pro is used under the terms of the SIL Open Font License 1.1.
