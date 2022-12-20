@@ -18,4 +18,4 @@ jobs:
         python -m pip install poetry
         poetry install
         poetry run flake8
-        poetry run pytest
+#        poetry run pytest
