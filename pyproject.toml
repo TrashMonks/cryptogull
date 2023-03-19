@@ -12,7 +12,7 @@ PyYAML = "^6.0"
 fuzzywuzzy = "^0.18.0"
 oauthlib = "^3.2.2"
 asyncpraw = "^7.6.0"
-hagadias = "^1.2.0"
+hagadias = "1.2.1"
 Levenshtein = "^0.20.9"
 
 [tool.poetry.group.dev.dependencies]
