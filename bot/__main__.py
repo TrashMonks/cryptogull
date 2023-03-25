@@ -10,6 +10,7 @@ from bot.cogs.bugs import Bugs
 from bot.cogs.cryochamber import Cryochamber
 from bot.cogs.decode import Decode
 from bot.cogs.dice import Dice
+from bot.cogs.gamever import GameVersion
 from bot.cogs.hitdabricks import Hitdabricks
 from bot.cogs.markov import Markov
 from bot.cogs.pronouns import Pronouns
@@ -65,6 +66,7 @@ def main():
     bot.add_cog(Cryochamber(bot))
     bot.add_cog(Decode(bot))
     bot.add_cog(Dice(bot))
+    bot.add_cog(GameVersion(bot))
     bot.add_cog(Hitdabricks(bot))
     bot.add_cog(Markov(bot))
     bot.add_cog(Pronouns(bot))
