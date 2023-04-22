@@ -13,7 +13,7 @@ fuzzywuzzy = "^0.18.0"
 oauthlib = "^3.2.2"
 asyncpraw = "^7.6.0"
 hagadias = "1.2.1"
-Levenshtein = "^0.20.9"
+Levenshtein = "^0.21.0"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^6.0.0"
