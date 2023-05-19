@@ -16,7 +16,7 @@ from bot.cogs.markov import Markov
 from bot.cogs.pronouns import Pronouns
 from bot.cogs.reddit import Reddit
 from bot.cogs.say import Say
-from bot.cogs.theinherentlyindescribablenatureoftheuniverse import Theinherentlyindescribablenatureoftheuniverse
+from bot.cogs.theinherentlyindescribablenatureoftheuniverse import Theinherentlyindescribablenatureoftheuniverse # noqa E501
 from bot.cogs.tiles import Tiles
 from bot.cogs.wiki import Wiki
 
