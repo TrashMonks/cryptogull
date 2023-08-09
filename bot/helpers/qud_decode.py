@@ -9,7 +9,10 @@ from typing import List
 from hagadias.qudtile import QudTile
 
 from bot.shared import gameroot
+
 gamecodes = gameroot.get_character_codes()
+
+ATTR_NAMES = ("Strength", "Agility", "Toughness", "Intelligence", "Willpower", "Ego")
 
 
 class Character:
@@ -52,7 +55,9 @@ class Character:
                 case ['XRL.CharacterBuilds.Qud.QudAttributesModule', *_]:
                     pointspurchased = module['data']['PointsPurchased']
                     base = 10 if self.genotype == 'Mutated Human' else 12
-                    self.attributes = [base + attr for name, attr in pointspurchased.items()]
+                    self.attributes = []
+                    for attribute in ATTR_NAMES:
+                        self.attributes.append(base + pointspurchased[attribute])
                 case ['XRL.CharacterBuilds.Qud.QudCustomizeCharacterModule', *_]:
                     self.name = module['data']['name']
                     self.pet = module['data']['pet']
@@ -69,11 +74,10 @@ class Character:
     def make_sheet(self) -> str:
         """Build a printable character sheet for the Character."""
         attr_widths = (11, 11, 11, 14, 14, 14)
-        attr_names = ('Strength:', 'Agility:', 'Toughness:', 'Intelligence:', 'Willpower:', 'Ego:')
         attr_strings = []
 
-        for width, attr_text, attr, bonus in zip(attr_widths,
-                                                 attr_names,
+        for width, attr_name, attr, bonus in zip(attr_widths,
+                                                 ATTR_NAMES,
                                                  self.attributes,
                                                  self.bonuses):
             # print a +/- in front of any existing bonus
@@ -83,15 +87,15 @@ class Character:
                 bonus_text = f'{bonus}'  # already has a minus sign
             else:
                 bonus_text = ''
-            attr_strings.append(f'{attr_text:{width}}{attr:2}{bonus_text}')
+            attr_strings.append(f'{attr_name:{width}}{attr:2}{bonus_text}')
         if hasattr(self, 'name') and self.name is not None:
             title = f'{self.name} the {self.genotype} {self.subtype}'
         else:
             title = f'{self.genotype} {self.subtype}'
         charsheet = f"""{title}
-{attr_strings[0]:18}{attr_strings[3]}
-{attr_strings[1]:18}{attr_strings[4]}
-{attr_strings[2]:18}{attr_strings[5]}"""
+{attr_strings[0]:20}{attr_strings[3]}
+{attr_strings[1]:20}{attr_strings[4]}
+{attr_strings[2]:20}{attr_strings[5]}"""
         charsheet += f"\n{self.selection_noun}s: {', '.join(self.selections)}\n"
         charsheet += f"Starting location: {self.startinglocation}"
         return charsheet
