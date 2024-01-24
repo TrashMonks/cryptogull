@@ -24,7 +24,7 @@ Bugs:
   ]
   trigger: 🐛
   success reaction: ☑
-  fail reaction: ❌
+  fail reaction: ⚠️
   title max length: 80
   endpoint: https://api.bitbucket.org/2.0/repositories/test/test-issue-tracker/issues
   oauth2 key: xxxxxxxxxxxxxxxxxx
