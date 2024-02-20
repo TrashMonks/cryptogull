@@ -62,7 +62,7 @@ class BlueprintQuery(commands.Cog):
 
     @commands.command()
     async def xml(self, ctx: commands.Context, *args):
-        """Display the XMl source of a specific blueprint."""
+        """Display the XML source of a specific blueprint."""
         log.info(f'({ctx.message.channel}) <{ctx.message.author}> {ctx.message.content}')
         query = ' '.join(args)
         if query == '' or str.isspace(query) or len(query) < 2:
