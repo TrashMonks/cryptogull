@@ -19,6 +19,8 @@ python -m poetry install             # create a virtual environment for the curr
                                      # including development dependencies
 ```
 
+See the [Poetry documentation](https://python-poetry.org/docs/basic-usage/#using-your-virtual-environment) for details on using the virtual environment once it's set up.
+
 # Pull requests
 Pull requests are welcome. Please run `flake8` and `pytest` to ensure that your code will pass the automatic test first.
 
