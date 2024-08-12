@@ -47,15 +47,11 @@ server, in the `#code-of-conduct` channel.
 ## Example docker commands
 To build and run the bot:
 
-```
+```bash
 docker build . -t cryptogull:latest
-docker run -it --rm -v ./config.yml:/home/cryptogull/config.yml -v "./Caves of Qud":"/home/cryptogull/Caves of Qud" --name cryptogull cryptogull:latest
+docker run -it --rm -v ./config.yml:/home/cryptogull/config.yml -v "C:\Steam\steamapps\common\Caves of Qud":"/home/cryptogull/Caves of Qud" -v ./Textures:/home/cryptogull/Textures --name cryptogull cryptogull:latest
 ```
 
-The above command assumes that `config.yml` is already filled out and that the
-project directory contains `./Caves of Qud/` with the game data. Here's another
-example with game data located in `C:\Steam\steamapps\common\Caves of Qud`:
-
-```
-docker run -it --rm -v ./config.yml:/home/cryptogull/config.yml -v "C:\Steam\steamapps\common\Caves of Qud":"/home/cryptogull/Caves of Qud" --name cryptogull cryptogull:latest
-```
+This attaches `./config.yml`, `./Caves of Qud/` (the game data folder), and
+`./Textures/` (tile images), from your project directory, as volumes inside the
+container at runtime.
