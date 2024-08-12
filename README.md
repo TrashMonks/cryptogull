@@ -52,6 +52,11 @@ docker build . -t cryptogull:latest
 docker run -it --rm -v ./config.yml:/home/cryptogull/config.yml -v "C:\Steam\steamapps\common\Caves of Qud":"/home/cryptogull/Caves of Qud" -v ./Textures:/home/cryptogull/Textures --name cryptogull cryptogull:latest
 ```
 
-This attaches `./config.yml`, `./Caves of Qud/` (the game data folder), and
-`./Textures/` (tile images), from your project directory, as volumes inside the
-container at runtime.
+This attaches the config file, game data folder, and tile art folder as volumes
+inside the running container.
+
+## Tile support
+Tile support requires a full extract of the game Textures directory. To get an
+up-to-date copy of the game textures, install the
+[brinedump](https://github.com/TrashMonks/brinedump) mod and use the
+`brinedump:textures` wish.
