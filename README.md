@@ -29,7 +29,7 @@ server, in the `#code-of-conduct` channel.
    bot token. Copy this token into the `Discord token:` field in `config.yml`.
 5. Turn on the "Server Members Intent" slider in the Bot tab.   
 6. If you don't have a private Discord server to test in, make one.
-7. Grab the 'Client ID' from the 'General Information' tab of the Discord
+7. Grab the 'Application ID' from the 'General Information' tab of the Discord
    application you created (different from your bot token!)
 8. Grab the permissions number you need from the 'Bot' tab of the Discord
    application you created. This should be 100352, which is the number created
