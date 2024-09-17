@@ -48,6 +48,7 @@ class Bugs(Cog):
             return
         try:
             response = await self.create_bitbucket_issue(ctx, reacter)
+            assert response["type"] != "error", "Received error response: " + str(response)
         except Exception as e:
             log.exception(e)
             return await ctx.message.add_reaction(self.config['fail reaction'])
