@@ -18,8 +18,6 @@ class Corpus:
         # Load corpus from game files
         self.load_json(config['Qud install folder'] +
                        "/CoQ_Data/StreamingAssets/Base/LibraryCorpus.json")
-        self.load_json(config['Qud install folder'] +
-                       "/CoQ_Data/StreamingAssets/Base/QudCorpus.txt")
 
     def get_pair(self, seed):
         # Finds a pair, but only one. Returns None if no pairs were found at all.

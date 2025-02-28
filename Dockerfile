@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.13-slim
 
 # add user and drop root permissions
 ENV USER=cryptogull
@@ -16,7 +16,7 @@ ENV PATH=${PATH}:/home/${USER}/.local/bin
 
 # install dependencies
 RUN pip install --disable-pip-version-check --user poetry && \
-    poetry install --no-dev
+    poetry install --without dev
 
 ENV PYTHONUNBUFFERED=True
 HEALTHCHECK NONE
