@@ -1,11 +1,9 @@
 import io
 import logging
-import time
 
 import aiohttp
 import discord
 from discord.ext.commands import Cog, Bot, Context
-from oauthlib.oauth2 import BackendApplicationClient
 
 from bot.shared import config, http_session
 
@@ -18,7 +16,7 @@ class Bugs(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
         self.config = config['Bugs']
-        self.oauthclient = BackendApplicationClient(self.config['oauth2 key'])
+        self.auth = aiohttp.BasicAuth(self.config['bot username'], self.config['bot password'])
 
     @Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
@@ -65,25 +63,10 @@ class Bugs(Cog):
         except Exception as e:
             log.exception(e)
 
-    async def check_oauth_token(self):
-        """Create or refresh our Bitbucket OAuth2 token."""
-        # is our token nonexistent, expired, or expiring in the next 30 seconds?
-        if self.oauthclient.expires_in is None or \
-                self.oauthclient.expires_in < time.time() + 30:
-            auth = aiohttp.BasicAuth(self.config['oauth2 key'],
-                                     self.config['oauth2 secret'])
-            data = {'grant_type': 'client_credentials'}
-            async with http_session.post(url="https://bitbucket.org/site/oauth2/access_token",
-                                         data=data,
-                                         auth=auth) as response:
-                text = await response.text()
-                self.oauthclient.parse_request_body_response(text)
-
     async def create_bitbucket_issue(self, ctx: Context, requester: discord.User):
         """Create a Bitbucket issue regarding the given Discord Context.
 
         Return the Bitbucket API response."""
-        await self.check_oauth_token()
         title = ctx.message.clean_content
         if len(title) > self.config['title max length']:
             title = title[:self.config['title max length']] + "..."
@@ -103,9 +86,8 @@ Message ([jump](https://discordapp.com/channels/{ctx.guild.id}/{ctx.channel.id}/
                 'raw': content
             }
         }
-        headers = {'Authorization': f'Bearer {self.oauthclient.token["access_token"]}'}
         async with http_session.post(self.config['endpoint'],
-                                     headers=headers,
+                                     auth=self.auth,
                                      json=params) as request:
             response = await request.json()
         return response
@@ -114,10 +96,9 @@ Message ([jump](https://discordapp.com/channels/{ctx.guild.id}/{ctx.channel.id}/
         """Upload any attachments from the given Discord Context to the issue ID."""
         for num, attachment in enumerate(ctx.message.attachments):
             log.info(f'Uploading attachment {num}: {attachment.filename} ({attachment.size} bytes)')
-            headers = {'Authorization': f'Bearer {self.oauthclient.token["access_token"]}'}
             stream = io.BytesIO()
             await attachment.save(stream, seek_begin=True)
             data = aiohttp.FormData()
             data.add_field('file', stream, filename=attachment.filename)
             url = f'{self.config["endpoint"]}/{issue_id}/attachments'
-            await http_session.post(url, headers=headers, data=data)
+            await http_session.post(url, auth=self.auth, data=data)

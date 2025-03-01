@@ -27,7 +27,7 @@ server, in the `#code-of-conduct` channel.
 4. Skip directly to the "Bot" tab of the application you created. Set the icon
    and username here. These can be changed later. Click the button to reveal the
    bot token. Copy this token into the `Discord token:` field in `config.yml`.
-5. Turn on the "Server Members Intent" slider in the Bot tab.   
+5. Turn on the "Server Members Intent" slider in the Bot tab.
 6. If you don't have a private Discord server to test in, make one.
 7. Grab the 'Application ID' from the 'General Information' tab of the Discord
    application you created (different from your bot token!)
@@ -43,6 +43,11 @@ server, in the `#code-of-conduct` channel.
    **step 8**.
 10. Go to the URL and accept any prompts.
 11. Run the bot through Docker using the commands below.
+
+### Issue tracker configuration
+Cryptogull uses an app password to authenticate with the Bitbucket issue tracker.
+
+More info can be found at https://support.atlassian.com/bitbucket-cloud/docs/app-passwords/.
 
 ## Example docker commands
 To build and run the bot:

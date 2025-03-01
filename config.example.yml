@@ -27,8 +27,8 @@ Bugs:
   fail reaction: ⚠️
   title max length: 80
   endpoint: https://api.bitbucket.org/2.0/repositories/test/test-issue-tracker/issues
-  oauth2 key: xxxxxxxxxxxxxxxxxx
-  oauth2 secret: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  bot username: xxxxxxxxxxxxxxxxxx
+  bot password: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 Decode:
   channels: [            # Channels to listen for character build codes in:
