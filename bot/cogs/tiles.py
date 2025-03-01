@@ -76,7 +76,7 @@ class Tiles(Cog):
         """
         name, args = get_random_tile_name(*args)
         log.info(f"Selected random tile blueprint: {name}")
-        return await(process_tile_request(ctx, name, *args, reading=reading))
+        return await process_tile_request(ctx, name, *args, reading=reading)
 
     @command()
     async def hologram(self, ctx: Context, *args):

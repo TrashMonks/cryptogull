@@ -117,7 +117,7 @@ class Corpus:
             str1 = "lost masterwork pistol"
 
         str2 = f"{secretpt2[random.randint(0, len(secretpt2)-1)]}"\
-            f" {random.randint(1,20)} parasangs {direction} of {location}"
+            f" {random.randint(1, 20)} parasangs {direction} of {location}"
 
         return f"{str1}, {str2}."
 

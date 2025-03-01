@@ -12,8 +12,8 @@ from typing import Optional
 from discord import Message
 from discord.ext.commands import Bot, Cog, Context, command
 
-from bot.helpers.wiki_page import send_single_wiki_page, send_wiki_page_list,\
-    send_wiki_error_message, get_wiki_namespaces, api_opensearch, api_query_list_search,\
+from bot.helpers.wiki_page import send_single_wiki_page, send_wiki_page_list, \
+    send_wiki_error_message, get_wiki_namespaces, api_opensearch, api_query_list_search, \
     merge_wikipage_results
 from bot.shared import config, http_session
 
