@@ -21,6 +21,8 @@ server, in the `#code-of-conduct` channel.
 1. Clone this repository. You need Docker installed.
 2. Create a `config.yml` in your project directory from the provided
    `config.example.yml`.
+   2a. The Qud install folder is the location of the install in the docker
+       container, not your actual game file.
 3. Log in to the [Discord Developer
    Portal](https://discordapp.com/developers/applications/) and create a new
    application. The name of the application is not your bot's username.
@@ -50,12 +52,19 @@ Cryptogull uses an app password to authenticate with the Bitbucket issue tracker
 More info can be found at https://support.atlassian.com/bitbucket-cloud/docs/app-passwords/.
 
 ## Example docker commands
+If on Linux, and the docker daemon is not running already:
+
+```bash
+sudo dockerd
+```
+
 To build and run the bot:
 
 ```bash
 docker build . -t cryptogull:latest
 docker run -it --rm -v ./config.yml:/home/cryptogull/config.yml -v "C:\Steam\steamapps\common\Caves of Qud":"/home/cryptogull/Caves of Qud" -v ./Textures:/home/cryptogull/Textures --name cryptogull cryptogull:latest
 ```
+Replace "C:\Steam\.." with your own game installation location.
 
 This attaches the config file, game data folder, and tile art folder as volumes
 inside the running container.
