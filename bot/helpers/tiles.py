@@ -8,7 +8,7 @@ from functools import partial
 
 from hagadias.constants import QUD_COLORS
 from hagadias.qudtile import QudTile
-from hagadias.tileanimator import TileAnimator, GifHelper
+from hagadias.tileanimator import TileAnimator, GifHelper, StandInTiles
 
 from bot.helpers.find_blueprints import find_name_or_displayname, fuzzy_find_nearest
 from bot.helpers.tile_variations import parse_variation_parameters, get_tile_variation_details
@@ -100,8 +100,9 @@ async def get_tile_data(*args,
         colorstring = tile.colorstring
         qudname = tile.qudname
         raw_transparent = tile.raw_transparent
+        tile_provider = StandInTiles.get_tile_provider_for(obj)
         tile = QudTile(filename, colorstring, colors[0], colors[1], qudname,
-                       raw_transparent)
+                       raw_transparent, image_provider=tile_provider)
     if gif_bytesio is not None:
         filedata = gif_bytesio
     elif smalltile:
