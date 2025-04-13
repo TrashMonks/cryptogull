@@ -185,7 +185,10 @@ def get_bytesio_for_object(qud_object, qud_tile: QudTile, hologram=False):
 
 
 def get_random_tile_name(*args):
-    names = [name for name, obj in qindex.items() if obj.tile is not None and obj.source_file.name != 'HiddenObjects.xml']
+    names = [
+        name for name, obj in qindex.items()
+        if obj.tile is not None and obj.source_file.name != 'HiddenObjects.xml'
+    ]
     name = random.choice(names)
     obj = qindex[name]
     if obj.number_of_tiles() > 1:
