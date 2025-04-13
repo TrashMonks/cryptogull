@@ -8,7 +8,7 @@ from functools import partial
 
 from hagadias.constants import QUD_COLORS
 from hagadias.qudtile import QudTile
-from hagadias.tileanimator import TileAnimator, GifHelper
+from hagadias.tileanimator import TileAnimator, GifHelper, StandInTiles
 
 from bot.helpers.find_blueprints import find_name_or_displayname, fuzzy_find_nearest
 from bot.helpers.tile_variations import parse_variation_parameters, get_tile_variation_details
@@ -100,8 +100,9 @@ async def get_tile_data(*args,
         colorstring = tile.colorstring
         qudname = tile.qudname
         raw_transparent = tile.raw_transparent
+        tile_provider = StandInTiles.get_tile_provider_for(obj)
         tile = QudTile(filename, colorstring, colors[0], colors[1], qudname,
-                       raw_transparent)
+                       raw_transparent, image_provider=tile_provider)
     if gif_bytesio is not None:
         filedata = gif_bytesio
     elif smalltile:
@@ -184,12 +185,12 @@ def get_bytesio_for_object(qud_object, qud_tile: QudTile, hologram=False):
 
 
 def get_random_tile_name(*args):
-    names = list(qindex)
-    name = 'Object'
-    obj = qindex['Object']
-    while obj.tile is None:
-        name = random.choice(names)
-        obj = qindex[name]
+    names = [
+        name for name, obj in qindex.items()
+        if obj.tile is not None and obj.source_file.name != 'HiddenObjects.xml'
+    ]
+    name = random.choice(names)
+    obj = qindex[name]
     if obj.number_of_tiles() > 1:
         if 'variation' not in args:
             args = ('variation',) + args
