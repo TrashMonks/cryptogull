@@ -6,22 +6,23 @@ Log folder: logs
 # Game installation to read from:
 Qud install folder: C:\Steam\steamapps\common\Caves of Qud
 
-
 #############################
 # Configs for individual cogs
 #############################
 Bugs:
-  channels: [            # Channels to listen for bug reacts in:
-    449667247297003520,  # #bugs
-    459482205635215360,  # #beta-bugs
-    449312747683971072,  # #modding
-  ]
-  allowed roles: [       # Roles that can open a new issue via react:
-    443578758629425152,  # Sultan
-    447173558330982400,  # Mayor
-    579024675598761995,  # Tinker
-    707378307649241210,  # Bug Herder
-  ]
+  channels: # Channels to listen for bug reacts in:
+    [
+      449667247297003520, # #bugs
+      459482205635215360, # #beta-bugs
+      449312747683971072, # #modding
+    ]
+  allowed roles: # Roles that can open a new issue via react:
+    [
+      443578758629425152, # Sultan
+      447173558330982400, # Mayor
+      579024675598761995, # Tinker
+      707378307649241210, # Bug Herder
+    ]
   trigger: 🐛
   success reaction: ☑
   fail reaction: ⚠️
@@ -31,16 +32,18 @@ Bugs:
   bot password: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 Decode:
-  channels: [            # Channels to listen for character build codes in:
-    449342897788026882,  # #character-builds
-    571405896597635073,  # #build-club
-    716755952967352420,  # #bot-spam
-    482714670860468234,  # #trash-divining
-  ]
+  channels: # Channels to listen for character build codes in:
+    [
+      449342897788026882, # #character-builds
+      571405896597635073, # #build-club
+      716755952967352420, # #bot-spam
+      482714670860468234, # #trash-divining
+    ]
   # ignoring bots should be redundant, but specify anyway
-  ignore: [              # Users to ignore:
-    502293569764327444,  # Cryptogull
-  ]
+  ignore: # Users to ignore:
+    [
+      502293569764327444, # Cryptogull
+    ]
 
 Reddit:
   client ID: xxxxxxxxxxxxxx
@@ -61,3 +64,8 @@ Wiki:
   site: wiki.cavesofqud.com
   basic search limit: 10
   fulltext search limit: 5
+
+Orb:
+  ignore: [
+      502293569764327444, # Cryptogull
+    ]
