@@ -55,7 +55,7 @@ def drawttf(saying, bordertype='-popupclassic', dialog_title='') -> Image:
     # determine image dimensions
     base_pxwidth = MINW * CHARSIZE[0]
     text_pxwidth = sayingx
-    title_pxwidth = (CHARSIZE[1] * len(f'[ {dialog_title} ]') if
+    title_pxwidth = (CHARSIZE[0] * len(f'[ {dialog_title} ]') if
                      border_kind == DIALOGUECLASSIC else 0)
     pxwidth = max(base_pxwidth, text_pxwidth, title_pxwidth)
     pad_pxwidth = pxwidth + (2 * ABSINNERPAD[0])
