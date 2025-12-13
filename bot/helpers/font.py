@@ -47,17 +47,19 @@ def drawttf(saying, bordertype='-popupclassic', dialog_title='') -> Image:
     # we will use the plain text wrapped by TextWrapper to count real characters on each line,
     # then draw those characters using the parsed-out per-character color codes:
     plain_text_for_sizing = '\n'.join(text_lines)
-    sayingdim = FONT.getsize_multiline(plain_text_for_sizing, spacing=-1)
+    # Since we always use a monospaced font we can calulate the text width and height
+    sayingx = CHARSIZE[0] * max(list(map(lambda line: len(line), text_lines)))
+    sayingy = CHARSIZE[1] * len(text_lines)
     # determine border type
     border_kind = determineborder(bordertype)
     # determine image dimensions
     base_pxwidth = MINW * CHARSIZE[0]
-    text_pxwidth = sayingdim[0]
-    title_pxwidth = (FONT.getsize(f'[ {dialog_title} ]')[0] if
+    text_pxwidth = sayingx
+    title_pxwidth = (CHARSIZE[1] * len(f'[ {dialog_title} ]') if
                      border_kind == DIALOGUECLASSIC else 0)
     pxwidth = max(base_pxwidth, text_pxwidth, title_pxwidth)
     pad_pxwidth = pxwidth + (2 * ABSINNERPAD[0])
-    pad_pxheight = sayingdim[1] + (2 * ABSINNERPAD[1])
+    pad_pxheight = sayingy + (2 * ABSINNERPAD[1])
     imgdim = (pad_pxwidth, pad_pxheight)
     # create and draw image
     image = Image.new(mode='RGBA', size=imgdim, color=QUD_VIRIDIAN)
@@ -138,25 +140,25 @@ def drawpopupclassic(draw, imgdim, padding, charsize):
     draw.rectangle([(padding, padding + 4),
                     (padding + charsize[0], padding + charsize[1])],
                    fill='#b1c9c3')
-    draw.rectangle([(padding, imgdim[1] - padding),
-                    (padding + charsize[0], imgdim[1] - padding - charsize[1])],
+    draw.rectangle([(padding, imgdim[1] - padding - charsize[1]),
+                    (padding + charsize[0], imgdim[1] - padding)],
                    fill='#b1c9c3')
-    draw.rectangle([(imgdim[0] - padding, padding + 4),
-                    (imgdim[0] - padding - charsize[0],
-                     padding + charsize[1])], fill='#b1c9c3')
-    draw.rectangle([(imgdim[0] - padding, imgdim[1] - padding),
-                    (imgdim[0] - padding - charsize[0],
-                     imgdim[1] - padding - charsize[1])], fill='#b1c9c3')
+    draw.rectangle([(imgdim[0] - padding- charsize[0], padding + 4),
+                    (imgdim[0] - padding, padding + charsize[1])], 
+                   fill='#b1c9c3')
+    draw.rectangle([(imgdim[0] - padding - charsize[0], imgdim[1] - padding - charsize[1]),
+                    (imgdim[0] - padding, imgdim[1] - padding)], 
+                   fill='#b1c9c3')
 
     # draw "press space"
     text1 = '[press space]'
-    text1dim = FONT.getsize(text1)
-    draw.rectangle([((imgdim[0] - text1dim[0]) / 2 - 1, imgdim[1]),
-                    ((imgdim[0] + text1dim[0]) / 2 + 1, imgdim[1] - padding - charsize[1])],
+    text1dim = FONT.getbbox(text1)
+    draw.rectangle([((imgdim[0] - text1dim[2]) / 2 - 1, imgdim[1] - padding - charsize[1]),
+                    ((imgdim[0] + text1dim[2]) / 2 + 1, imgdim[1])],
                    fill='#0f3b3a')
-    draw.multiline_text(((imgdim[0] - text1dim[0]) / 2, imgdim[1] - padding - charsize[1] - 5),
+    draw.multiline_text(((imgdim[0] - text1dim[2]) / 2, imgdim[1] - padding - charsize[1] - 5),
                         '[press      ]', font=FONT, fill='#b1c9c3')
-    draw.multiline_text(((imgdim[0] - text1dim[0]) / 2 + FONT.getsize('[press ')[0],
+    draw.multiline_text(((imgdim[0] - text1dim[2]) / 2 + FONT.getbbox('[press ')[2],
                          imgdim[1] - padding - charsize[1] - 5), 'space', font=FONT, fill='#cfc041')
     return draw
 
@@ -168,13 +170,13 @@ def drawdialogueclassic(draw, imgdim, padding, charsize, title):
     # draw person speaking. If title isn't specified, don't draw
     if title is not None and title != '':
         plain_title = strip_newstyle_qud_colors(title)
-        textdim = FONT.getsize(f'[ {plain_title} ]')
+        textdim = FONT.getbbox(f'[ {plain_title} ]')
         draw.rectangle([(charsize[0] * 2 + padding, 0),
-                        (charsize[0] * 2 + padding + textdim[0], textdim[1] + padding)],
+                        (charsize[0] * 2 + padding + textdim[2], textdim[3] + padding)],
                        fill=QUD_VIRIDIAN)
         draw.text((charsize[0] * 2 + padding, 0), '[', font=FONT, fill=QUD_WHITE)
-        draw.text((charsize[0] + padding + textdim[0], 0), ']', font=FONT, fill=QUD_WHITE)
-        cur_x = charsize[0] * 2 + padding + FONT.getsize('[ ')[0]
+        draw.text((charsize[0] + padding + textdim[2], 0), ']', font=FONT, fill=QUD_WHITE)
+        cur_x = charsize[0] * 2 + padding + FONT.getbbox('[ ')[2]
         if plain_title != title:
             for char, code in iter_qud_colors(title, game_colors):
                 if code is None:
@@ -182,9 +184,9 @@ def drawdialogueclassic(draw, imgdim, padding, charsize, title):
                 else:
                     color = constants.QUD_COLORS[code]
                 draw.text((cur_x, 0), char, font=FONT, fill=color)
-                cur_x += CHARSIZE[0]
+                cur_x += charsize[0]
         else:
             # didn't use any color shaders
-            draw.text((charsize[0] * 2 + padding + FONT.getsize('[ ')[0], 0),
+            draw.text((charsize[0] * 2 + padding + FONT.getbbox('[ ')[2], 0),
                       title, font=FONT, fill=QUD_YELLOW)
     return draw
