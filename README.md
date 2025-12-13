@@ -31,21 +31,21 @@ server, in the `#code-of-conduct` channel.
    bot token. Copy this token into the `Discord token:` field in `config.yml`.
 5. Turn on the "Server Members Intent" and "Message Content Intent" sliders in
    the Bot tab.
-7. If you don't have a private Discord server to test in, make one.
-8. Grab the 'Application ID' from the 'General Information' tab of the Discord
+6. If you don't have a private Discord server to test in, make one.
+7. Grab the 'Application ID' from the 'General Information' tab of the Discord
    application you created (different from your bot token!)
-9. Grab the permissions number you need from the 'Bot' tab of the Discord
+8. Grab the permissions number you need from the 'Bot' tab of the Discord
    application you created. This should be 100352, which is the number created
    by checking the 'Send Messages', 'Attach Files', and 'Read Message History'
    checkboxes. If you're developing features that use higher permissions, check
    those permission boxes as well and use the permissions number created by
    doing that.
-10. Craft a URL to join your bot to your server. The format is
+9. Craft a URL to join your bot to your server. The format is
    `https://discordapp.com/api/oauth2/authorize?client_id=xxxxxxxxxxxxxxxxxx&scope=bot&permissions=y`
    where the `x`s are the number from **step 7**, and `y` is the number from
    **step 8**.
-11. Go to the URL and accept any prompts.
-12. Run the bot through Docker using the commands below.
+10. Go to the URL and accept any prompts.
+11. Run the bot through Docker using the commands below.
 
 ### Issue tracker configuration
 Cryptogull uses an app password to authenticate with the Bitbucket issue tracker.
