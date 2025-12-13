@@ -29,7 +29,8 @@ server, in the `#code-of-conduct` channel.
 4. Skip directly to the "Bot" tab of the application you created. Set the icon
    and username here. These can be changed later. Click the button to reveal the
    bot token. Copy this token into the `Discord token:` field in `config.yml`.
-5. Turn on the "Server Members Intent" slider in the Bot tab.
+5. Turn on the "Server Members Intent" and "Message Content Intent" sliders in
+   the Bot tab.
 6. If you don't have a private Discord server to test in, make one.
 7. Grab the 'Application ID' from the 'General Information' tab of the Discord
    application you created (different from your bot token!)
@@ -64,7 +65,8 @@ To build and run the bot:
 docker build . -t cryptogull:latest
 docker run -it --rm -v ./config.yml:/home/cryptogull/config.yml -v "C:\Steam\steamapps\common\Caves of Qud":"/home/cryptogull/Caves of Qud" -v ./Textures:/home/cryptogull/Textures --name cryptogull cryptogull:latest
 ```
-Replace "C:\Steam\.." with your own game installation location.
+Replace "C:\Steam\.." with your own game installation location. 
+"/home/cryptogull/Caves of Qud" should match your `Qud install folder` config value.
 
 This attaches the config file, game data folder, and tile art folder as volumes
 inside the running container.
