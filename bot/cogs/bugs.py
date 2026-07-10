@@ -16,7 +16,7 @@ class Bugs(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
         self.config = config['Bugs']
-        self.auth = aiohttp.BasicAuth(self.config['bot username'], self.config['bot password'])
+        self.token = self.config['bot token']
 
     @Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
@@ -78,17 +78,14 @@ Message ([jump](https://discordapp.com/channels/{ctx.guild.id}/{ctx.channel.id}/
 > <{ctx.author.display_name}> {message}
 """
         params = {
-            'state': 'new',
-            'kind': 'bug',
-            'priority': 'trivial',
             'title': f'[#{ctx.channel}] {title}',
-            'content': {
-                'raw': content
-            }
+            'description': content,
+            'labels': 'source::cryptogull',
         }
+        headers = {'PRIVATE-TOKEN': self.token}
         async with http_session.post(self.config['endpoint'],
-                                     auth=self.auth,
-                                     json=params) as request:
+                                     json=params,
+                                     headers=headers) as request:
             response = await request.json()
         return response
 
@@ -101,4 +98,4 @@ Message ([jump](https://discordapp.com/channels/{ctx.guild.id}/{ctx.channel.id}/
             data = aiohttp.FormData()
             data.add_field('file', stream, filename=attachment.filename)
             url = f'{self.config["endpoint"]}/{issue_id}/attachments'
-            await http_session.post(url, auth=self.auth, data=data)
+            await http_session.post(url, data=data)
