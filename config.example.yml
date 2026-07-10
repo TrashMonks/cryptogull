@@ -26,7 +26,8 @@ Bugs:
   success reaction: ☑
   fail reaction: ⚠️
   title max length: 80
-  endpoint: https://api.bitbucket.org/2.0/repositories/test/test-issue-tracker/issues
+  endpoint: https://gitlab.com/api/v4/projects/[project id]/issues
+  uploads endpoint: https://gitlab.com/api/v4/projects/[project id]/uploads
   bot username: xxxxxxxxxxxxxxxxxx
   bot password: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 

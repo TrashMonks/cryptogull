@@ -1,3 +1,4 @@
+from typing import List
 import io
 import logging
 
@@ -17,6 +18,7 @@ class Bugs(Cog):
         self.bot = bot
         self.config = config['Bugs']
         self.token = self.config['bot token']
+        self.headers = {'PRIVATE-TOKEN': self.token}
 
     @Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
@@ -44,8 +46,15 @@ class Bugs(Cog):
         if not any(role.id in self.config['allowed roles'] for role in reacter.roles):
             log.info('Not allowed due to lacking roles.')
             return
+        # attachments
+        attachments = []
         try:
-            response = await self.create_bitbucket_issue(ctx, reacter)
+            attachments = await self.upload_issue_attachments(ctx)
+        except Exception as e:
+            log.exception(e)
+        # issue
+        try:
+            response = await self.create_issue(ctx, reacter, attachments)
             assert response["type"] != "error", "Received error response: " + str(response)
         except Exception as e:
             log.exception(e)
@@ -57,16 +66,11 @@ class Bugs(Cog):
                 await message.remove_reaction(self.config['fail reaction'], self.bot.user)
         await ctx.message.add_reaction(self.config['success reaction'])
         log.info(f'Successfully created issue #{response["id"]}.')
-        # attachments
-        try:
-            await self.upload_issue_attachments(ctx, response['id'])
-        except Exception as e:
-            log.exception(e)
 
-    async def create_bitbucket_issue(self, ctx: Context, requester: discord.User):
-        """Create a Bitbucket issue regarding the given Discord Context.
+    async def create_issue(self, ctx: Context, requester: discord.User, attachments : List[str]):
+        """Create an issue regarding the given Discord Context.
 
-        Return the Bitbucket API response."""
+        Return the API response."""
         title = ctx.message.clean_content
         if len(title) > self.config['title max length']:
             title = title[:self.config['title max length']] + "..."
@@ -76,26 +80,37 @@ class Bugs(Cog):
 Message ([jump](https://discordapp.com/channels/{ctx.guild.id}/{ctx.channel.id}/{ctx.message.id})):
 
 > <{ctx.author.display_name}> {message}
+
+# Attachments
+
+{'\n'.join(attachments)}
 """
         params = {
             'title': f'[#{ctx.channel}] {title}',
             'description': content,
             'labels': 'source::cryptogull',
         }
-        headers = {'PRIVATE-TOKEN': self.token}
         async with http_session.post(self.config['endpoint'],
                                      json=params,
-                                     headers=headers) as request:
+                                     headers=self.headers) as request:
             response = await request.json()
         return response
 
-    async def upload_issue_attachments(self, ctx: Context, issue_id: int):
+    async def upload_issue_attachments(self, ctx: Context):
         """Upload any attachments from the given Discord Context to the issue ID."""
+        results = []
+
         for num, attachment in enumerate(ctx.message.attachments):
             log.info(f'Uploading attachment {num}: {attachment.filename} ({attachment.size} bytes)')
             stream = io.BytesIO()
             await attachment.save(stream, seek_begin=True)
             data = aiohttp.FormData()
             data.add_field('file', stream, filename=attachment.filename)
-            url = f'{self.config["endpoint"]}/{issue_id}/attachments'
-            await http_session.post(url, data=data)
+            url = self.config['uploads endpoint']
+
+            async with http_session.post(url, data=data, headers=self.headers) as response:
+                responseDict = await response.json()
+                print(responseDict)
+                results.append(responseDict['markdown'])
+
+        return results

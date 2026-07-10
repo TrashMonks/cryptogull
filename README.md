@@ -48,9 +48,9 @@ server, in the `#code-of-conduct` channel.
 11. Run the bot through Docker using the commands below.
 
 ### Issue tracker configuration
-Cryptogull uses an app password to authenticate with the Bitbucket issue tracker.
+Cryptogull uses a token to authenticate with the GitLab issue tracker.
 
-More info can be found at https://support.atlassian.com/bitbucket-cloud/docs/app-passwords/.
+More info can be found at https://docs.gitlab.com/security/tokens/.
 
 ## Example docker commands
 If on Linux, and the docker daemon is not running already:
