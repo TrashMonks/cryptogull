@@ -81,8 +81,6 @@ Message ([jump](https://discordapp.com/channels/{ctx.guild.id}/{ctx.channel.id}/
 
 > <{ctx.author.display_name}> {message}
 
-# Attachments
-
 {'\n'.join(attachments)}
 """
         params = {
