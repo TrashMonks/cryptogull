@@ -79,7 +79,7 @@ class Bugs(Cog):
 
 Message ([jump](https://discordapp.com/channels/{ctx.guild.id}/{ctx.channel.id}/{ctx.message.id})):
 
-> <{ctx.author.display_name}> {message}
+> \\<{ctx.author.display_name}\\> {message}
 
 {'\n'.join(attachments)}
 """
