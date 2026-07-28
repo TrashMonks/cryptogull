@@ -54,8 +54,8 @@ class Bugs(Cog):
             log.exception(e)
         # issue
         try:
-            response = await self.create_issue(ctx, reacter, attachments)
-            assert response["type"] != "error", "Received error response: " + str(response)
+            (status, data) = await self.create_issue(ctx, reacter, attachments)
+            assert status in range(200, 300), "Received response with status " + str(status) + ": " + str(data)
         except Exception as e:
             log.exception(e)
             return await ctx.message.add_reaction(self.config['fail reaction'])
@@ -90,9 +90,9 @@ Message ([jump](https://discordapp.com/channels/{ctx.guild.id}/{ctx.channel.id}/
         }
         async with http_session.post(self.config['endpoint'],
                                      json=params,
-                                     headers=self.headers) as request:
-            response = await request.json()
-        return response
+                                     headers=self.headers) as response:
+            data = await response.json()
+        return (response.status, data)
 
     async def upload_issue_attachments(self, ctx: Context):
         """Upload any attachments from the given Discord Context to the issue ID."""
