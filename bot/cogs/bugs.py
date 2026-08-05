@@ -54,8 +54,10 @@ class Bugs(Cog):
             log.exception(e)
         # issue
         try:
-            (status, data) = await self.create_issue(ctx, reacter, attachments)
-            assert status in range(200, 300), "Received response with status " + str(status) + ": " + str(data)
+            (status, responseContent) = await self.create_issue(ctx, reacter, attachments)
+            if 'needs_captcha_response' in responseContent:
+                await ctx.message.add_reaction(self.config['spam reaction'])
+            assert status in range(200, 300), "Received response with status " + str(status) + ": " + str(responseContent)
         except Exception as e:
             log.exception(e)
             return await ctx.message.add_reaction(self.config['fail reaction'])
@@ -65,7 +67,7 @@ class Bugs(Cog):
             if reaction.emoji == self.config['fail reaction'] and reaction.me:
                 await message.remove_reaction(self.config['fail reaction'], self.bot.user)
         await ctx.message.add_reaction(self.config['success reaction'])
-        log.info(f'Successfully created issue #{response["id"]}.')
+        log.info(f'Successfully created issue #{responseContent["id"]}.')
 
     async def create_issue(self, ctx: Context, requester: discord.User, attachments : List[str]):
         """Create an issue regarding the given Discord Context.
@@ -91,8 +93,8 @@ Message ([jump](https://discordapp.com/channels/{ctx.guild.id}/{ctx.channel.id}/
         async with http_session.post(self.config['endpoint'],
                                      json=params,
                                      headers=self.headers) as response:
-            data = await response.json()
-        return (response.status, data)
+            responseContent = await response.json()
+        return (response.status, responseContent)
 
     async def upload_issue_attachments(self, ctx: Context):
         """Upload any attachments from the given Discord Context to the issue ID."""
