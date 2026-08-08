@@ -19,6 +19,7 @@ from bot.cogs.say import Say
 from bot.cogs.theinherentlyindescribablenatureoftheuniverse import Theinherentlyindescribablenatureoftheuniverse # noqa E501
 from bot.cogs.tiles import Tiles
 from bot.cogs.wiki import Wiki
+from bot.cogs.orb import Orb
 
 from bot.shared import config
 
@@ -76,6 +77,7 @@ def main():
     bot.add_cog(Theinherentlyindescribablenatureoftheuniverse(bot))
     bot.add_cog(Tiles(bot))
     bot.add_cog(Wiki(bot))
+    bot.add_cog(Orb(bot))
     bot.run(config['Discord token'])
 
 
